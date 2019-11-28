@@ -1,0 +1,83 @@
+download_deps:
+  image: python:3.6
+  stage: download_deps
+  before_script:
+    - mkdir -p ~/.pip
+    - |
+      cat > ~/.pip/pip.conf << EOF
+      [global]
+      extra-index-url = ${NEXUS_PYPI_PULL_URL}
+      EOF
+    - pip install virtualenv
+    - virtualenv env
+    - . ./env/bin/activate
+  script:
+    - pip install -r dev.requirements.txt
+  artifacts:
+    paths:
+      - "env"
+    expire_in: 1 hour
+  tags:
+    - docker
+
+test:
+  image: python:3.6
+  stage: test
+  dependencies:
+    - download_deps
+  before_script:
+    - . ./env/bin/activate
+  script:
+    - py.test --cov-report term --cov=illuin_inject ./tests
+  coverage: '/\d+\%\s*$/'
+  tags:
+    - docker
+
+lint:
+  image: python:3.6
+  stage: test
+  dependencies:
+    - download_deps
+  before_script:
+    - . ./env/bin/activate
+  script:
+    - pylint --load-plugins pylint_quotes illuin_inject
+  tags:
+    - docker
+
+deploy:
+  image: python:3.6
+  stage: deploy
+  dependencies:
+    - download_deps
+  before_script:
+    - |
+      cat > ~/.pypirc << EOF
+      [distutils]
+      index-servers =
+        pypi
+        nexus
+
+      [pypi] # https://www.python.org/pypi
+      username:
+      password:
+
+      [nexus]
+      repository: ${NEXUS_PYPI_PUSH_URL}
+      username: ${NEXUS_PYPI_PUSH_USERNAME}
+      password: ${NEXUS_PYPI_PUSH_PASSWORD}
+      EOF
+    - . ./env/bin/activate
+  script:
+    - sed -i "s#version=\"DEV\",#version=\"${CI_COMMIT_TAG}\",#g" setup.py
+    - python setup.py sdist bdist_wheel
+    - twine upload -r nexus dist/illuin[-_]inject-${CI_COMMIT_TAG}*
+  tags:
+    - docker
+  only:
+    - tags
+
+stages:
+  - download_deps
+  - test
+  - deploy
