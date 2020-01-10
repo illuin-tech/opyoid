@@ -28,7 +28,7 @@ test:
   before_script:
     - . ./env/bin/activate
   script:
-    - py.test --cov-report term --cov=illuin_inject ./tests
+    - py.test --cov-report term --cov=illuin_inject ./tests ./tests_e2e
   coverage: '/\d+\%\s*$/'
   tags:
     - docker
@@ -41,7 +41,7 @@ lint:
   before_script:
     - . ./env/bin/activate
   script:
-    - pylint --load-plugins pylint_quotes illuin_inject
+    - pylint --load-plugins pylint_quotes illuin_inject ./tests ./tests_e2e
   tags:
     - docker
 
