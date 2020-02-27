@@ -41,7 +41,8 @@ lint:
   before_script:
     - . ./env/bin/activate
   script:
-    - pylint --load-plugins pylint_quotes illuin_inject ./tests ./tests_e2e
+    - pylint --load-plugins pylint_quotes illuin_inject
+    - pylint --load-plugins pylint_quotes illuin_inject ./tests ./tests_e2e --disable=too-many-public-methods
   tags:
     - docker
 

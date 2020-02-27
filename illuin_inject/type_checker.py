@@ -1,22 +1,39 @@
-from typing import GenericMeta, List, Type, Union
+from typing import GenericMeta, List, Set, Tuple, Type, Union
+
+from .annotated import Annotated
 
 
 # noinspection PyUnresolvedReferences
 class TypeChecker:
     @staticmethod
-    def is_list(annotation: Type):
-        """Returns True if annotation is List[<Any>]"""
-        return isinstance(annotation, GenericMeta) and annotation.__origin__ == List
+    def is_list(target_type: Type) -> bool:
+        """Returns True if target_type is List[<Any>]"""
+        return isinstance(target_type, GenericMeta) and target_type.__origin__ == List
 
     @staticmethod
-    def is_optional(annotation: Type):
-        """Returns True if annotation is Optional[<Any>]"""
-        return hasattr(annotation, "__origin__") \
-               and annotation.__origin__ == Union \
-               and len(annotation.__args__) == 2 \
-               and isinstance(None, annotation.__args__[1])
+    def is_set(target_type: Type) -> bool:
+        """Returns True if target_type is Set[<Any>]"""
+        return isinstance(target_type, GenericMeta) and target_type.__origin__ == Set
 
     @staticmethod
-    def is_type(annotation: Type):
-        """Returns True if annotation is Type[<Any>]"""
-        return isinstance(annotation, GenericMeta) and annotation.__origin__ == Type
+    def is_tuple(target_type: Type) -> bool:
+        """Returns True if target_type is Tuple[<Any>]"""
+        return isinstance(target_type, GenericMeta) and target_type.__origin__ == Tuple
+
+    @staticmethod
+    def is_annotated(target_type: Type) -> bool:
+        """Returns True if target_type is Annotated[<Any>]"""
+        return issubclass(target_type, Annotated)
+
+    @staticmethod
+    def is_optional(target_type: Type) -> bool:
+        """Returns True if target_type is Optional[<Any>]"""
+        return hasattr(target_type, "__origin__") \
+               and target_type.__origin__ == Union \
+               and len(target_type.__args__) == 2 \
+               and isinstance(None, target_type.__args__[1])
+
+    @staticmethod
+    def is_type(target_type: Type) -> bool:
+        """Returns True if target_type is Type[<Any>]"""
+        return isinstance(target_type, GenericMeta) and target_type.__origin__ == Type

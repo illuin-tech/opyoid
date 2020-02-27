@@ -1,13 +1,13 @@
 import logging
 from inspect import Parameter, signature
 from threading import Lock
-from typing import List, Optional, Type, Iterable
+from typing import Iterable, List, Optional, Type
 
-from illuin_inject.scopes import Scope
-from .binding_registry import BindingRegistry
+from .binding_registry import BindingRegistry, Target
 from .bindings import Binding, ClassBinding, InstanceBinding
 from .dependency_graph import BindingNode, CollectionBindingNode, DependencyGraph, ParameterNode, SimpleBindingNode
-from .exceptions import NoBindingFound, NonInjectableTypeError, BindingError
+from .exceptions import BindingError, NoBindingFound, NonInjectableTypeError
+from .scopes import Scope
 from .type_checker import TypeChecker
 from .typings import InjectedT
 
@@ -27,30 +27,32 @@ class GraphBuilder:
     def get_dependency_graph(self) -> DependencyGraph:
         with self._lock:
             self._dependency_graph = DependencyGraph()
-            for target_type in self._binding_registry.get_bindings_by_target_type():
-                self._get_and_save_binding_nodes(target_type)
+            for target in self._binding_registry.get_bindings_by_target():
+                self._get_and_save_binding_nodes(target)
             return self._dependency_graph
 
-    def _get_and_save_binding_nodes(self, target_type: Type[InjectedT]) -> List[BindingNode]:
-        binding_nodes = self._get_binding_nodes(target_type)
+    def _get_and_save_binding_nodes(self, target: Target[InjectedT]) -> List[BindingNode]:
+        binding_nodes = self._get_binding_nodes(target)
         # pylint: disable=unsupported-assignment-operation
-        self._dependency_graph.binding_nodes_by_type[target_type] = binding_nodes
+        self._dependency_graph.binding_nodes_by_target[target] = binding_nodes
         return binding_nodes
 
-    def _get_binding_nodes(self, target_type: Type[InjectedT]) -> List[BindingNode]:
+    def _get_binding_nodes(self, target: Target[InjectedT]) -> List[BindingNode]:
         # pylint: disable=unsupported-membership-test,unsubscriptable-object
-        if target_type in self._dependency_graph.binding_nodes_by_type:
-            return self._dependency_graph.binding_nodes_by_type[target_type]
-        bindings = self._binding_registry.get_bindings(target_type)
+        if target in self._dependency_graph.binding_nodes_by_target:
+            return self._dependency_graph.binding_nodes_by_target[target]
+        bindings = self._binding_registry.get_bindings(target)
         if bindings:
             return [self._get_binding_node_from_binding(binding) for binding in bindings]
-        if TypeChecker.is_list(target_type):
-            return [CollectionBindingNode(self._get_and_save_binding_nodes(target_type.__args__[0]))]
-        if TypeChecker.is_optional(target_type):
-            return self._get_binding_nodes(target_type.__args__[0])
-        if TypeChecker.is_type(target_type):
-            return self._get_binding_nodes_from_type(target_type)
-        raise NoBindingFound(f"Could not find any bindings for {target_type}")
+        if TypeChecker.is_list(target.type):
+            new_target = Target(target.type.__args__[0], target.annotation)
+            return [CollectionBindingNode(self._get_and_save_binding_nodes(new_target))]
+        if TypeChecker.is_optional(target.type):
+            new_target = Target(target.type.__args__[0], target.annotation)
+            return self._get_binding_nodes(new_target)
+        if TypeChecker.is_type(target.type):
+            return self._get_binding_nodes_from_type(target)
+        raise NoBindingFound(f"Could not find any bindings for {target}")
 
     def _get_binding_node_from_binding(self, binding: Binding[InjectedT]) -> SimpleBindingNode[Binding[InjectedT]]:
         binding_node = SimpleBindingNode(binding)
@@ -78,10 +80,14 @@ class GraphBuilder:
 
     def _get_parameter_node(self, parameter: Parameter) -> ParameterNode:
         if parameter.annotation is not Parameter.empty:
+            if TypeChecker.is_annotated(parameter.annotation):
+                target = Target(parameter.annotation.original_type, parameter.annotation.annotation)
+            else:
+                target = Target(parameter.annotation, None)
             try:
                 return ParameterNode(
                     parameter,
-                    self._get_and_save_binding_nodes(parameter.annotation)[-1]
+                    self._get_and_save_binding_nodes(target)[-1]
                 )
             except NoBindingFound:
                 pass
@@ -90,18 +96,18 @@ class GraphBuilder:
                                          f"{parameter.annotation} required by {self._current_class_binding.bound_type}")
         return self._get_parameter_node_from_default(parameter)
 
-    def _get_binding_nodes_from_type(self, target_type: Type[Type[InjectedT]]) -> List[BindingNode]:
-        cls_type = target_type.__args__[0]
+    def _get_binding_nodes_from_type(self, target: Target[Type[InjectedT]]) -> List[BindingNode]:
+        new_target = Target(target.type.__args__[0], target.annotation)
         cls_bindings = [
             binding
-            for binding in self._binding_registry.get_bindings(cls_type)
+            for binding in self._binding_registry.get_bindings(new_target)
             if isinstance(binding, ClassBinding)
         ]
         if not cls_bindings:
-            raise NoBindingFound(f"Could not find any binding for {target_type}")
+            raise NoBindingFound(f"Could not find any binding for {target}")
         return [
             SimpleBindingNode(
-                InstanceBinding(target_type, binding.bound_type),
+                InstanceBinding(target.type, binding.bound_type, target.annotation),
             ) for binding in cls_bindings
         ]
 

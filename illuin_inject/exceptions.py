@@ -13,3 +13,7 @@ class NoBindingFound(NonInjectableTypeError):
 
 class BindingError(InjectException):
     pass
+
+
+class AnnotationError(InjectException):
+    pass
