@@ -2,12 +2,13 @@ import unittest
 from typing import List, Optional, Type, cast
 from unittest.mock import ANY
 
-from illuin_inject import SingletonScope, ThreadScope
+from illuin_inject import SingletonScope, ThreadScope, annotated_arg
 from illuin_inject.binding_registry import BindingRegistry
 from illuin_inject.bindings import ClassBinding, InstanceBinding
 from illuin_inject.dependency_graph import CollectionBindingNode, DependencyGraph, ParameterNode, SimpleBindingNode
 from illuin_inject.exceptions import BindingError, NonInjectableTypeError
 from illuin_inject.graph_builder import GraphBuilder
+from illuin_inject.target import Target
 
 
 class MyType:
@@ -25,6 +26,7 @@ class TestGraphBuilder(unittest.TestCase):
         self.graph_builder = GraphBuilder(self.binding_registry, {SingletonScope: SingletonScope()})
         self.my_instance = MyType()
         self.my_instance_binding = InstanceBinding(MyType, self.my_instance)
+        self.my_annotated_instance_binding = InstanceBinding(MyType, self.my_instance, "my_annotation")
         self.my_other_instance = MyOtherType()
         self.my_other_instance_binding = InstanceBinding(MyOtherType, self.my_other_instance)
 
@@ -35,8 +37,20 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [SimpleBindingNode(self.my_instance_binding)],
-                MyOtherType: [SimpleBindingNode(self.my_other_instance_binding)]
+                Target(MyType): [SimpleBindingNode(self.my_instance_binding)],
+                Target(MyOtherType): [SimpleBindingNode(self.my_other_instance_binding)]
+            }), graph,
+        )
+
+    def test_get_graph_with_annotated_bindings(self):
+        self.binding_registry.register(self.my_instance_binding)
+        self.binding_registry.register(self.my_annotated_instance_binding)
+
+        graph = self.graph_builder.get_dependency_graph()
+        self.assertEqual(
+            DependencyGraph({
+                Target(MyType): [SimpleBindingNode(self.my_instance_binding)],
+                Target(MyType, "my_annotation"): [SimpleBindingNode(self.my_annotated_instance_binding)]
             }), graph,
         )
 
@@ -48,7 +62,7 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [SimpleBindingNode(my_class_binding), SimpleBindingNode(self.my_instance_binding)],
+                Target(MyType): [SimpleBindingNode(my_class_binding), SimpleBindingNode(self.my_instance_binding)],
             }), graph,
         )
 
@@ -65,10 +79,10 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(my_type_binding)
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         my_parent_class_binding,
                         [
@@ -80,7 +94,81 @@ class TestGraphBuilder(unittest.TestCase):
                 ],
             }), graph,
         )
-        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).args[0].parameter
+        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[0].parameter
+        self.assertEqual("my_param", parameter.name)
+
+    def test_parameter_node_with_annotated_parent(self):
+        class MyParentClass:
+            def __init__(self, my_param: MyType):
+                self.my_param = my_param
+
+        my_parent_class_binding = ClassBinding(MyParentClass, annotation="my_annotation")
+        my_type_binding = ClassBinding(MyType)
+        my_type_annotated_binding = ClassBinding(MyType, annotation="my_annotation")
+        self.binding_registry.register(my_parent_class_binding)
+        self.binding_registry.register(my_type_binding)
+        self.binding_registry.register(my_type_annotated_binding)
+
+        graph = self.graph_builder.get_dependency_graph()
+        self.assertEqual(
+            DependencyGraph({
+                Target(MyType): [
+                    SimpleBindingNode(my_type_binding)
+                ],
+                Target(MyType, "my_annotation"): [
+                    SimpleBindingNode(my_type_annotated_binding)
+                ],
+                Target(MyParentClass, "my_annotation"): [
+                    SimpleBindingNode(
+                        my_parent_class_binding,
+                        [
+                            ParameterNode(
+                                ANY,
+                                SimpleBindingNode(my_type_binding),
+                            )
+                        ])
+                ],
+            }), graph,
+        )
+        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass, "my_annotation")][0]) \
+            .args[0].parameter
+        self.assertEqual("my_param", parameter.name)
+
+    def test_parameter_node_with_annotated_parameter(self):
+        class MyParentClass:
+            @annotated_arg("my_param", "my_annotation")
+            def __init__(self, my_param: MyType):
+                self.my_param = my_param
+
+        my_parent_class_binding = ClassBinding(MyParentClass)
+        my_type_binding = ClassBinding(MyType)
+        my_type_annotated_binding = ClassBinding(MyType, annotation="my_annotation")
+        self.binding_registry.register(my_parent_class_binding)
+        self.binding_registry.register(my_type_binding)
+        self.binding_registry.register(my_type_annotated_binding)
+
+        graph = self.graph_builder.get_dependency_graph()
+        self.assertEqual(
+            DependencyGraph({
+                Target(MyType): [
+                    SimpleBindingNode(my_type_binding)
+                ],
+                Target(MyType, "my_annotation"): [
+                    SimpleBindingNode(my_type_annotated_binding)
+                ],
+                Target(MyParentClass): [
+                    SimpleBindingNode(
+                        my_parent_class_binding,
+                        [
+                            ParameterNode(
+                                ANY,
+                                SimpleBindingNode(my_type_annotated_binding),
+                            )
+                        ])
+                ],
+            }), graph,
+        )
+        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[0].parameter
         self.assertEqual("my_param", parameter.name)
 
     def test_parameter_node_with_keyword_arguments(self):
@@ -99,13 +187,13 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(my_type_binding)
                 ],
-                MyOtherType: [
+                Target(MyOtherType): [
                     SimpleBindingNode(my_other_type_binding),
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         my_parent_class_binding,
                         [
@@ -123,9 +211,11 @@ class TestGraphBuilder(unittest.TestCase):
                 ],
             }), graph,
         )
-        parameter_arg = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).args[0].parameter
+        parameter_arg = cast(SimpleBindingNode,
+                             graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[0].parameter
         self.assertEqual("my_param", parameter_arg.name)
-        parameter_kwarg = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).kwargs[0].parameter
+        parameter_kwarg = cast(SimpleBindingNode,
+                               graph.binding_nodes_by_target[Target(MyParentClass)][0]).kwargs[0].parameter
         self.assertEqual("my_other_param", parameter_kwarg.name)
 
     def test_parameter_nodes_keep_order(self):
@@ -144,13 +234,13 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(my_type_binding),
                 ],
-                MyOtherType: [
+                Target(MyOtherType): [
                     SimpleBindingNode(my_other_type_binding)
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         parent_class_binding,
                         [
@@ -166,9 +256,9 @@ class TestGraphBuilder(unittest.TestCase):
                 ],
             }), graph,
         )
-        parameter_1 = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).args[0].parameter
+        parameter_1 = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[0].parameter
         self.assertEqual("my_param", parameter_1.name)
-        parameter_2 = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).args[1].parameter
+        parameter_2 = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[1].parameter
         self.assertEqual("my_other_param", parameter_2.name)
 
     def test_get_bindings_from_default(self):
@@ -182,7 +272,7 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         parent_class_binding,
                         [
@@ -194,7 +284,7 @@ class TestGraphBuilder(unittest.TestCase):
                 ],
             }), graph,
         )
-        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).args[0].parameter
+        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[0].parameter
         self.assertEqual("my_param", parameter.name)
 
     def test_missing_binding_raises_exception(self):
@@ -223,14 +313,14 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(self.my_instance_binding),
                     SimpleBindingNode(ClassBinding(MyType)),
                 ],
-                List[MyType]: [
+                Target(List[MyType]): [
                     SimpleBindingNode(list_instance_binding),
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         parent_class_binding,
                         [
@@ -242,7 +332,7 @@ class TestGraphBuilder(unittest.TestCase):
                 ],
             }), graph,
         )
-        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_type[MyParentClass][0]).args[0].parameter
+        parameter = cast(SimpleBindingNode, graph.binding_nodes_by_target[Target(MyParentClass)][0]).args[0].parameter
         self.assertEqual("my_param", parameter.name)
 
     def test_list_binding_without_explicit_binding(self):
@@ -258,11 +348,11 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(self.my_instance_binding),
                     SimpleBindingNode(ClassBinding(MyType)),
                 ],
-                List[MyType]: [
+                Target(List[MyType]): [
                     CollectionBindingNode(
                         [
                             SimpleBindingNode(self.my_instance_binding),
@@ -270,7 +360,7 @@ class TestGraphBuilder(unittest.TestCase):
                         ]
                     )
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         parent_class_binding,
                         [
@@ -300,13 +390,13 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(self.my_instance_binding),
                 ],
-                Optional[MyType]: [
+                Target(Optional[MyType]): [
                     SimpleBindingNode(self.my_instance_binding)
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         parent_class_binding,
                         [
@@ -335,14 +425,14 @@ class TestGraphBuilder(unittest.TestCase):
         graph = self.graph_builder.get_dependency_graph()
         self.assertEqual(
             DependencyGraph({
-                MyType: [
+                Target(MyType): [
                     SimpleBindingNode(self.my_instance_binding),
                     SimpleBindingNode(ClassBinding(MyType, SubType))
                 ],
-                Type[MyType]: [
+                Target(Type[MyType]): [
                     SimpleBindingNode(InstanceBinding(Type[MyType], SubType))
                 ],
-                MyParentClass: [
+                Target(MyParentClass): [
                     SimpleBindingNode(
                         parent_class_binding,
                         [

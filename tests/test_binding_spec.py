@@ -3,6 +3,7 @@ import unittest
 from illuin_inject import BindingSpec, PerLookupScope
 from illuin_inject.bindings import ClassBinding, InstanceBinding
 from illuin_inject.exceptions import BindingError
+from illuin_inject.target import Target
 
 
 class MyType:
@@ -26,14 +27,16 @@ class TestBindingSpec(unittest.TestCase):
         class OtherBindingSpec(BindingSpec):
             def configure(self) -> None:
                 self.bind(MyType)
+                self.bind(OtherType, annotation="my_annotation")
 
         binding_spec = OtherBindingSpec()
         self.binding_spec.install(binding_spec)
         self.assertEqual(
             {
-                MyType: [ClassBinding(MyType)]
+                Target(MyType): [ClassBinding(MyType)],
+                Target(OtherType, "my_annotation"): [ClassBinding(OtherType, annotation="my_annotation")],
             },
-            self.binding_spec.binding_registry.get_bindings_by_target_type()
+            self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_class_to_itself(self):
@@ -41,9 +44,9 @@ class TestBindingSpec(unittest.TestCase):
 
         self.assertEqual(
             {
-                MyType: [ClassBinding(MyType, MyType)],
+                Target(MyType): [ClassBinding(MyType, MyType)],
             },
-            self.binding_spec.binding_registry.get_bindings_by_target_type()
+            self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_class_to_another_class(self):
@@ -51,9 +54,9 @@ class TestBindingSpec(unittest.TestCase):
 
         self.assertEqual(
             {
-                MyType: [ClassBinding(MyType, OtherType)],
+                Target(MyType): [ClassBinding(MyType, OtherType)],
             },
-            self.binding_spec.binding_registry.get_bindings_by_target_type()
+            self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_instance(self):
@@ -62,9 +65,9 @@ class TestBindingSpec(unittest.TestCase):
 
         self.assertEqual(
             {
-                MyType: [InstanceBinding(MyType, my_instance)],
+                Target(MyType): [InstanceBinding(MyType, my_instance)],
             },
-            self.binding_spec.binding_registry.get_bindings_by_target_type()
+            self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_multiple(self):
@@ -73,18 +76,35 @@ class TestBindingSpec(unittest.TestCase):
 
         self.assertEqual(
             {
-                MyType: [InstanceBinding(MyType, self.my_instance), ClassBinding(MyType, OtherType)],
+                Target(MyType): [InstanceBinding(MyType, self.my_instance), ClassBinding(MyType, OtherType)],
             },
-            self.binding_spec.binding_registry.get_bindings_by_target_type()
+            self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_with_scope(self):
         self.binding_spec.bind(MyType, scope=PerLookupScope)
         self.assertEqual(
             {
-                MyType: [ClassBinding(MyType, MyType, PerLookupScope)],
+                Target(MyType): [ClassBinding(MyType, MyType, PerLookupScope)],
             },
-            self.binding_spec.binding_registry.get_bindings_by_target_type()
+            self.binding_spec.binding_registry.get_bindings_by_target()
+        )
+
+    def test_bind_with_annotation(self):
+        my_instance = MyType()
+        self.binding_spec.bind(MyType, to_instance=my_instance)
+        self.binding_spec.bind(MyType, annotation="my_annotation")
+        my_other_instance = OtherType()
+        self.binding_spec.bind(OtherType, to_instance=my_other_instance, annotation="my_other_annotation")
+
+        self.assertEqual(
+            {
+                Target(MyType): [InstanceBinding(MyType, my_instance)],
+                Target(MyType, "my_annotation"): [ClassBinding(MyType, annotation="my_annotation")],
+                Target(OtherType, "my_other_annotation"): [
+                    InstanceBinding(OtherType, my_other_instance, "my_other_annotation")],
+            },
+            self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_class_and_instance_raises_exception(self):

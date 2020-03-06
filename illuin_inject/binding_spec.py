@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Optional, Type
 
 from .binding_registry import BindingRegistry
 from .bindings import ClassBinding, InstanceBinding
@@ -40,26 +40,29 @@ class BindingSpec:
         binding_spec.configure()
         self._binding_registry.update(binding_spec.binding_registry)
 
+    # pylint: disable=too-many-arguments
     def bind(self,
              target_type: Type[InjectedT],
              to_class: Type[InjectedT] = EMPTY,
              to_instance: InjectedT = EMPTY,
-             scope: Type[Scope] = SingletonScope) -> None:
+             scope: Type[Scope] = SingletonScope,
+             annotation: Optional[str] = None) -> None:
         if to_class is not EMPTY and to_instance is not EMPTY:
             raise BindingError(f"Cannot bind a class and an instance at the same time to {target_type.__name__}")
         if to_instance is not EMPTY and scope is not SingletonScope:
             raise BindingError(f"Cannot only bind instance {to_instance!r} to a singleton scope")
         if to_class is EMPTY and to_instance is EMPTY:
             to_class = target_type
-        self._register_binding(target_type, to_class, scope, to_instance)
+        self._register_binding(target_type, to_class, to_instance, scope, annotation)
 
     def _register_binding(self,
                           target_type: Type[InjectedT],
                           bound_type: Type[InjectedT],
+                          bound_instance: InjectedT,
                           scope: Type[Scope],
-                          bound_instance: InjectedT) -> None:
+                          annotation: Optional[str]) -> None:
         if bound_type is not EMPTY:
-            binding = ClassBinding(target_type, bound_type, scope)
+            binding = ClassBinding(target_type, bound_type, scope, annotation)
         else:
-            binding = InstanceBinding(target_type, bound_instance)
+            binding = InstanceBinding(target_type, bound_instance, annotation)
         self._binding_registry.register(binding)

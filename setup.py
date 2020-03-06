@@ -16,7 +16,7 @@ setuptools.setup(
     install_requires=[
         "attrs>=19.1.0,<20.0.0"
     ],
-    python_requires=">=3.6,<4.0",
+    python_requires=">=3.6,<3.7",
     packages=setuptools.find_packages(include=["illuin_inject", "illuin_inject.*"]),
 
     classifiers=[

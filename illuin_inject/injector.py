@@ -1,12 +1,12 @@
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
-from illuin_inject.scopes import PerLookupScope, SingletonScope, ThreadScope
 from .binding_registry import BindingRegistry
 from .binding_spec import BindingSpec
 from .bindings import Binding, InstanceBinding
 from .graph_builder import GraphBuilder
 from .object_provider import ObjectProvider
-from .scopes import Scope
+from .scopes import PerLookupScope, Scope, SingletonScope, ThreadScope
+from .target import Target
 from .typings import InjectedT
 
 
@@ -38,5 +38,5 @@ class Injector:
         dependency_graph = graph_builder.get_dependency_graph()
         self._provider = ObjectProvider(dependency_graph, self._scopes_by_type)
 
-    def inject(self, target_type: Type[InjectedT]) -> InjectedT:
-        return self._provider.provide(target_type)
+    def inject(self, target_type: Type[InjectedT], annotation: Optional[str] = None) -> InjectedT:
+        return self._provider.provide(Target(target_type, annotation))

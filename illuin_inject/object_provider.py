@@ -1,11 +1,12 @@
 import logging
 from typing import Dict, List, Type, Union, cast
 
+from illuin_inject.type_checker import TypeChecker
 from .bindings import ClassBinding, InstanceBinding
 from .dependency_graph import BindingNode, CollectionBindingNode, DependencyGraph, SimpleBindingNode
 from .exceptions import NoBindingFound
 from .scopes import Scope
-from .type_checker import TypeChecker
+from .target import Target
 from .typings import InjectedT
 
 
@@ -16,33 +17,33 @@ class ObjectProvider:
         self._dependency_graph = dependency_graph
         self._scopes_by_type = scopes_by_type
 
-    def provide(self, target_type: Type[InjectedT]) -> InjectedT:
-        return self._provide(target_type)
+    def provide(self, target: Target[InjectedT]) -> InjectedT:
+        return self._provide(target)
 
-    def _provide(self, target_type: Type[InjectedT], multi: bool = False) -> InjectedT:
-        if target_type in self._dependency_graph.binding_nodes_by_type:
-            binding_nodes = self._dependency_graph.binding_nodes_by_type[target_type]
+    def _provide(self, target: Target[InjectedT], multi: bool = False) -> InjectedT:
+        if target in self._dependency_graph.binding_nodes_by_target:
+            binding_nodes = self._dependency_graph.binding_nodes_by_target[target]
             if multi:
                 return [
                     self._provide_from_binding_node(binding_node)
                     for binding_node in binding_nodes
                 ]
             return self._provide_from_binding_node(binding_nodes[-1])
-        if TypeChecker.is_list(target_type):
-            return self._provide(target_type.__args__[0], True)
-        if TypeChecker.is_type(target_type):
-            return self._provide_type(target_type.__args__[0], multi)
-        raise NoBindingFound(f"Could not find binding for {target_type}")
+        if TypeChecker.is_list(target.type):
+            return self._provide(Target(target.type.__args__[0], target.annotation), True)
+        if TypeChecker.is_type(target.type):
+            return self._provide_type(Target(target.type.__args__[0], target.annotation), multi)
+        raise NoBindingFound(f"Could not find binding for {target}")
 
-    def _provide_type(self, target_type: Type[InjectedT], multi: bool) -> Union[Type[InjectedT], List[Type[InjectedT]]]:
+    def _provide_type(self, target: Target, multi: bool) -> Union[Type[InjectedT], List[Type[InjectedT]]]:
         bindings = [
             binding_node.binding
-            for binding_node in self._dependency_graph.binding_nodes_by_type.get(target_type, [])
+            for binding_node in self._dependency_graph.binding_nodes_by_target.get(target, [])
             if isinstance(binding_node, SimpleBindingNode) and isinstance(binding_node.binding, ClassBinding)
         ]
 
         if not bindings:
-            raise NoBindingFound(f"Could not find binding for Type[{target_type}]")
+            raise NoBindingFound(f"Could not find binding for Type[{target.type}]")
 
         if multi:
             return [

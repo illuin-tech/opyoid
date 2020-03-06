@@ -3,8 +3,8 @@ from typing import Generic, List, Optional, Type, TypeVar
 
 import attr
 
-from illuin_inject import BindingSpec, ClassBinding, PerLookupScope, Injector
-from illuin_inject.exceptions import NonInjectableTypeError, NoBindingFound
+from illuin_inject import BindingSpec, ClassBinding, Injector, InstanceBinding, PerLookupScope, annotated_arg
+from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 
 
 class MyClass:
@@ -249,3 +249,45 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(my_generic, MyGeneric)
         my_instance_1 = injector.inject(MyClass1)
         self.assertIsInstance(my_instance_1, MyClass1)
+
+    def test_annotated_arg(self):
+        class Class1:
+            @annotated_arg("my_param", "type_1")
+            @annotated_arg("my_other_param", "type_2")
+            def __init__(self, my_param: str, my_other_param: str, my_default_param: str):
+                self.my_param = my_param
+                self.my_other_param = my_other_param
+                self.my_default_param = my_default_param
+
+        injector = Injector(bindings=[
+            InstanceBinding(str, "my_type_1", "type_1"),
+            InstanceBinding(str, "my_type_2", "type_2"),
+            InstanceBinding(str, "my_default"),
+            ClassBinding(Class1),
+        ])
+        instance = injector.inject(Class1)
+        self.assertIsInstance(instance, Class1)
+        self.assertEqual("my_type_1", instance.my_param)
+        self.assertEqual("my_type_2", instance.my_other_param)
+        self.assertEqual("my_default", instance.my_default_param)
+
+    def test_annotated_list(self):
+        class Class1:
+            @annotated_arg("my_param", "type_1")
+            @annotated_arg("my_other_param", "type_2")
+            def __init__(self, my_param: List[str], my_other_param: List[str], my_default_param: List[str]):
+                self.my_param = my_param
+                self.my_other_param = my_other_param
+                self.my_default_param = my_default_param
+
+        injector = Injector(bindings=[
+            InstanceBinding(str, "my_type_1", "type_1"),
+            InstanceBinding(str, "my_type_2", "type_2"),
+            InstanceBinding(str, "my_default"),
+            ClassBinding(Class1),
+        ])
+        instance = injector.inject(Class1)
+        self.assertIsInstance(instance, Class1)
+        self.assertEqual(["my_type_1"], instance.my_param)
+        self.assertEqual(["my_type_2"], instance.my_other_param)
+        self.assertEqual(["my_default"], instance.my_default_param)
