@@ -239,6 +239,41 @@ instance_2 = injector.inject(MyClass)
 assert instance_1 is not instance_2
 ```
 
+### Annotations
+You can use annotations to inject different objects for the same type.
+
+```python
+from illuin_inject import annotated_arg, BindingSpec, Injector
+
+
+class MyClass1:
+    @annotated_arg("my_param", "class_1_param")
+    def __init__(self, my_param: str):
+        self.my_param = my_param
+
+class MyClass2:
+    @annotated_arg("my_param", "class_2_param")
+    def __init__(self, my_param: str):
+        self.my_param = my_param
+
+
+class MyBindingSpec(BindingSpec):
+    def configure(self) -> None:
+        self.bind(MyClass1)
+        self.bind(MyClass2)
+        self.bind(str, to_instance="my_value_1", annotation="class_1_param")
+        self.bind(str, to_instance="my_value_2", annotation="class_2_param")
+
+injector = Injector([MyBindingSpec()])
+instance_1 = injector.inject(MyClass1)
+assert isinstance(instance_1, MyClass1)
+assert instance_1.my_param == "my_value_1"
+instance_2 = injector.inject(MyClass2)
+assert isinstance(instance_2, MyClass2)
+assert instance_2.my_param == "my_value_2"
+```
+
+
 ### Bindings without BindingSpec
 If you prefer, you can add bindings to your injector without creating a BindingSpec class (or using both).
 
@@ -284,6 +319,8 @@ ClassBinding(MyClass)  # binding a class to itself
 ClassBinding(MyClass, MySubClass)  # binding a class to a subclass
 ClassBinding(MyClass, scope=PerLookupScope)  # specifying scope
 InstanceBinding(MyClass, my_instance)  # binding an instance
+ClassBinding(MyClass, annotation="my_annotation")  # binding a class to itself with an annotation
+InstanceBinding(MyClass, my_instance, annotation="my_annotation")  # binding an instance with an annotation
 ```
 
 
@@ -369,8 +406,6 @@ assert my_instance.my_param is SubClass
 # Limitations
 - The only supported generic types are `List`, `Optional` and `Type` (and any combination of them).
 Other generics must be bound explicitly (e.g. you must bind a tuple to `Tuple[MyClass]` if you want to inject it).
-- Built-in types (such as `int` or `str`) can be injected but with the same value everywhere, which is not usually the
-expected behavior (annotated bindings are not available yet).
 - Be careful when using generics, the bindings will only be used if the type matches exactly. For example, you cannot
 implicitly bind `MyClass[T]` to inject `MyClass`, or `MyClass[str]` to inject `MyClass[T]`. You need to bind something
 to `MyClass[str]` to be able to inject it.
