@@ -102,8 +102,6 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_annotated(Type[str]))
         self.assertFalse(self.type_checker.is_annotated(Type[TestClass]))
         self.assertFalse(self.type_checker.is_annotated(Optional[List[Type[TestClass]]]))
-        self.assertTrue(self.type_checker.is_annotated(Annotated[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_annotated(Set[TestClass]))
         self.assertFalse(self.type_checker.is_annotated(Tuple[TestClass]))
-        self.assertTrue(self.type_checker.is_annotated(Annotated[TestClass]))
         self.assertTrue(self.type_checker.is_annotated(MyAnnotatedType))

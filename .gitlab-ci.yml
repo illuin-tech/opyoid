@@ -1,57 +1,73 @@
+variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  policy: pull
+  paths:
+    - .cache/pip
+    - env/
+
+before_script:
+  - pip install "virtualenv>=16.7.10,<20.0.0"
+  - virtualenv env
+  - . ./env/bin/activate
+  - pip install -r dev.requirements.txt --upgrade-strategy=eager
+
 download_deps:
-  image: python:3.6
+  image: python:3.6-slim
   stage: download_deps
+  cache:
+    policy: pull-push
+    paths:
+      - .cache/pip
+      - env/
   before_script:
-    - mkdir -p ~/.pip
-    - |
-      cat > ~/.pip/pip.conf << EOF
-      [global]
-      extra-index-url = ${NEXUS_PYPI_PULL_URL}
-      EOF
-    - pip install virtualenv
+    - pip install "virtualenv>=16.7.10,<20.0.0"
     - virtualenv env
     - . ./env/bin/activate
   script:
-    - pip install -r dev.requirements.txt
-  artifacts:
-    paths:
-      - "env"
-    expire_in: 1 hour
+    - pip install -r dev.requirements.txt --upgrade-strategy=eager
   tags:
     - docker
 
-test:
-  image: python:3.6
+.test-template:
   stage: test
-  dependencies:
-    - download_deps
-  before_script:
-    - . ./env/bin/activate
   script:
     - py.test --cov-report term --cov=illuin_inject ./tests ./tests_e2e
   coverage: '/\d+\%\s*$/'
   tags:
     - docker
 
+test-3.6:
+  extends: .test-template
+  image: python:3.6-slim
+
+test-3.7:
+  extends: .test-template
+  image: python:3.7-slim
+
+test-3.8:
+  extends: .test-template
+  image: python:3.8-slim
+
+test-3.9:
+  extends: .test-template
+  image: python:3.9-rc
+  allow_failure: true
+
 lint:
-  image: python:3.6
+  image: python:3.6-slim
   stage: test
-  dependencies:
-    - download_deps
-  before_script:
-    - . ./env/bin/activate
   script:
     - pylint --load-plugins pylint_quotes illuin_inject
-    - pylint --load-plugins pylint_quotes illuin_inject ./tests ./tests_e2e --disable=too-many-public-methods
+    - pylint --load-plugins pylint_quotes ./tests ./tests_e2e --disable=too-many-public-methods
   tags:
     - docker
 
 deploy:
-  image: python:3.6
+  image: python:3.6-slim
   stage: deploy
-  dependencies:
-    - download_deps
-  before_script:
+  script:
     - |
       cat > ~/.pypirc << EOF
       [distutils]
@@ -68,8 +84,6 @@ deploy:
       username: ${NEXUS_PYPI_PUSH_USERNAME}
       password: ${NEXUS_PYPI_PUSH_PASSWORD}
       EOF
-    - . ./env/bin/activate
-  script:
     - sed -i "s#version=\"DEV\",#version=\"${CI_COMMIT_TAG}\",#g" setup.py
     - python setup.py sdist bdist_wheel
     - twine upload -r nexus dist/illuin[-_]inject-${CI_COMMIT_TAG}*
