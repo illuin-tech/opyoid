@@ -1,12 +1,12 @@
 import logging
 from typing import Callable, Collection, Dict, Iterable, Type, Union, cast
 
-from illuin_inject.type_checker import TypeChecker
 from .bindings import ClassBinding, InstanceBinding
 from .dependency_graph import BindingNode, CollectionBindingNode, DependencyGraph, SimpleBindingNode
 from .exceptions import NoBindingFound
 from .scopes import Scope
 from .target import Target
+from .type_checker import TypeChecker
 from .typings import InjectedT
 
 
@@ -27,10 +27,10 @@ class ObjectProvider:
             binding_nodes = self._dependency_graph.binding_nodes_by_target[target]
             if collection_constructor:
                 return collection_constructor(
-                    self._provide_from_binding_node(binding_node)
+                    self.provide_from_binding_node(binding_node)
                     for binding_node in binding_nodes
                 )
-            return self._provide_from_binding_node(binding_nodes[-1])
+            return self.provide_from_binding_node(binding_nodes[-1])
         if TypeChecker.is_list(target.type):
             return self._provide(Target(target.type.__args__[0], target.annotation), list)
         if TypeChecker.is_set(target.type):
@@ -62,10 +62,10 @@ class ObjectProvider:
             )
         return bindings[-1].bound_type
 
-    def _provide_from_binding_node(self, binding_node: BindingNode) -> InjectedT:
+    def provide_from_binding_node(self, binding_node: BindingNode) -> InjectedT:
         if isinstance(binding_node, CollectionBindingNode):
             return binding_node.collection_constructor(
-                self._provide_from_binding_node(binding_node)
+                self.provide_from_binding_node(binding_node)
                 for binding_node in binding_node.sub_bindings
             )
         binding_node = cast(SimpleBindingNode, binding_node)
@@ -78,11 +78,11 @@ class ObjectProvider:
 
     def _get_instance(self, binding_node: SimpleBindingNode[ClassBinding[InjectedT]]) -> InjectedT:
         args = [
-            self._provide_from_binding_node(parameter_node.binding_node)
+            self.provide_from_binding_node(parameter_node.binding_node)
             for parameter_node in binding_node.args
         ]
         kwargs = {
-            parameter_node.parameter.name: self._provide_from_binding_node(parameter_node.binding_node)
+            parameter_node.parameter.name: self.provide_from_binding_node(parameter_node.binding_node)
             for parameter_node in binding_node.kwargs
         }
         return binding_node.binding.bound_type(*args, **kwargs)

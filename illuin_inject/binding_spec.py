@@ -25,9 +25,11 @@ class BindingSpec:
             self.bind(MyClass)
         - Binding a subclass to a class
             self.bind(MyClass, MyImplementation)
-        These can be scoped as singletons (by default) or per lookup (a new instance is injected every time)
-            self.bind(MyClass, scope=IMMEDIATE_SCOPE)
-            self.bind(MyAbstractClass, MyImplementationClass, scope=SINGLETON_SCOPE)
+        These can be scoped as singletons (by default), per lookup (a new instance is injected every time) or
+        immediately (same as singleton, but will be instantiated as soon as the injector is created)
+            self.bind(MyAbstractClass, MyImplementationClass, scope=SingletonScope)
+            self.bind(MyClass, scope=PerLookupScope)
+            self.bind(MyClass, scope=ImmediateScope)
         - Binding an instance to its class
             self.bind(MyClass, to_instance=MyInstance)
 

@@ -3,8 +3,10 @@ from typing import Generic, List, Optional, Type, TypeVar, Set
 
 import attr
 
-from illuin_inject import BindingSpec, ClassBinding, Injector, InstanceBinding, PerLookupScope, annotated_arg
+from illuin_inject import BindingSpec, ClassBinding, Injector, InstanceBinding, PerLookupScope, SingletonScope, \
+    annotated_arg
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
+from illuin_inject.scopes import ImmediateScope
 
 
 class MyClass:
@@ -308,3 +310,23 @@ class TestInjector(unittest.TestCase):
         self.assertEqual(["my_type_1"], instance.my_param)
         self.assertEqual(["my_type_2"], instance.my_other_param)
         self.assertEqual(["my_default"], instance.my_default_param)
+
+    def test_immediate_injection(self):
+        called = []
+
+        class Class1(MyClass):
+            def __init__(self):
+                MyClass.__init__(self)
+                called.append(1)
+
+        class Class2(MyClass):
+            def __init__(self):
+                MyClass.__init__(self)
+                called.append(2)
+
+        Injector(bindings=[
+            ClassBinding(MyClass, Class1, ImmediateScope),
+            ClassBinding(MyClass, Class2, SingletonScope),
+        ])
+
+        self.assertEqual([1], called)

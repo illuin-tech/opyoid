@@ -1,7 +1,9 @@
 # Changelog
 ## Unreleased
+## 0.3.0
 ### Features
 - Added `Tuple` and `Set` injection
+- Added `ImmediateScope`
 
 
 ## 0.2.0
