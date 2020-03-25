@@ -1,6 +1,6 @@
 import unittest
 from inspect import Parameter
-from typing import List, Type
+from typing import List, Set, Tuple, Type
 
 from illuin_inject import SingletonScope
 from illuin_inject.bindings import ClassBinding, InstanceBinding
@@ -89,10 +89,35 @@ class TestObjectProvider(unittest.TestCase):
             SimpleBindingNode(InstanceBinding(MyType, instance)),
         ]
         my_list = self.object_provider.provide(Target(List[MyType]))
+        self.assertIsInstance(my_list, list)
         self.assertEqual(2, len(my_list))
         self.assertIsNot(instance, my_list[0])
         self.assertIsInstance(my_list[0], MyType)
         self.assertIs(instance, my_list[1])
+
+    def test_provide_set_from_type(self):
+        instance = MyType()
+        self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
+            SimpleBindingNode(ClassBinding(MyType)),
+            SimpleBindingNode(InstanceBinding(MyType, instance)),
+        ]
+        my_set = self.object_provider.provide(Target(Set[MyType]))
+        self.assertIsInstance(my_set, set)
+        self.assertEqual(2, len(list(my_set)))
+        self.assertIn(instance, my_set)
+
+    def test_provide_tuple_from_type(self):
+        instance = MyType()
+        self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
+            SimpleBindingNode(ClassBinding(MyType)),
+            SimpleBindingNode(InstanceBinding(MyType, instance)),
+        ]
+        my_tuple = self.object_provider.provide(Target(Tuple[MyType]))
+        self.assertIsInstance(my_tuple, tuple)
+        self.assertEqual(2, len(my_tuple))
+        self.assertIsNot(instance, my_tuple[0])
+        self.assertIsInstance(my_tuple[0], MyType)
+        self.assertIs(instance, my_tuple[1])
 
     def test_provide_list_from_list(self):
         instance = MyType()
@@ -169,10 +194,13 @@ class TestObjectProvider(unittest.TestCase):
                 [
                     ParameterNode(
                         Parameter("param", Parameter.VAR_POSITIONAL),
-                        CollectionBindingNode([
-                            SimpleBindingNode(ClassBinding(MyType)),
-                            SimpleBindingNode(InstanceBinding(MyType, instance)),
-                        ])
+                        CollectionBindingNode(
+                            [
+                                SimpleBindingNode(ClassBinding(MyType)),
+                                SimpleBindingNode(InstanceBinding(MyType, instance)),
+                            ],
+                            list,
+                        )
                     )
                 ]
             ),

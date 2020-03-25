@@ -404,7 +404,7 @@ assert my_instance.my_param is SubClass
 
 
 # Limitations
-- The only supported generic types are `List`, `Optional` and `Type` (and any combination of them).
+- The only supported generic types are `List`, `Set`, `Tuple`, `Optional` and `Type` (and any combination of them).
 Other generics must be bound explicitly (e.g. you must bind a tuple to `Tuple[MyClass]` if you want to inject it).
 - Be careful when using generics, the bindings will only be used if the type matches exactly. For example, you cannot
 implicitly bind `MyClass[T]` to inject `MyClass`, or `MyClass[str]` to inject `MyClass[T]`. You need to bind something

@@ -38,7 +38,7 @@ class GraphBuilder:
         return binding_nodes
 
     def _get_binding_nodes(self, target: Target[InjectedT]) -> List[BindingNode]:
-        # pylint: disable=unsupported-membership-test,unsubscriptable-object
+        # pylint: disable=unsupported-membership-test,unsubscriptable-object,too-many-return-statements
         if target in self._dependency_graph.binding_nodes_by_target:
             return self._dependency_graph.binding_nodes_by_target[target]
         bindings = self._binding_registry.get_bindings(target)
@@ -46,7 +46,13 @@ class GraphBuilder:
             return [self._get_binding_node_from_binding(binding) for binding in bindings]
         if TypeChecker.is_list(target.type):
             new_target = Target(target.type.__args__[0], target.annotation)
-            return [CollectionBindingNode(self._get_and_save_binding_nodes(new_target))]
+            return [CollectionBindingNode(self._get_and_save_binding_nodes(new_target), list)]
+        if TypeChecker.is_set(target.type):
+            new_target = Target(target.type.__args__[0], target.annotation)
+            return [CollectionBindingNode(self._get_and_save_binding_nodes(new_target), set)]
+        if TypeChecker.is_tuple(target.type):
+            new_target = Target(target.type.__args__[0], target.annotation)
+            return [CollectionBindingNode(self._get_and_save_binding_nodes(new_target), tuple)]
         if TypeChecker.is_optional(target.type):
             new_target = Target(target.type.__args__[0], target.annotation)
             return self._get_binding_nodes(new_target)
