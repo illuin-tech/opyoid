@@ -1,5 +1,5 @@
 import unittest
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, List, Optional, Type, TypeVar, Set
 
 import attr
 
@@ -83,6 +83,23 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(parent.param, list)
         self.assertEqual(1, len(parent.param))
         self.assertIsInstance(parent.param[0], MyClass)
+
+    def test_set_direct_injection(self):
+        class_list = self.get_injector(MyClass).inject(Set[MyClass])
+        self.assertIsInstance(class_list, set)
+        self.assertEqual(1, len(list(class_list)))
+        self.assertIsInstance(class_list.pop(), MyClass)
+
+    def test_set_injection(self):
+        class MyParentClass:
+            def __init__(self, param: Set[MyClass]):
+                self.param = param
+
+        parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIsInstance(parent.param, set)
+        self.assertEqual(1, len(list(parent.param)))
+        self.assertIsInstance(parent.param.pop(), MyClass)
 
     def test_list_direct_injection(self):
         class_list = self.get_injector(MyClass).inject(List[MyClass])

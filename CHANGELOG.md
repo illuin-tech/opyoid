@@ -1,5 +1,9 @@
 # Changelog
 ## Unreleased
+### Features
+- Added `Tuple` and `Set` injection
+
+
 ## 0.2.0
 ### Features
 - Added python>=3.7 compatibility

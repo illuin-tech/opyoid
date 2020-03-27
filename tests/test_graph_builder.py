@@ -1,5 +1,5 @@
 import unittest
-from typing import List, Optional, Type, cast
+from typing import List, Optional, Set, Tuple, Type, cast
 from unittest.mock import ANY
 
 from illuin_inject import SingletonScope, ThreadScope, annotated_arg
@@ -357,7 +357,8 @@ class TestGraphBuilder(unittest.TestCase):
                         [
                             SimpleBindingNode(self.my_instance_binding),
                             SimpleBindingNode(ClassBinding(MyType)),
-                        ]
+                        ],
+                        list,
                     )
                 ],
                 Target(MyParentClass): [
@@ -370,12 +371,105 @@ class TestGraphBuilder(unittest.TestCase):
                                     [
                                         SimpleBindingNode(self.my_instance_binding),
                                         SimpleBindingNode(ClassBinding(MyType)),
-                                    ]
+                                    ],
+                                    list,
                                 )
                             )
                         ])
                 ],
             }), graph,
+        )
+
+    def test_set_binding_without_explicit_binding(self):
+        class MyParentClass:
+            def __init__(self, my_param: Set[MyType]):
+                self.my_param = my_param
+
+        parent_class_binding = ClassBinding(MyParentClass)
+        self.binding_registry.register(self.my_instance_binding)
+        self.binding_registry.register(ClassBinding(MyType))
+        self.binding_registry.register(parent_class_binding)
+
+        graph = self.graph_builder.get_dependency_graph()
+        self.assertEqual(
+            DependencyGraph({
+                Target(MyType): [
+                    SimpleBindingNode(self.my_instance_binding),
+                    SimpleBindingNode(ClassBinding(MyType)),
+                ],
+                Target(Set[MyType]): [
+                    CollectionBindingNode(
+                        [
+                            SimpleBindingNode(self.my_instance_binding),
+                            SimpleBindingNode(ClassBinding(MyType)),
+                        ],
+                        set,
+                    )
+                ],
+                Target(MyParentClass): [
+                    SimpleBindingNode(
+                        parent_class_binding,
+                        [
+                            ParameterNode(
+                                ANY,
+                                CollectionBindingNode(
+                                    [
+                                        SimpleBindingNode(self.my_instance_binding),
+                                        SimpleBindingNode(ClassBinding(MyType)),
+                                    ],
+                                    set,
+                                )
+                            )
+                        ])
+                ],
+            }),
+            graph,
+        )
+
+    def test_tuple_binding_without_explicit_binding(self):
+        class MyParentClass:
+            def __init__(self, my_param: Tuple[MyType]):
+                self.my_param = my_param
+
+        parent_class_binding = ClassBinding(MyParentClass)
+        self.binding_registry.register(self.my_instance_binding)
+        self.binding_registry.register(ClassBinding(MyType))
+        self.binding_registry.register(parent_class_binding)
+
+        graph = self.graph_builder.get_dependency_graph()
+        self.assertEqual(
+            DependencyGraph({
+                Target(MyType): [
+                    SimpleBindingNode(self.my_instance_binding),
+                    SimpleBindingNode(ClassBinding(MyType)),
+                ],
+                Target(Tuple[MyType]): [
+                    CollectionBindingNode(
+                        [
+                            SimpleBindingNode(self.my_instance_binding),
+                            SimpleBindingNode(ClassBinding(MyType)),
+                        ],
+                        tuple,
+                    )
+                ],
+                Target(MyParentClass): [
+                    SimpleBindingNode(
+                        parent_class_binding,
+                        [
+                            ParameterNode(
+                                ANY,
+                                CollectionBindingNode(
+                                    [
+                                        SimpleBindingNode(self.my_instance_binding),
+                                        SimpleBindingNode(ClassBinding(MyType)),
+                                    ],
+                                    tuple,
+                                )
+                            )
+                        ])
+                ],
+            }),
+            graph,
         )
 
     def test_optional_binding(self):
