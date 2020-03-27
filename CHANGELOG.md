@@ -1,5 +1,10 @@
 # Changelog
 ## Unreleased
+## 0.3.1
+### Fixes
+- Fixed an exception being raised when injecting a union of generic types
+
+
 ## 0.3.0
 ### Features
 - Added `Tuple` and `Set` injection
