@@ -1,5 +1,5 @@
 import unittest
-from typing import List, Optional, Type, Set, Tuple
+from typing import List, Optional, Type, Set, Tuple, Union
 
 from illuin_inject.annotated import Annotated
 from illuin_inject.type_checker import TypeChecker
@@ -42,6 +42,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_list(Set[TestClass]))
         self.assertFalse(self.type_checker.is_list(Tuple[TestClass]))
         self.assertFalse(self.type_checker.is_list(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_optional(Union[List[str], Tuple[str]]))
 
     def test_is_type(self):
         self.assertFalse(self.type_checker.is_type(str))

@@ -45,11 +45,11 @@ class TypeChecker:  # pragma: nocover
             return isinstance(target_type, _GenericAlias) \
                    and target_type.__origin__ == Union \
                    and len(target_type.__args__) >= 2 \
-                   and isinstance(None, target_type.__args__[-1])
+                   and target_type.__args__[-1] == type(None)
         return isinstance(target_type, _Union) \
                and target_type.__origin__ == Union \
                and len(target_type.__args__) >= 2 \
-               and isinstance(None, target_type.__args__[-1])
+               and target_type.__args__[-1] == type(None)
 
     @staticmethod
     def is_type(target_type: Type) -> bool:
