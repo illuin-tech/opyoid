@@ -1,5 +1,20 @@
 # Changelog
 ## Unreleased
+## 0.4.0
+### Breaking changes
+- Singleton, Immediate and Thread scopes are now guaranteeing that only one instance of a class can be created for
+each ClassBinding or FactoryBindings, instead of one instance per bound_type.
+You can now have multiple instance of the same class if you create multiple bindings instantiating it.
+
+### Features
+- Added `FactoryBinding`
+- Added `to_factory: Optional[Union[Type[Factory], Factory]]` argument in `BindingsSpec.bind` method
+
+### Fixed
+- Adding multiple bindings of the same class with different annotations in the SingletonScope will create different
+instances, one per binding.
+
+
 ## 0.3.1
 ### Fixes
 - Fixed an exception being raised when injecting a union of generic types

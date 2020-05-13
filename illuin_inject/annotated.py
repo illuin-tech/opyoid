@@ -1,6 +1,5 @@
 from inspect import Parameter, Signature, signature
-from types import MappingProxyType
-from typing import Callable, Generic, Type, TypeVar, cast
+from typing import Callable, Generic, Mapping, Type, TypeVar, cast
 
 from illuin_inject.exceptions import AnnotationError
 
@@ -28,7 +27,7 @@ class Annotated(Generic[WrappedT]):
 def annotated_arg(arg_name: str, annotation: str) -> Callable[[Callable], Callable]:
     def wrapped_init(init: Callable) -> Callable:
         init_signature = signature(init)
-        parameters: MappingProxyType[str, Parameter] = init_signature.parameters
+        parameters: Mapping[str, Parameter] = init_signature.parameters
         if arg_name not in parameters:
             raise AnnotationError(f"Cannot add annotation on unknown parameter '{arg_name}'")
         parameter = parameters[arg_name]

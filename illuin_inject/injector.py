@@ -2,9 +2,9 @@ from typing import Dict, List, Optional, Type
 
 from .binding_registry import BindingRegistry
 from .binding_spec import BindingSpec
-from .bindings import Binding, ClassBinding, InstanceBinding
-from .dependency_graph import DependencyGraph, SimpleBindingNode
-from .graph_builder import GraphBuilder
+from .bindings import Binding, InstanceBinding
+from .dependency_graph import ClassBindingNode, DependencyGraph, FactoryBindingNode
+from .graph_building import GraphBuilder
 from .object_provider import ObjectProvider
 from .scopes import ImmediateScope, PerLookupScope, Scope, SingletonScope, ThreadScope
 from .target import Target
@@ -12,7 +12,7 @@ from .typings import InjectedT
 
 
 class Injector:
-    """Injection entrypoint.
+    """Injection entry point.
 
     Creates the dependency graph and injects types.
     """
@@ -44,8 +44,7 @@ class Injector:
     def _instantiate_immediate_scoped_bindings(self, dependency_graph: DependencyGraph) -> None:
         for binding_nodes in dependency_graph.binding_nodes_by_target.values():
             for binding_node in binding_nodes:
-                if isinstance(binding_node, SimpleBindingNode) \
-                    and isinstance(binding_node.binding, ClassBinding) \
+                if isinstance(binding_node, (ClassBindingNode, FactoryBindingNode)) \
                     and binding_node.binding.scope == ImmediateScope:
                     self._provider.provide_from_binding_node(binding_node)
 

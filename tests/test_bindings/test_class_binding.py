@@ -15,3 +15,4 @@ class TestClassBinding(unittest.TestCase):
         self.assertEqual(MyType, binding.target_type)
         self.assertEqual(MyType, binding.bound_type)
         self.assertEqual(SingletonScope, binding.scope)
+        self.assertIsNone(binding.annotation)

@@ -1,8 +1,10 @@
 import unittest
 from unittest.mock import patch
 
+from illuin_inject import ClassBinding, PerLookupScope
 from illuin_inject.binding_registry import BindingRegistry
-from illuin_inject.bindings import Binding, InstanceBinding
+from illuin_inject.bindings import Binding, FactoryBinding, InstanceBinding
+from illuin_inject.factory import Factory
 from illuin_inject.target import Target
 
 
@@ -111,3 +113,47 @@ class TestBindingRegistry(unittest.TestCase):
         self.assertEqual([], bindings)
         mock_error.assert_called_once_with(
             "Could not find binding for 'MyNewType': multiple types with this name found")
+
+    def test_register_factory_binding_creates_instance_binding(self):
+        class MyFactory(Factory[str]):
+            def create(self) -> str:
+                return "hello"
+
+        factory_instance = MyFactory()
+        factory_binding = FactoryBinding(str, factory_instance, PerLookupScope, "my_annotation")
+        self.binding_registry.register(factory_binding)
+
+        self.assertEqual(
+            {
+                Target(str, "my_annotation"): [
+                    factory_binding,
+                ],
+                Target(MyFactory, "my_annotation"): [
+                    InstanceBinding(MyFactory, factory_instance, "my_annotation"),
+                ],
+            },
+            self.binding_registry.get_bindings_by_target()
+        )
+
+    def test_register_factory_binding_creates_class_binding(self):
+        class MyFactory(Factory[str]):
+            def create(self) -> str:
+                return "hello"
+
+        factory_binding = FactoryBinding(str, MyFactory, PerLookupScope, "my_annotation")
+        self.binding_registry.register(factory_binding)
+
+        self.assertEqual(
+            {
+                Target(str, "my_annotation"): [
+                    factory_binding,
+                ],
+                Target(MyFactory, "my_annotation"): [
+                    ClassBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation"),
+                ],
+            },
+            self.binding_registry.get_bindings_by_target()
+        )
+
+    def test_register_non_factory_in_factory_binding(self):
+        pass
