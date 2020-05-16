@@ -17,3 +17,7 @@ class BindingError(InjectException):
 
 class AnnotationError(InjectException):
     pass
+
+
+class UnexpectedBindingTypeError(InjectException):
+    pass

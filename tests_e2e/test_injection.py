@@ -5,7 +5,9 @@ import attr
 
 from illuin_inject import BindingSpec, ClassBinding, Injector, InstanceBinding, PerLookupScope, SingletonScope, \
     annotated_arg
+from illuin_inject.bindings import FactoryBinding
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
+from illuin_inject.factory import Factory
 from illuin_inject.scopes import ImmediateScope
 
 
@@ -231,7 +233,7 @@ class TestInjector(unittest.TestCase):
         sub_instance_from_sub_type = injector.inject(MySubType)
         sub_instance_from_mother_type = injector.inject(MyClass)
 
-        self.assertIs(sub_instance_from_mother_type, sub_instance_from_sub_type)
+        self.assertIsNot(sub_instance_from_mother_type, sub_instance_from_sub_type)
 
     def test_generic_type_parameter_injection(self):
         MyTypeVar = TypeVar("MyTypeVar")
@@ -330,3 +332,65 @@ class TestInjector(unittest.TestCase):
         ])
 
         self.assertEqual([1], called)
+
+    def test_factory_injection(self):
+        class MyParent:
+            def __init__(self, my_arg: MyClass, my_str: str):
+                self.my_arg = my_arg
+                self.my_str = my_str
+
+        class MyParentFactory(Factory[MyParent]):
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+            def create(self) -> MyParent:
+                return MyParent(self.my_arg, "hello")
+
+        injector = Injector(bindings=[
+            ClassBinding(MyClass),
+            FactoryBinding(MyParent, MyParentFactory),
+        ])
+        my_parent = injector.inject(MyParent)
+        self.assertIsInstance(my_parent.my_arg, MyClass)
+        self.assertEqual("hello", my_parent.my_str)
+
+    def test_shared_singleton(self):
+        class MyParentA:
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        class MyParentB:
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        injector = Injector(bindings=[
+            ClassBinding(MyClass),
+            ClassBinding(MyParentA),
+            ClassBinding(MyParentB),
+        ])
+        my_parent_a = injector.inject(MyParentA)
+        my_parent_b = injector.inject(MyParentB)
+
+        self.assertIs(my_parent_a.my_arg, my_parent_b.my_arg)
+
+    def test_annotated_singleton(self):
+        class MyParentA:
+            @annotated_arg("my_arg", "annotation_1")
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        class MyParentB:
+            @annotated_arg("my_arg", "annotation_2")
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        injector = Injector(bindings=[
+            ClassBinding(MyClass, annotation="annotation_1"),
+            ClassBinding(MyClass, annotation="annotation_2"),
+            ClassBinding(MyParentA),
+            ClassBinding(MyParentB),
+        ])
+        my_parent_a = injector.inject(MyParentA)
+        my_parent_b = injector.inject(MyParentB)
+
+        self.assertIsNot(my_parent_a.my_arg, my_parent_b.my_arg)

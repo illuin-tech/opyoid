@@ -1,7 +1,10 @@
 illuin-inject
 =============
 
-Dependency injection library, to easily manage large applications.
+Dependency injection library using typings, to easily manage large applications.
+
+This project is inspired from [pinject](https://github.com/google/pinject), [Guice](https://github.com/google/guice),
+[HK2](https://javaee.github.io/hk2/) and [Spring](https://spring.io/).
 
 # Usage
 ### Simple Injection

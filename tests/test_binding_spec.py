@@ -1,8 +1,9 @@
 import unittest
 
 from illuin_inject import BindingSpec, PerLookupScope
-from illuin_inject.bindings import ClassBinding, InstanceBinding
+from illuin_inject.bindings import ClassBinding, FactoryBinding, InstanceBinding
 from illuin_inject.exceptions import BindingError
+from illuin_inject.factory import Factory
 from illuin_inject.target import Target
 
 
@@ -14,10 +15,16 @@ class OtherType(MyType):
     pass
 
 
+class MyFactory(Factory[MyType]):
+    def create(self) -> MyType:
+        return MyType()
+
+
 class TestBindingSpec(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_spec = BindingSpec()
         self.my_instance = MyType()
+        self.my_factory = MyFactory()
 
     def test_configure_is_not_implemented(self):
         with self.assertRaises(NotImplementedError):
@@ -107,10 +114,48 @@ class TestBindingSpec(unittest.TestCase):
             self.binding_spec.binding_registry.get_bindings_by_target()
         )
 
-    def test_bind_class_and_instance_raises_exception(self):
+    def test_bind_multiple_objects_raises_exception(self):
         with self.assertRaises(BindingError):
             self.binding_spec.bind(MyType, MyType, to_instance=self.my_instance)
+
+        with self.assertRaises(BindingError):
+            self.binding_spec.bind(MyType, MyType, to_factory=self.my_factory)
+
+        with self.assertRaises(BindingError):
+            self.binding_spec.bind(MyType, to_instance=MyType, to_factory=MyFactory)
 
     def test_bind_instance_with_scope_raises_exception(self):
         with self.assertRaises(BindingError):
             self.binding_spec.bind(MyType, to_instance=self.my_instance, scope=PerLookupScope)
+
+    def test_bind_factory_class(self):
+        self.binding_spec.bind(MyType, to_factory=MyFactory, scope=PerLookupScope, annotation="my_annotation")
+        self.assertEqual(
+            {
+                Target(MyType, "my_annotation"): [
+                    FactoryBinding(MyType, MyFactory, PerLookupScope, "my_annotation")
+                ],
+                Target(MyFactory, "my_annotation"): [
+                    ClassBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation")
+                ],
+            },
+            self.binding_spec.binding_registry.get_bindings_by_target()
+        )
+
+    def test_bind_factory_instance(self):
+        self.binding_spec.bind(MyType, to_factory=self.my_factory)
+        self.assertEqual(
+            {
+                Target(MyType): [
+                    FactoryBinding(MyType, self.my_factory)
+                ],
+                Target(MyFactory): [
+                    InstanceBinding(MyFactory, self.my_factory)
+                ],
+            },
+            self.binding_spec.binding_registry.get_bindings_by_target()
+        )
+
+    def test_bind_non_factory_raises_exception(self):
+        with self.assertRaises(BindingError):
+            self.binding_spec.bind(MyType, to_factory=MyType)

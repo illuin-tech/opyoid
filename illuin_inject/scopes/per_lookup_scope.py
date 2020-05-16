@@ -1,4 +1,5 @@
-from typing import Callable, Type
+from typing import Callable
+from uuid import UUID
 
 from illuin_inject.typings import InjectedT
 from .scope import Scope
@@ -7,5 +8,5 @@ from .scope import Scope
 class PerLookupScope(Scope):
     """Provides a new instance every time."""
 
-    def get(self, bound_type: Type[InjectedT], provider: Callable[[], InjectedT]) -> InjectedT:
+    def get(self, cache_key: UUID, provider: Callable[[], InjectedT]) -> InjectedT:
         return provider()

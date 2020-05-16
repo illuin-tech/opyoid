@@ -1,8 +1,9 @@
 import logging
 from typing import Dict, List
 
-from illuin_inject.target import Target
-from .bindings import Binding
+from .bindings import Binding, ClassBinding, FactoryBinding, InstanceBinding
+from .factory import Factory
+from .target import Target
 from .typings import InjectedT
 
 
@@ -17,6 +18,18 @@ class BindingRegistry:
         if target not in self._bindings_by_target:
             self._bindings_by_target[target] = []
         self._bindings_by_target[target].append(binding)
+        if isinstance(binding, FactoryBinding):
+            self._register_factory(binding)
+
+    def _register_factory(self, binding: FactoryBinding) -> None:
+        if isinstance(binding.bound_factory, Factory):
+            self.register(
+                InstanceBinding(binding.bound_factory.__class__, binding.bound_factory, binding.annotation)
+            )
+        else:
+            self.register(
+                ClassBinding(binding.bound_factory, scope=binding.scope, annotation=binding.annotation)
+            )
 
     def get_bindings_by_target(self) -> Dict[Target[InjectedT], List[Binding[InjectedT]]]:
         return self._bindings_by_target

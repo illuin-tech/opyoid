@@ -1,9 +1,9 @@
 import logging
-from typing import Callable, Collection, Dict, Iterable, Type, Union, cast
+from typing import Callable, Collection, Dict, Iterable, Type, Union
 
-from .bindings import ClassBinding, InstanceBinding
-from .dependency_graph import BindingNode, CollectionBindingNode, DependencyGraph, SimpleBindingNode
-from .exceptions import NoBindingFound
+from .dependency_graph import BindingNode, ClassBindingNode, CollectionBindingNode, DependencyGraph, \
+    FactoryBindingNode, InstanceBindingNode
+from .exceptions import NoBindingFound, UnexpectedBindingTypeError
 from .scopes import Scope
 from .target import Target
 from .type_checker import TypeChecker
@@ -49,7 +49,7 @@ class ObjectProvider:
         bindings = [
             binding_node.binding
             for binding_node in self._dependency_graph.binding_nodes_by_target.get(target, [])
-            if isinstance(binding_node, SimpleBindingNode) and isinstance(binding_node.binding, ClassBinding)
+            if isinstance(binding_node, ClassBindingNode)
         ]
 
         if not bindings:
@@ -68,15 +68,17 @@ class ObjectProvider:
                 self.provide_from_binding_node(binding_node)
                 for binding_node in binding_node.sub_bindings
             )
-        binding_node = cast(SimpleBindingNode, binding_node)
-        binding = binding_node.binding
-        if isinstance(binding, InstanceBinding):
-            return binding.bound_instance
-        binding = cast(ClassBinding, binding)
-        scope = self._scopes_by_type[binding.scope]
-        return scope.get(binding.bound_type, lambda: self._get_instance(binding_node))
+        if isinstance(binding_node, InstanceBindingNode):
+            return binding_node.binding.bound_instance
+        if isinstance(binding_node, ClassBindingNode):
+            scope = self._scopes_by_type[binding_node.binding.scope]
+            return scope.get(binding_node.cache_key, lambda: self._get_instance_from_class_binding(binding_node))
+        if isinstance(binding_node, FactoryBindingNode):
+            scope = self._scopes_by_type[binding_node.binding.scope]
+            return scope.get(binding_node.cache_key, lambda: self._get_instance_from_factory_binding(binding_node))
+        raise UnexpectedBindingTypeError(f"Unexpected BindingNode type: {binding_node}")
 
-    def _get_instance(self, binding_node: SimpleBindingNode[ClassBinding[InjectedT]]) -> InjectedT:
+    def _get_instance_from_class_binding(self, binding_node: ClassBindingNode[InjectedT]) -> InjectedT:
         args = [
             self.provide_from_binding_node(parameter_node.binding_node)
             for parameter_node in binding_node.args
@@ -86,3 +88,7 @@ class ObjectProvider:
             for parameter_node in binding_node.kwargs
         }
         return binding_node.binding.bound_type(*args, **kwargs)
+
+    def _get_instance_from_factory_binding(self, binding_node: FactoryBindingNode[InjectedT]) -> InjectedT:
+        factory = self.provide_from_binding_node(binding_node.factory_binding_node)
+        return factory.create()

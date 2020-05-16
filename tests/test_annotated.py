@@ -44,7 +44,7 @@ class TestAnnotated(unittest.TestCase):
         self.assertEqual(3, my_param.default)
 
     def test_adding_annotation_on_unknown_parameter_raises_exception(self):
-        # pylint: disable=unused-variable, no-self-use
+        # pylint: disable=unused-variable
         with self.assertRaises(AnnotationError):
             class MyClass:
                 @annotated_arg("my_unknown_arg", "my_annotation")
@@ -52,7 +52,7 @@ class TestAnnotated(unittest.TestCase):
                     pass
 
     def test_adding_annotation_on_untyped_parameter_raises_exception(self):
-        # pylint: disable=unused-variable, no-self-use
+        # pylint: disable=unused-variable
         with self.assertRaises(AnnotationError):
             class MyClass:
                 @annotated_arg("my_param", "my_annotation")

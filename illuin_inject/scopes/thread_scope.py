@@ -1,5 +1,6 @@
 import threading
-from typing import Callable, Type
+from typing import Callable
+from uuid import UUID
 
 from illuin_inject.typings import InjectedT
 from .scope import Scope
@@ -14,13 +15,13 @@ class ThreadScope(Scope):
         self._local = threading.local()
         self._set_local_scope()
 
-    def get(self, bound_type: Type[InjectedT], provider: Callable[[], InjectedT]) -> InjectedT:
+    def get(self, cache_key: UUID, provider: Callable[[], InjectedT]) -> InjectedT:
         with self._lock:
             self._set_local_scope()
-            if bound_type not in self._local.thread_scope_cache:
+            if cache_key not in self._local.thread_scope_cache:
                 injected_instance = provider()
-                self._local.thread_scope_cache[bound_type] = injected_instance
-            return self._local.thread_scope_cache[bound_type]
+                self._local.thread_scope_cache[cache_key] = injected_instance
+            return self._local.thread_scope_cache[cache_key]
 
     def _set_local_scope(self) -> None:
         with self._lock:

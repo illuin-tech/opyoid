@@ -1,11 +1,13 @@
 import unittest
 from inspect import Parameter
-from typing import List, Set, Tuple, Type
+from typing import Any, List, Set, Tuple, Type
 
-from illuin_inject import SingletonScope
-from illuin_inject.bindings import ClassBinding, InstanceBinding
-from illuin_inject.dependency_graph import CollectionBindingNode, DependencyGraph, ParameterNode, SimpleBindingNode
-from illuin_inject.exceptions import NoBindingFound
+from illuin_inject import PerLookupScope, SingletonScope
+from illuin_inject.bindings import ClassBinding, FactoryBinding, InstanceBinding
+from illuin_inject.dependency_graph import BindingNode, ClassBindingNode, CollectionBindingNode, DependencyGraph, \
+    FactoryBindingNode, InstanceBindingNode, ParameterNode
+from illuin_inject.exceptions import NoBindingFound, UnexpectedBindingTypeError
+from illuin_inject.factory import Factory
 from illuin_inject.object_provider import ObjectProvider
 from illuin_inject.target import Target
 
@@ -20,12 +22,13 @@ class TestObjectProvider(unittest.TestCase):
         self.dependency_graph = DependencyGraph()
         self.object_provider = ObjectProvider(self.dependency_graph, {
             SingletonScope: SingletonScope(),
+            PerLookupScope: PerLookupScope(),
         })
 
     def test_provide_from_simple_binding_node(self):
         instance = MyType()
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(InstanceBinding(MyType, instance))
+            InstanceBindingNode(InstanceBinding(MyType, instance))
         ]
         self.assertIs(instance, self.object_provider.provide(Target(MyType)))
 
@@ -38,15 +41,15 @@ class TestObjectProvider(unittest.TestCase):
         instance_2 = MyType()
 
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(InstanceBinding(MyType, instance_1)),
-            SimpleBindingNode(InstanceBinding(MyType, instance_2)),
+            InstanceBindingNode(InstanceBinding(MyType, instance_1)),
+            InstanceBindingNode(InstanceBinding(MyType, instance_2)),
         ]
 
         self.assertIs(instance_2, self.object_provider.provide(Target(MyType)))
 
     def test_provide_from_class_binding(self):
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType)),
+            ClassBindingNode(ClassBinding(MyType)),
         ]
 
         self.assertIsInstance(self.object_provider.provide(Target(MyType)), MyType)
@@ -61,18 +64,18 @@ class TestObjectProvider(unittest.TestCase):
                 self.other_param = other_param
 
         self.dependency_graph.binding_nodes_by_target[Target(MyParentClass)] = [
-            SimpleBindingNode(
+            ClassBindingNode(
                 ClassBinding(MyParentClass),
                 [
                     ParameterNode(
                         Parameter("param", Parameter.POSITIONAL_OR_KEYWORD),
-                        SimpleBindingNode(ClassBinding(MyType))
+                        ClassBindingNode(ClassBinding(MyType))
                     )
                 ],
                 [
                     ParameterNode(
                         Parameter("other_param", Parameter.VAR_KEYWORD),
-                        SimpleBindingNode(ClassBinding(MyOtherType)),
+                        ClassBindingNode(ClassBinding(MyOtherType)),
                     )
                 ]
             ),
@@ -85,8 +88,8 @@ class TestObjectProvider(unittest.TestCase):
     def test_provide_list_from_type(self):
         instance = MyType()
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType)),
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            ClassBindingNode(ClassBinding(MyType)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
         my_list = self.object_provider.provide(Target(List[MyType]))
         self.assertIsInstance(my_list, list)
@@ -98,8 +101,8 @@ class TestObjectProvider(unittest.TestCase):
     def test_provide_set_from_type(self):
         instance = MyType()
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType)),
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            ClassBindingNode(ClassBinding(MyType)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
         my_set = self.object_provider.provide(Target(Set[MyType]))
         self.assertIsInstance(my_set, set)
@@ -109,8 +112,8 @@ class TestObjectProvider(unittest.TestCase):
     def test_provide_tuple_from_type(self):
         instance = MyType()
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType)),
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            ClassBindingNode(ClassBinding(MyType)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
         my_tuple = self.object_provider.provide(Target(Tuple[MyType]))
         self.assertIsInstance(my_tuple, tuple)
@@ -123,11 +126,11 @@ class TestObjectProvider(unittest.TestCase):
         instance = MyType()
         instance_2 = MyType()
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType)),
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            ClassBindingNode(ClassBinding(MyType)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
         self.dependency_graph.binding_nodes_by_target[Target(List[MyType])] = [
-            SimpleBindingNode(InstanceBinding(List[MyType], [instance_2])),
+            InstanceBindingNode(InstanceBinding(List[MyType], [instance_2])),
         ]
         my_list = self.object_provider.provide(Target(List[MyType]))
         self.assertEqual(1, len(my_list))
@@ -140,8 +143,8 @@ class TestObjectProvider(unittest.TestCase):
             pass
 
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType, SubType)),
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            ClassBindingNode(ClassBinding(MyType, SubType)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
 
         my_type = self.object_provider.provide(Target(Type[MyType]))
@@ -154,11 +157,11 @@ class TestObjectProvider(unittest.TestCase):
             pass
 
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType, SubType)),
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            ClassBindingNode(ClassBinding(MyType, SubType)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
         self.dependency_graph.binding_nodes_by_target[Target(Type[MyType])] = [
-            SimpleBindingNode(InstanceBinding(Type[MyType], MyType)),
+            InstanceBindingNode(InstanceBinding(Type[MyType], MyType)),
         ]
 
         my_type = self.object_provider.provide(Target(Type[MyType]))
@@ -168,7 +171,7 @@ class TestObjectProvider(unittest.TestCase):
         instance = MyType()
 
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(InstanceBinding(MyType, instance)),
+            InstanceBindingNode(InstanceBinding(MyType, instance)),
         ]
 
         with self.assertRaises(NoBindingFound):
@@ -176,7 +179,7 @@ class TestObjectProvider(unittest.TestCase):
 
     def test_provide_type_list(self):
         self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
-            SimpleBindingNode(ClassBinding(MyType)),
+            ClassBindingNode(ClassBinding(MyType)),
         ]
 
         type_list = self.object_provider.provide(Target(List[Type[MyType]]))
@@ -189,15 +192,15 @@ class TestObjectProvider(unittest.TestCase):
 
         instance = MyType()
         self.dependency_graph.binding_nodes_by_target[Target(MyParentClass)] = [
-            SimpleBindingNode(
+            ClassBindingNode(
                 ClassBinding(MyParentClass),
                 [
                     ParameterNode(
                         Parameter("param", Parameter.VAR_POSITIONAL),
                         CollectionBindingNode(
                             [
-                                SimpleBindingNode(ClassBinding(MyType)),
-                                SimpleBindingNode(InstanceBinding(MyType, instance)),
+                                ClassBindingNode(ClassBinding(MyType)),
+                                InstanceBindingNode(InstanceBinding(MyType, instance)),
                             ],
                             list,
                         )
@@ -210,3 +213,99 @@ class TestObjectProvider(unittest.TestCase):
         self.assertEqual(2, len(parent.param))
         self.assertIsInstance(parent.param[0], MyType)
         self.assertIs(instance, parent.param[1])
+
+    def test_provide_factory__with_instance_binding(self):
+        class MyClass:
+            def __init__(self, my_param: str):
+                self.my_param = my_param
+
+        class MyFactory(Factory[MyClass]):
+            def create(self) -> MyClass:
+                return MyClass("coucou")
+
+        my_factory = MyFactory()
+        self.dependency_graph.binding_nodes_by_target[Target(MyClass)] = [
+            FactoryBindingNode(
+                FactoryBinding(MyClass, my_factory),
+                InstanceBindingNode(InstanceBinding(MyFactory, my_factory))
+            )
+        ]
+        my_instance = self.object_provider.provide(Target(MyClass))
+        self.assertIsInstance(my_instance, MyClass)
+        self.assertEqual("coucou", my_instance.my_param)
+
+    def test_provide_factory_with_class_binding(self):
+        class MyClass:
+            def __init__(self, my_param: Any):
+                self.my_param = my_param
+
+        class MyFactory(Factory[MyClass]):
+            def __init__(self, my_type: MyType):
+                self.my_type = my_type
+
+            def create(self) -> MyClass:
+                return MyClass(self.my_type)
+
+        self.dependency_graph.binding_nodes_by_target[Target(MyClass)] = [
+            FactoryBindingNode(
+                FactoryBinding(MyClass, MyFactory),
+                ClassBindingNode(
+                    ClassBinding(MyFactory),
+                    [
+                        ParameterNode(
+                            Parameter("my_type", Parameter.POSITIONAL_OR_KEYWORD),
+                            ClassBindingNode(
+                                ClassBinding(MyType),
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+        ]
+        my_instance = self.object_provider.provide(Target(MyClass))
+        self.assertIsInstance(my_instance, MyClass)
+        self.assertIsInstance(my_instance.my_param, MyType)
+
+    def test_provide_scoped_factory_binding(self):
+        class MyClass:
+            def __init__(self, my_param: Any):
+                self.my_param = my_param
+
+        class MyFactory(Factory[MyClass]):
+            def __init__(self, my_type: MyType):
+                self.my_type = my_type
+
+            def create(self) -> MyClass:
+                return MyClass(self.my_type)
+
+        self.dependency_graph.binding_nodes_by_target[Target(MyClass)] = [
+            FactoryBindingNode(
+                FactoryBinding(MyClass, MyFactory, PerLookupScope),
+                ClassBindingNode(
+                    ClassBinding(MyFactory, scope=PerLookupScope),
+                    [
+                        ParameterNode(
+                            Parameter("my_type", Parameter.POSITIONAL_OR_KEYWORD),
+                            ClassBindingNode(
+                                ClassBinding(MyType),
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+        ]
+        instance_1 = self.object_provider.provide(Target(MyClass))
+        self.assertIsInstance(instance_1, MyClass)
+        self.assertIsInstance(instance_1.my_param, MyType)
+        instance_2 = self.object_provider.provide(Target(MyClass))
+        self.assertIsInstance(instance_2, MyClass)
+        self.assertIsInstance(instance_2.my_param, MyType)
+        self.assertIs(instance_1.my_param, instance_2.my_param)
+        self.assertIsNot(instance_1, instance_2)
+
+    def test_provide_from_unknown_binding_node_raises_exception(self):
+        self.dependency_graph.binding_nodes_by_target[Target(MyType)] = [
+            BindingNode(),
+        ]
+        with self.assertRaises(UnexpectedBindingTypeError):
+            self.object_provider.provide(Target(MyType))
