@@ -1,29 +1,24 @@
 import unittest
 
 from illuin_inject import PerLookupScope
+from illuin_inject.bindings import FromClassProvider
 
 
-class MyClass:
+class MyType:
     pass
-
-
-def provider():
-    return MyClass()
 
 
 class TestPerLookupScope(unittest.TestCase):
     def setUp(self) -> None:
         self.scope = PerLookupScope()
+        self.class_provider = FromClassProvider(MyType, [], {})
 
-    def test_get_returns_instance(self):
-        instance = self.scope.get(MyClass, provider)
+    def test_get_scoped_provider_returns_unscoped_provider(self):
+        scoped_provider = self.scope.get_scoped_provider(self.class_provider)
 
-        self.assertIsInstance(instance, MyClass)
+        instance_1 = scoped_provider.get()
+        instance_2 = scoped_provider.get()
 
-    def test_multiple_get_return_new_instances(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        instance_2 = self.scope.get(MyClass, provider)
-
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
         self.assertIsNot(instance_1, instance_2)
+        self.assertIsInstance(instance_1, MyType)
+        self.assertIsInstance(instance_2, MyType)

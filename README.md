@@ -216,16 +216,15 @@ assert instance_1 is instance_2
 You can inject any custom scope that implements `illuin_inject.scopes.Scope`, or override an existing one:
 
 ```python
-from typing import Callable, Type
-
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import BindingSpec, Injector, Provider
 from illuin_inject.scopes import Scope
 from illuin_inject.typings import InjectedT
 
 
 class MyScope(Scope):
-    def get(self, bound_type: Type[InjectedT], provider: Callable[[], InjectedT]) -> InjectedT:
-        return provider()
+    @classmethod
+    def get_scoped_provider(cls, inner_provider: Provider[InjectedT]) -> Provider[InjectedT]:
+        return inner_provider
 
 
 class MyClass:
@@ -236,7 +235,7 @@ class MyBindingSpec(BindingSpec):
     def configure(self) -> None:
         self.bind(MyClass, scope=MyScope)
 
-injector = Injector([MyBindingSpec()], scopes_by_type={MyScope: MyScope()})
+injector = Injector([MyBindingSpec()])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 assert instance_1 is not instance_2

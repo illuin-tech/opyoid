@@ -1,51 +1,18 @@
 import unittest
-from queue import Queue
-from threading import Thread
+from unittest.mock import create_autospec
 
-from illuin_inject.scopes.thread_scope import ThreadScope
-
-
-class MyClass:
-    pass
-
-
-def provider():
-    return MyClass()
+from illuin_inject import ThreadScope
+from illuin_inject.provider import Provider
+from illuin_inject.scopes.thread_scoped_provider import ThreadScopedProvider
 
 
 class TestThreadScope(unittest.TestCase):
-    def setUp(self) -> None:
-        self.scope = ThreadScope()
+    def test_get_scoped_provider_returns_thread_scoped_provider(self):
+        inner_provider = create_autospec(Provider, spec_set=True)
 
-    def test_get_returns_instance(self):
-        instance = self.scope.get(MyClass, provider)
+        thread_scoped_provider = ThreadScope.get_scoped_provider(inner_provider)
+        self.assertIsInstance(thread_scoped_provider, ThreadScopedProvider)
 
-        self.assertIsInstance(instance, MyClass)
-
-    def test_multiple_get_return_same_instance(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        instance_2 = self.scope.get(MyClass, provider)
-
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
-        self.assertIs(instance_1, instance_2)
-
-    def test_different_threads_return_different_instances(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        queue = Queue()
-
-        def put_in_queue():
-            queue.put(self.scope.get(MyClass, provider))
-
-        thread = Thread(target=put_in_queue)
-        thread.start()
-        thread.join(1)
-        instance_2 = queue.get()
-        instance_3 = self.scope.get(MyClass, provider)
-
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
-        self.assertIsInstance(instance_3, MyClass)
-        self.assertIs(instance_1, instance_3)
-        self.assertIsNot(instance_1, instance_2)
-        self.assertIsNot(instance_2, instance_3)
+        instance = thread_scoped_provider.get()
+        self.assertIs(inner_provider.get.return_value, instance)
+        inner_provider.get.assert_called_once_with()

@@ -1,4 +1,7 @@
 from .binding import Binding
-from .class_binding import ClassBinding
-from .factory_binding import FactoryBinding
-from .instance_binding import InstanceBinding
+from .binding_registry import BindingRegistry
+from .binding_spec import BindingSpec
+from .binding_to_provider_adapter import BindingToProviderAdapter
+from .class_binding import ClassBinding, ClassBindingToProviderAdapter, FromClassProvider
+from .factory_binding import FactoryBinding, FactoryBindingToProviderAdapter, FromFactoryProvider
+from .instance_binding import FromInstanceProvider, InstanceBinding, InstanceBindingToProviderAdapter

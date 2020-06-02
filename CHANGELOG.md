@@ -1,5 +1,9 @@
 # Changelog
 ## Unreleased
+### Breaking changes
+- Removed `scopes_by_type` argument from the `Injector` constructor, it is not needed anymore to inject custom scopes
+
+
 ## 0.4.0
 ### Breaking changes
 - Singleton, Immediate and Thread scopes are now guaranteeing that only one instance of a class can be created for

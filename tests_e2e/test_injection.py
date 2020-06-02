@@ -1,5 +1,5 @@
 import unittest
-from typing import Generic, List, Optional, Type, TypeVar, Set
+from typing import Generic, List, Optional, Set, Type, TypeVar
 
 import attr
 

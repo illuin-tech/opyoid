@@ -1,54 +1,33 @@
 import unittest
-from queue import Queue
-from threading import Thread
 
 from illuin_inject import ImmediateScope
+from illuin_inject.bindings import FromClassProvider
+from illuin_inject.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
-class MyClass:
+class MyType:
     pass
-
-
-def provider():
-    return MyClass()
 
 
 class TestImmediateScope(unittest.TestCase):
     def setUp(self) -> None:
         self.scope = ImmediateScope()
+        self.class_provider = FromClassProvider(MyType, [], {})
 
-    def test_get_returns_instance(self):
-        instance = self.scope.get(MyClass, provider)
+    def test_get_scoped_provider_returns_singleton_scoped_provider(self):
+        scoped_provider = self.scope.get_scoped_provider(self.class_provider)
 
-        self.assertIsInstance(instance, MyClass)
+        self.assertIsInstance(scoped_provider, SingletonScopedProvider)
+        instance = scoped_provider.get()
+        self.assertIsInstance(instance, MyType)
 
-    def test_multiple_get_return_same_instance(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        instance_2 = self.scope.get(MyClass, provider)
+    def test_creating_scoped_provider_instantiates_instance(self):
+        class MyOtherType:
+            created_count = 0
 
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
-        self.assertIs(instance_1, instance_2)
+            def __init__(self):
+                MyOtherType.created_count += 1
 
-    def test_different_threads_return_same_instance(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        queue = Queue()
-
-        def put_in_queue():
-            queue.put(self.scope.get(MyClass, provider))
-
-        thread = Thread(target=put_in_queue)
-        thread.start()
-        thread.join(1)
-        instance_2 = queue.get()
-
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
-        self.assertIs(instance_1, instance_2)
-
-    def test_cache_is_not_shared_between_scopes(self):
-        scope_2 = ImmediateScope()
-        instance_1 = self.scope.get(MyClass, provider)
-        instance_2 = scope_2.get(MyClass, provider)
-
-        self.assertIsNot(instance_1, instance_2)
+        class_provider = FromClassProvider(MyOtherType, [], {})
+        self.scope.get_scoped_provider(class_provider)
+        self.assertEqual(1, MyOtherType.created_count)
