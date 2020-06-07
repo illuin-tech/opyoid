@@ -386,7 +386,7 @@ class TestInjector(unittest.TestCase):
 
         self.assertEqual(["ok"], called)
 
-    def test_provider_injection(self):
+    def test_from_provider_injection(self):
         class MyParent:
             def __init__(self, my_arg: MyClass, my_str: str):
                 self.my_arg = my_arg
@@ -592,3 +592,31 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(parent, MyParentClass)
         self.assertIsInstance(child, MyClass)
         self.assertIs(parent.arg, child)
+
+    def test_provider_injection(self):
+        class MyParentClass:
+            def __init__(self, my_param: Provider[MyClass]):
+                self.my_param = my_param
+
+        parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIsInstance(parent.my_param, Provider)
+        instance = parent.my_param.get()
+        self.assertIsInstance(instance, MyClass)
+
+    def test_provider_injection_from_provider_binding(self):
+        class MyParentClass:
+            def __init__(self, my_param: Provider[MyClass]):
+                self.my_param = my_param
+
+        class MyProvider(Provider[MyClass]):
+            def get(self) -> MyClass:
+                return MyClass()
+
+        provider = MyProvider()
+        injector = Injector(bindings=[ProviderBinding(MyClass, provider), ClassBinding(MyParentClass)])
+        parent = injector.inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIs(parent.my_param, provider)
+        instance = parent.my_param.get()
+        self.assertIsInstance(instance, MyClass)

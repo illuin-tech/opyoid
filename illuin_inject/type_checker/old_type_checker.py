@@ -3,6 +3,7 @@
 from typing import GenericMeta, List, Set, Tuple, Type, Union, _Union
 
 from illuin_inject.annotated import Annotated
+from illuin_inject.provider import Provider
 
 
 # noinspection PyUnresolvedReferences
@@ -23,6 +24,11 @@ class TypeChecker:
     def is_tuple(target_type: Type) -> bool:
         """Returns True if target_type is Tuple[<Any>]"""
         return isinstance(target_type, GenericMeta) and target_type.__origin__ == Tuple
+
+    @staticmethod
+    def is_provider(target_type: Type) -> bool:
+        """Returns True if target_type is Provider[<Any>]"""
+        return isinstance(target_type, GenericMeta) and target_type.__origin__ == Provider
 
     @staticmethod
     def is_annotated(target_type: Type) -> bool:

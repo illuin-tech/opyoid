@@ -8,7 +8,7 @@ from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
 from .providers_factories import FromBindingProviderFactory, FromCacheProviderFactory, OptionalProviderFactory, \
-    ProviderFactory, SetProviderFactory, TupleProviderFactory, TypeProviderFactory
+    ProviderFactory, ProviderProviderFactory, SetProviderFactory, TupleProviderFactory, TypeProviderFactory
 from .providers_factories.jit_provider_factory import JitProviderFactory
 from .providers_factories.list_provider_factory import ListProviderFactory
 
@@ -27,6 +27,7 @@ class ProviderCreator:
             TupleProviderFactory(),
             OptionalProviderFactory(),
             TypeProviderFactory(),
+            ProviderProviderFactory(),
             JitProviderFactory(),
         ]
         self._lock = RLock()
