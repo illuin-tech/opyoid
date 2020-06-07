@@ -18,7 +18,7 @@ More details are available in the documentation.
 
 ### Features
 - Added `MultiBinding` and `ItemBinding`
-
+- Added `PrivateBindingSpec`
 
 ## 0.4.0
 ### Breaking changes

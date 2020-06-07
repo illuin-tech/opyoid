@@ -5,8 +5,10 @@ from unittest.mock import ANY
 from illuin_inject.bindings import BindingRegistry, ClassBinding, FactoryBinding, FromClassProvider, \
     FromInstanceProvider, InstanceBinding, ListProvider, MultiBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
+from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 from illuin_inject.factory import Factory
+from illuin_inject.injection_state import InjectionState
 from illuin_inject.providers import ProviderCreator
 from illuin_inject.scopes import SingletonScope
 from illuin_inject.target import Target
@@ -20,11 +22,15 @@ class MyOtherType:
     pass
 
 
-class TestProvidersCreator(unittest.TestCase):
+class TestProviderCreator(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_registry = BindingRegistry()
-        self.binding_registry.register(InstanceBinding(SingletonScope, SingletonScope()))
-        self.provider_creator = ProviderCreator(self.binding_registry)
+        self.binding_registry.register(RegisteredBinding(InstanceBinding(SingletonScope, SingletonScope())))
+        self.provider_creator = ProviderCreator()
+        self.state = InjectionState(
+            self.provider_creator,
+            self.binding_registry,
+        )
         self.my_instance = MyType()
         self.my_instance_binding = InstanceBinding(MyType, self.my_instance)
         self.annotated_instance = MyType()
@@ -33,33 +39,33 @@ class TestProvidersCreator(unittest.TestCase):
         self.my_other_instance_binding = InstanceBinding(MyOtherType, self.my_other_instance)
 
     def test_get_provider_with_instance_bindings(self):
-        self.binding_registry.register(self.my_instance_binding)
-        self.binding_registry.register(self.my_other_instance_binding)
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_other_instance_binding))
 
-        provider = self.provider_creator.get_provider(Target(MyType))
+        provider = self.provider_creator.get_provider(Target(MyType), self.state)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
-        provider = self.provider_creator.get_provider(Target(MyOtherType))
+        provider = self.provider_creator.get_provider(Target(MyOtherType), self.state)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
 
     def test_get_provider_caches_providers(self):
-        self.binding_registry.register(self.my_instance_binding)
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
 
-        provider_1 = self.provider_creator.get_provider(Target(MyType))
-        provider_2 = self.provider_creator.get_provider(Target(MyType))
+        provider_1 = self.provider_creator.get_provider(Target(MyType), self.state)
+        provider_2 = self.provider_creator.get_provider(Target(MyType), self.state)
         self.assertIs(provider_1, provider_2)
 
     def test_get_provider_with_annotated_bindings(self):
-        self.binding_registry.register(self.my_annotated_instance_binding)
+        self.binding_registry.register(RegisteredBinding(self.my_annotated_instance_binding))
 
         with self.assertRaises(NoBindingFound):
-            self.provider_creator.get_provider(Target(MyType))
+            self.provider_creator.get_provider(Target(MyType), self.state)
 
-        provider = self.provider_creator.get_provider(Target(MyType, "my_annotation"))
+        provider = self.provider_creator.get_provider(Target(MyType, "my_annotation"), self.state)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
         self.assertIs(self.annotated_instance, instance)
@@ -70,64 +76,71 @@ class TestProvidersCreator(unittest.TestCase):
                 self.my_param = my_param
 
         my_parent_class_binding = ClassBinding(MyParentClass)
-        self.binding_registry.register(my_parent_class_binding)
+        self.binding_registry.register(RegisteredBinding(my_parent_class_binding))
 
         with self.assertRaises(NonInjectableTypeError):
-            self.provider_creator.get_provider(Target(MyParentClass))
+            self.provider_creator.get_provider(Target(MyParentClass), self.state)
 
     def test_list_binding_with_multi_binding(self):
         self.binding_registry.register(
-            MultiBinding(
-                MyType,
-                [
-                    ItemBinding(bound_instance=self.my_instance),
-                    ItemBinding(MyType),
-                ],
+            RegisteredBinding(
+                MultiBinding(
+                    MyType,
+                    [
+                        ItemBinding(bound_instance=self.my_instance),
+                        ItemBinding(MyType),
+                    ],
+                )
             )
         )
 
-        provider = self.provider_creator.get_provider(Target(List[MyType]))
+        provider = self.provider_creator.get_provider(Target(List[MyType]), self.state)
         list_instance = provider.get()
         self.assertEqual([self.my_instance, ANY], list_instance)
         self.assertIsInstance(list_instance[1], MyType)
 
     def test_list_binding_with_annotations(self):
         self.binding_registry.register(
-            MultiBinding(
-                MyType,
-                [
-                    ItemBinding(bound_instance=self.annotated_instance),
-                ],
-                annotation="my_annotation",
+            RegisteredBinding(
+                MultiBinding(
+                    MyType,
+                    [
+                        ItemBinding(bound_instance=self.annotated_instance),
+                    ],
+                    annotation="my_annotation",
+                )
             )
         )
         self.binding_registry.register(
-            MultiBinding(
-                MyType,
-                [
-                    ItemBinding(bound_instance=self.my_instance),
-                ],
+            RegisteredBinding(
+                MultiBinding(
+                    MyType,
+                    [
+                        ItemBinding(bound_instance=self.my_instance),
+                    ],
+                )
             )
         )
-        self.binding_registry.register(self.my_annotated_instance_binding)
-        self.binding_registry.register(ClassBinding(MyType))
+        self.binding_registry.register(RegisteredBinding(self.my_annotated_instance_binding))
+        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType)))
 
-        provider = self.provider_creator.get_provider(Target(List[MyType], "my_annotation"))
+        provider = self.provider_creator.get_provider(Target(List[MyType], "my_annotation"), self.state)
         list_instance = provider.get()
         self.assertEqual([self.annotated_instance], list_instance)
 
     def test_set_binding_with_multi_binding(self):
         self.binding_registry.register(
-            MultiBinding(
-                MyType,
-                [
-                    ItemBinding(bound_instance=self.my_instance),
-                    ItemBinding(MyType),
-                ],
+            RegisteredBinding(
+                MultiBinding(
+                    MyType,
+                    [
+                        ItemBinding(bound_instance=self.my_instance),
+                        ItemBinding(MyType),
+                    ],
+                )
             )
         )
-
-        provider = self.provider_creator.get_provider(Target(Set[MyType]))
+        provider = self.provider_creator.get_provider(Target(Set[MyType]), self.state)
         self.assertIsInstance(provider, FromClassProvider)
         set_instance = provider.get()
         self.assertIn(self.my_instance, set_instance)
@@ -135,25 +148,26 @@ class TestProvidersCreator(unittest.TestCase):
 
     def test_tuple_binding_with_multi_binding(self):
         self.binding_registry.register(
-            MultiBinding(
-                MyType,
-                [
-                    ItemBinding(bound_instance=self.my_instance),
-                    ItemBinding(MyType),
-                ],
+            RegisteredBinding(
+                MultiBinding(
+                    MyType,
+                    [
+                        ItemBinding(bound_instance=self.my_instance),
+                        ItemBinding(MyType),
+                    ],
+                )
             )
         )
-
-        provider = self.provider_creator.get_provider(Target(Tuple[MyType]))
+        provider = self.provider_creator.get_provider(Target(Tuple[MyType]), self.state)
         self.assertIsInstance(provider, FromClassProvider)
         tuple_instance = provider.get()
         self.assertEqual((self.my_instance, ANY), tuple_instance)
         self.assertIsInstance(tuple_instance[1], MyType)
 
     def test_optional_binding(self):
-        self.binding_registry.register(self.my_instance_binding)
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
 
-        provider = self.provider_creator.get_provider(Target(Optional[MyType]))
+        provider = self.provider_creator.get_provider(Target(Optional[MyType]), self.state)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
         self.assertIs(self.my_instance, instance)
@@ -162,10 +176,10 @@ class TestProvidersCreator(unittest.TestCase):
         class SubType(MyType):
             pass
 
-        self.binding_registry.register(self.my_instance_binding)
-        self.binding_registry.register(ClassBinding(MyType, SubType))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
+        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType, SubType)))
 
-        provider = self.provider_creator.get_provider(Target(Type[MyType]))
+        provider = self.provider_creator.get_provider(Target(Type[MyType]), self.state)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
         self.assertIs(SubType, instance)
@@ -174,10 +188,10 @@ class TestProvidersCreator(unittest.TestCase):
         class SubType(MyType):
             pass
 
-        self.binding_registry.register(InstanceBinding(Type[MyType], MyType))
-        self.binding_registry.register(ClassBinding(MyType, SubType))
+        self.binding_registry.register(RegisteredBinding(InstanceBinding(Type[MyType], MyType)))
+        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType, SubType)))
 
-        provider = self.provider_creator.get_provider(Target(Type[MyType]))
+        provider = self.provider_creator.get_provider(Target(Type[MyType]), self.state)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
         self.assertIs(MyType, instance)
@@ -188,11 +202,11 @@ class TestProvidersCreator(unittest.TestCase):
                 self.my_param = my_param
 
         parent_class_binding = ClassBinding(MyParentClass)
-        self.binding_registry.register(self.my_instance_binding)
-        self.binding_registry.register(parent_class_binding)
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
+        self.binding_registry.register(RegisteredBinding(parent_class_binding))
 
         with self.assertRaises(NonInjectableTypeError):
-            self.provider_creator.get_provider(Target(Type[MyType]))
+            self.provider_creator.get_provider(Target(Type[MyType]), self.state)
 
     def test_factory_binding(self):
         class MyInjectee:
@@ -206,15 +220,15 @@ class TestProvidersCreator(unittest.TestCase):
                 return MyInjectee()
 
         factory_binding = FactoryBinding(MyInjectee, MyFactory)
-        self.binding_registry.register(self.my_instance_binding)
-        self.binding_registry.register(factory_binding)
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
+        self.binding_registry.register(RegisteredBinding(factory_binding))
 
-        self.provider_creator.get_provider(Target(MyInjectee))
+        self.provider_creator.get_provider(Target(MyInjectee), self.state)
 
     def test_list_implicit_binding(self):
         instance = MyType()
-        self.binding_registry.register(InstanceBinding(MyType, instance))
-        provider = self.provider_creator.get_provider(Target(List[MyType]))
+        self.binding_registry.register(RegisteredBinding(InstanceBinding(MyType, instance)))
+        provider = self.provider_creator.get_provider(Target(List[MyType]), self.state)
         self.assertIsInstance(provider, ListProvider)
         list_instance = provider.get()
         self.assertEqual([instance], list_instance)
