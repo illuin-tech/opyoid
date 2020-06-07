@@ -9,6 +9,5 @@ EMPTY = object()
 class SingletonScope(Scope):
     """Always provides the same instance."""
 
-    @classmethod
-    def get_scoped_provider(cls, inner_provider: Provider[InjectedT]) -> Provider[InjectedT]:
+    def get_scoped_provider(self, inner_provider: Provider[InjectedT]) -> Provider[InjectedT]:
         return SingletonScopedProvider(inner_provider)

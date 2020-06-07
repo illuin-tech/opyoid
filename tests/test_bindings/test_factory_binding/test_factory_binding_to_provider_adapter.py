@@ -1,8 +1,9 @@
 import unittest
-from unittest.mock import create_autospec
+from unittest.mock import call, create_autospec
 
-from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding, ThreadScope
-from illuin_inject.bindings import FactoryBindingToProviderAdapter
+from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding, PerLookupScope, SingletonScope, ThreadScope
+from illuin_inject.bindings import FactoryBindingToProviderAdapter, FromInstanceProvider
+from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 from illuin_inject.factory import Factory
 from illuin_inject.provider import Provider
 from illuin_inject.providers import ProvidersCreator
@@ -25,6 +26,9 @@ class TestFactoryBindingToProviderAdapter(unittest.TestCase):
         self.unused_provider = create_autospec(Provider, spec_set=True)
         self.factory_provider = create_autospec(Provider, spec_set=True)
         self.factory_provider.get.return_value = self.factory
+        self.mock_scope_provider = create_autospec(Provider, spec_set=True)
+        self.scope = PerLookupScope()
+        self.mock_scope_provider.get.return_value = self.scope
 
     def test_accept_factory_binding_returns_true(self):
         self.assertTrue(self.adapter.accept(FactoryBinding(MyType, create_autospec(Factory))))
@@ -34,23 +38,34 @@ class TestFactoryBindingToProviderAdapter(unittest.TestCase):
         self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType())))
 
     def test_create_returns_provider(self):
-        self.providers_creator.get_providers.return_value = [
-            self.unused_provider,
-            self.factory_provider,
+        self.providers_creator.get_providers.side_effect = [
+            [
+                self.unused_provider,
+                self.factory_provider,
+            ],
+            [
+                self.mock_scope_provider,
+            ]
         ]
 
         provider = self.adapter.create(FactoryBinding(MyType, self.factory), self.providers_creator)
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
-        self.providers_creator.get_providers.assert_called_once_with(
-            Target(self.factory)
-        )
+        self.assertEqual([
+            call(Target(self.factory)),
+            call(Target(SingletonScope)),
+        ], self.providers_creator.get_providers.call_args_list)
 
     def test_create_annotated_provider(self):
-        self.providers_creator.get_providers.return_value = [
-            self.unused_provider,
-            self.factory_provider,
+        self.providers_creator.get_providers.side_effect = [
+            [
+                self.unused_provider,
+                self.factory_provider,
+            ],
+            [
+                self.mock_scope_provider,
+            ],
         ]
 
         provider = self.adapter.create(
@@ -60,14 +75,20 @@ class TestFactoryBindingToProviderAdapter(unittest.TestCase):
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
-        self.providers_creator.get_providers.assert_called_once_with(
-            Target(self.factory, annotation="my_annotation")
-        )
+        self.assertEqual([
+            call(Target(self.factory, annotation="my_annotation")),
+            call(Target(SingletonScope)),
+        ], self.providers_creator.get_providers.call_args_list)
 
     def test_create_scoped_provider(self):
-        self.providers_creator.get_providers.return_value = [
-            self.unused_provider,
-            self.factory_provider,
+        self.providers_creator.get_providers.side_effect = [
+            [
+                self.unused_provider,
+                self.factory_provider,
+            ],
+            [
+                FromInstanceProvider(ThreadScope()),
+            ],
         ]
 
         provider = self.adapter.create(
@@ -77,7 +98,22 @@ class TestFactoryBindingToProviderAdapter(unittest.TestCase):
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
-        self.providers_creator.get_providers.assert_called_once_with(
-            Target(self.factory)
+        self.assertEqual(
+            [
+                call(Target(self.factory)),
+                call(Target(ThreadScope)),
+            ],
+            self.providers_creator.get_providers.call_args_list,
         )
         self.assertIsInstance(provider, ThreadScopedProvider)
+
+    def test_non_injectable_scope_raises_exception(self):
+        self.providers_creator.get_providers.side_effect = [
+            [
+                self.factory_provider,
+            ],
+            NoBindingFound(),
+        ]
+
+        with self.assertRaises(NonInjectableTypeError):
+            self.adapter.create(FactoryBinding(MyType, self.factory), self.providers_creator)

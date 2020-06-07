@@ -2,6 +2,8 @@
 ## Unreleased
 ### Breaking changes
 - Removed `scopes_by_type` argument from the `Injector` constructor, it is not needed anymore to inject custom scopes
+- Custom scopes must now be injected. By default, `SingletonScope`, `ThreadScope`, `ImmediateScope` and `PerLookupScope`
+ are bound, but they can be overridden. `SingletonScope` can only be bound in an instance binding.
 
 
 ## 0.4.0

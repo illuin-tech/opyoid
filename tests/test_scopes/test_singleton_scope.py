@@ -10,7 +10,7 @@ class TestSingletonScope(unittest.TestCase):
     def test_get_scoped_provider_returns_singleton_scoped_provider(self):
         inner_provider = create_autospec(Provider, spec_set=True)
 
-        singleton_scoped_provider = SingletonScope.get_scoped_provider(inner_provider)
+        singleton_scoped_provider = SingletonScope().get_scoped_provider(inner_provider)
         self.assertIsInstance(singleton_scoped_provider, SingletonScopedProvider)
 
         instance = singleton_scoped_provider.get()
