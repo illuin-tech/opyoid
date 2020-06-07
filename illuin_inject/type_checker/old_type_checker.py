@@ -1,13 +1,8 @@
-import sys
+# pylint: disable=no-name-in-module
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from typing import GenericMeta, List, Set, Tuple, Type, Union, _Union
 
 from illuin_inject.annotated import Annotated
-
-NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
-# pylint: disable=no-name-in-module
-if NEW_TYPING:
-    from typing import _GenericAlias, Type, Union
-else:
-    from typing import GenericMeta, List, Set, Tuple, Type, Union, _Union
 
 
 # noinspection PyUnresolvedReferences
@@ -17,22 +12,16 @@ class TypeChecker:
     @staticmethod
     def is_list(target_type: Type) -> bool:
         """Returns True if target_type is List[<Any>]"""
-        if NEW_TYPING:
-            return isinstance(target_type, _GenericAlias) and target_type.__origin__ == list
         return isinstance(target_type, GenericMeta) and target_type.__origin__ == List
 
     @staticmethod
     def is_set(target_type: Type) -> bool:
         """Returns True if target_type is Set[<Any>]"""
-        if NEW_TYPING:
-            return isinstance(target_type, _GenericAlias) and target_type.__origin__ == set
         return isinstance(target_type, GenericMeta) and target_type.__origin__ == Set
 
     @staticmethod
     def is_tuple(target_type: Type) -> bool:
         """Returns True if target_type is Tuple[<Any>]"""
-        if NEW_TYPING:
-            return isinstance(target_type, _GenericAlias) and target_type.__origin__ == tuple
         return isinstance(target_type, GenericMeta) and target_type.__origin__ == Tuple
 
     @staticmethod
@@ -43,19 +32,13 @@ class TypeChecker:
     @staticmethod
     def is_optional(target_type: Type) -> bool:
         """Returns True if target_type is Optional[<Any>]"""
-        if NEW_TYPING:
-            return isinstance(target_type, _GenericAlias) \
-                   and target_type.__origin__ == Union \
-                   and len(target_type.__args__) >= 2 \
-                   and target_type.__args__[-1] == type(None)
-        return isinstance(target_type, _Union) \
-               and target_type.__origin__ == Union \
-               and len(target_type.__args__) >= 2 \
-               and target_type.__args__[-1] == type(None)
+        return \
+            isinstance(target_type, _Union) \
+            and target_type.__origin__ == Union \
+            and len(target_type.__args__) >= 2 \
+            and target_type.__args__[-1] == type(None)
 
     @staticmethod
     def is_type(target_type: Type) -> bool:
         """Returns True if target_type is Type[<Any>]"""
-        if NEW_TYPING:
-            return isinstance(target_type, _GenericAlias) and target_type.__origin__ == type
         return isinstance(target_type, GenericMeta) and target_type.__origin__ == Type
