@@ -42,6 +42,7 @@ class FromBindingProviderFactory(ProviderFactory):
             state.state_by_module[module_path[0]] = InjectionState(
                 state.provider_creator,
                 module_path[0].binding_registry,
+                state.options,
                 state,
             )
         return state.provider_creator.get_provider(target, state.state_by_module[module_path[0]])

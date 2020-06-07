@@ -8,6 +8,7 @@ from illuin_inject import ClassBinding, Factory, FactoryBinding, ImmediateScope,
     Module, MultiBinding, PerLookupScope, annotated_arg
 from illuin_inject.bindings.private_module import PrivateModule
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
+from illuin_inject.injector_options import InjectorOptions
 
 
 class MyClass:
@@ -27,6 +28,16 @@ class TestInjector(unittest.TestCase):
         injector = self.get_injector(MyClass)
         my_instance = injector.inject(MyClass)
         self.assertIsInstance(my_instance, MyClass)
+
+    def test_auto_injection(self):
+        class ParentClass:
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        injector = Injector(options=InjectorOptions(auto_bindings=True))
+        my_instance = injector.inject(ParentClass)
+        self.assertIsInstance(my_instance, ParentClass)
+        self.assertIsInstance(my_instance.my_arg, MyClass)
 
     def test_subtype_argument_injection(self):
         class MySubClass(MyClass):
@@ -370,6 +381,27 @@ class TestInjector(unittest.TestCase):
 
         injector = Injector(bindings=[
             ClassBinding(MyClass),
+            FactoryBinding(MyParent, MyParentFactory),
+        ])
+        my_parent = injector.inject(MyParent)
+        self.assertIsInstance(my_parent.my_arg, MyClass)
+        self.assertEqual("hello", my_parent.my_str)
+
+    def test_factory_injection_with_factory_binding(self):
+        class MyParent:
+            def __init__(self, my_arg: MyClass, my_str: str):
+                self.my_arg = my_arg
+                self.my_str = my_str
+
+        class MyParentFactory(Factory[MyParent]):
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+            def create(self) -> MyParent:
+                return MyParent(self.my_arg, "hello")
+
+        injector = Injector(bindings=[
+            InstanceBinding(MyParentFactory, MyParentFactory(MyClass())),
             FactoryBinding(MyParent, MyParentFactory),
         ])
         my_parent = injector.inject(MyParent)

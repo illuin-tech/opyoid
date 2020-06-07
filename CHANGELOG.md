@@ -21,6 +21,12 @@ More details are available in the documentation.
 ### Features
 - Added `MultiBinding` and `ItemBinding`
 - Added `PrivateBindingSpec`
+- Added `options: InjectorOptions` argument to the `Injector` constructor, it has an `auto_bindings: bool = False`
+argument that can be used to implicitly bind all classes to themselves in a SingletonScope.
+
+### Fixes
+- You can now bind any binding to a Factory class, by default a ClassBinding with the factory class will be created
+
 
 ## 0.4.0
 ### Breaking changes

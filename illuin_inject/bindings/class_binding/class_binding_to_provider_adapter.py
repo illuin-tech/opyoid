@@ -59,5 +59,5 @@ class ClassBindingToProviderAdapter(BindingToProviderAdapter[ClassBinding]):
                 pass
         if parameter.default is not Parameter.empty:
             return FromInstanceProvider(parameter.default)
-        raise NonInjectableTypeError(f"Could not find binding or default value for {parameter.name}: "
+        raise NonInjectableTypeError(f"Could not find a binding or a default value for {parameter.name}: "
                                      f"{parameter.annotation} required by {current_class}")

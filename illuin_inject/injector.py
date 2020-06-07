@@ -4,6 +4,7 @@ from .bindings import Binding
 from .bindings.abstract_module import AbstractModule
 from .bindings.root_module import RootModule
 from .injection_state import InjectionState
+from .injector_options import InjectorOptions
 from .providers import ProviderCreator
 from .target import Target
 from .typings import InjectedT
@@ -17,11 +18,17 @@ class Injector:
 
     def __init__(self,
                  modules: List[AbstractModule] = None,
-                 bindings: List[Binding] = None) -> None:
+                 bindings: List[Binding] = None,
+                 options: InjectorOptions = None,
+                 ) -> None:
         root_module = RootModule(self, modules, bindings)
         root_module.configure_once()
         self._provider_creator = ProviderCreator()
-        self._root_state = InjectionState(self._provider_creator, root_module.binding_registry)
+        self._root_state = InjectionState(
+            self._provider_creator,
+            root_module.binding_registry,
+            options or InjectorOptions(),
+        )
         # Prepare providers
         for target in root_module.binding_registry.get_bindings_by_target():
             self._provider_creator.get_provider(target, self._root_state)
