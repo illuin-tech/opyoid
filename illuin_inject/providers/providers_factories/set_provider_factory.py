@@ -19,4 +19,4 @@ class SetProviderFactory(ProviderFactory):
                target: Target[Set[InjectedT]],
                state: InjectionState) -> Provider[Set[InjectedT]]:
         new_target = Target(List[target.type.__args__[0]], target.annotation)
-        return FromClassProvider(set, [state.provider_creator.get_provider(new_target, state)], {})
+        return FromClassProvider(set, [state.provider_creator.get_provider(new_target, state)], None, {})

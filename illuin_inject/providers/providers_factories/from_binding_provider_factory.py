@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from illuin_inject.bindings import Binding, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
-    ProviderBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter, \
+    InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter, ProviderBindingToProviderAdapter, \
     SelfBindingToProviderAdapter
 from illuin_inject.exceptions import BindingError
 from illuin_inject.injection_state import InjectionState

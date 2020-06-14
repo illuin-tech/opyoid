@@ -19,4 +19,4 @@ class TupleProviderFactory(ProviderFactory):
                target: Target[Tuple[InjectedT]],
                state: InjectionState) -> Provider[Tuple[InjectedT]]:
         new_target = Target(List[target.type.__args__[0]], target.annotation)
-        return FromClassProvider(tuple, [state.provider_creator.get_provider(new_target, state)], {})
+        return FromClassProvider(tuple, [state.provider_creator.get_provider(new_target, state)], None, {})

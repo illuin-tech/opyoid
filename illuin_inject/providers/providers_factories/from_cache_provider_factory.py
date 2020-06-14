@@ -10,13 +10,6 @@ class FromCacheProviderFactory(ProviderFactory):
 
     def accept(self, target: Target[InjectedT], state: InjectionState) -> bool:
         return target in state.provider_registry
-        # while target not in state.provider_registry:
-        #     if not state.parent_state:
-        #         return False
-        #     state = state.parent_state
-        # return True
 
     def create(self, target: Target[InjectedT], state: InjectionState) -> Provider[InjectedT]:
-        # while target not in state.provider_registry:
-        #     state = state.parent_state
         return state.provider_registry.get_provider(target)

@@ -12,7 +12,7 @@ class MyType:
 class TestImmediateScope(unittest.TestCase):
     def setUp(self) -> None:
         self.scope = ImmediateScope()
-        self.class_provider = FromClassProvider(MyType, [], {})
+        self.class_provider = FromClassProvider(MyType, [], None, {})
 
     def test_get_scoped_provider_returns_singleton_scoped_provider(self):
         scoped_provider = self.scope.get_scoped_provider(self.class_provider)
@@ -28,6 +28,6 @@ class TestImmediateScope(unittest.TestCase):
             def __init__(self):
                 MyOtherType.created_count += 1
 
-        class_provider = FromClassProvider(MyOtherType, [], {})
+        class_provider = FromClassProvider(MyOtherType, [], None, {})
         self.scope.get_scoped_provider(class_provider)
         self.assertEqual(1, MyOtherType.created_count)

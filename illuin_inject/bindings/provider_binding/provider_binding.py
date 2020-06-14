@@ -2,9 +2,9 @@ from typing import Optional, Type, Union
 
 import attr
 
-from illuin_inject.provider import Provider
 from illuin_inject.bindings.binding import Binding
 from illuin_inject.exceptions import BindingError
+from illuin_inject.provider import Provider
 from illuin_inject.scopes import Scope, SingletonScope
 from illuin_inject.typings import InjectedT
 
