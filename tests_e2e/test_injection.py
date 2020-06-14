@@ -3,12 +3,9 @@ from typing import Generic, List, Optional, Set, Type, TypeVar
 
 import attr
 
-from illuin_inject import BindingSpec, ClassBinding, Injector, InstanceBinding, PerLookupScope, SingletonScope, \
-    annotated_arg
-from illuin_inject.bindings import FactoryBinding
+from illuin_inject import BindingSpec, ClassBinding, Factory, FactoryBinding, ImmediateScope, Injector, \
+    InstanceBinding, ItemBinding, MultiBinding, PerLookupScope, annotated_arg
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
-from illuin_inject.factory import Factory
-from illuin_inject.scopes import ImmediateScope
 
 
 class MyClass:
@@ -82,31 +79,39 @@ class TestInjector(unittest.TestCase):
             def __init__(self, param: List[MyClass]):
                 self.param = param
 
-        parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
+        parent = Injector(
+            bindings=[MultiBinding(MyClass, [ItemBinding(MyClass)]), ClassBinding(MyParentClass)]
+        ).inject(MyParentClass)
         self.assertIsInstance(parent, MyParentClass)
         self.assertIsInstance(parent.param, list)
         self.assertEqual(1, len(parent.param))
         self.assertIsInstance(parent.param[0], MyClass)
 
     def test_set_direct_injection(self):
-        class_list = self.get_injector(MyClass).inject(Set[MyClass])
-        self.assertIsInstance(class_list, set)
-        self.assertEqual(1, len(list(class_list)))
-        self.assertIsInstance(class_list.pop(), MyClass)
+        class_set = Injector(
+            bindings=[MultiBinding(MyClass, [ItemBinding(MyClass)])]
+        ).inject(Set[MyClass])
+        self.assertIsInstance(class_set, set)
+        self.assertEqual(1, len(list(class_set)))
+        self.assertIsInstance(class_set.pop(), MyClass)
 
     def test_set_injection(self):
         class MyParentClass:
             def __init__(self, param: Set[MyClass]):
                 self.param = param
 
-        parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
+        parent = Injector(
+            bindings=[MultiBinding(MyClass, [ItemBinding(MyClass)]), ClassBinding(MyParentClass)]
+        ).inject(MyParentClass)
         self.assertIsInstance(parent, MyParentClass)
         self.assertIsInstance(parent.param, set)
         self.assertEqual(1, len(list(parent.param)))
         self.assertIsInstance(parent.param.pop(), MyClass)
 
     def test_list_direct_injection(self):
-        class_list = self.get_injector(MyClass).inject(List[MyClass])
+        class_list = Injector(
+            bindings=[MultiBinding(MyClass, [ItemBinding(MyClass)])]
+        ).inject(List[MyClass])
         self.assertIsInstance(class_list, list)
         self.assertEqual(1, len(class_list))
         self.assertIsInstance(class_list[0], MyClass)
@@ -138,9 +143,14 @@ class TestInjector(unittest.TestCase):
 
         class NewBindingSpec(BindingSpec):
             def configure(self) -> None:
-                self.bind(MyClass)
-                self.bind(MyClass, MySubClass)
-                self.bind(MyClass, to_instance=my_instance)
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(MyClass),
+                        self.bind_item(MySubClass),
+                        self.bind_item(to_instance=my_instance),
+                    ],
+                )
                 self.bind(MyParentClass)
 
         injector = Injector([NewBindingSpec()])
@@ -302,10 +312,27 @@ class TestInjector(unittest.TestCase):
                 self.my_default_param = my_default_param
 
         injector = Injector(bindings=[
-            InstanceBinding(str, "my_type_1", "type_1"),
-            InstanceBinding(str, "my_type_2", "type_2"),
-            InstanceBinding(str, "my_default"),
             ClassBinding(Class1),
+            MultiBinding(
+                str,
+                [
+                    ItemBinding(bound_instance="my_type_1"),
+                ],
+                annotation="type_1"
+            ),
+            MultiBinding(
+                str,
+                [
+                    ItemBinding(bound_instance="my_type_2"),
+                ],
+                annotation="type_2"
+            ),
+            MultiBinding(
+                str,
+                [
+                    ItemBinding(bound_instance="my_default"),
+                ],
+            ),
         ])
         instance = injector.inject(Class1)
         self.assertIsInstance(instance, Class1)
@@ -316,22 +343,15 @@ class TestInjector(unittest.TestCase):
     def test_immediate_injection(self):
         called = []
 
-        class Class1(MyClass):
+        class MyOtherClass:
             def __init__(self):
-                MyClass.__init__(self)
-                called.append(1)
-
-        class Class2(MyClass):
-            def __init__(self):
-                MyClass.__init__(self)
-                called.append(2)
+                called.append("ok")
 
         Injector(bindings=[
-            ClassBinding(MyClass, Class1, ImmediateScope),
-            ClassBinding(MyClass, Class2, SingletonScope),
+            ClassBinding(MyOtherClass, scope=ImmediateScope),
         ])
 
-        self.assertEqual([1], called)
+        self.assertEqual(["ok"], called)
 
     def test_factory_injection(self):
         class MyParent:
@@ -349,6 +369,26 @@ class TestInjector(unittest.TestCase):
         injector = Injector(bindings=[
             ClassBinding(MyClass),
             FactoryBinding(MyParent, MyParentFactory),
+        ])
+        my_parent = injector.inject(MyParent)
+        self.assertIsInstance(my_parent.my_arg, MyClass)
+        self.assertEqual("hello", my_parent.my_str)
+
+    def test_factory_instance_injection(self):
+        class MyParent:
+            def __init__(self, my_arg: MyClass, my_str: str):
+                self.my_arg = my_arg
+                self.my_str = my_str
+
+        class MyParentFactory(Factory[MyParent]):
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+            def create(self) -> MyParent:
+                return MyParent(self.my_arg, "hello")
+
+        injector = Injector(bindings=[
+            FactoryBinding(MyParent, MyParentFactory(MyClass())),
         ])
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
@@ -394,3 +434,21 @@ class TestInjector(unittest.TestCase):
         my_parent_b = injector.inject(MyParentB)
 
         self.assertIsNot(my_parent_a.my_arg, my_parent_b.my_arg)
+
+    def test_inject_list_with_singleton_items(self):
+        class SubClass1(MyClass):
+            pass
+
+        class SubClass2(MyClass):
+            pass
+
+        injector = Injector(bindings=[MultiBinding(MyClass, [ItemBinding(SubClass1), ItemBinding(SubClass2)])])
+        list_1 = injector.inject(List[MyClass])
+        list_2 = injector.inject(List[MyClass])
+
+        self.assertEqual(2, len(list_1))
+        self.assertEqual(2, len(list_2))
+        self.assertIsInstance(list_1[0], SubClass1)
+        self.assertIs(list_1[0], list_2[0])
+        self.assertIsInstance(list_1[1], SubClass2)
+        self.assertIs(list_1[1], list_2[1])

@@ -5,7 +5,7 @@ from illuin_inject.typings import InjectedT
 from .binding import Binding
 
 if TYPE_CHECKING:
-    from illuin_inject.providers.providers_creator import ProvidersCreator
+    from illuin_inject.providers.providers_creator import ProviderCreator
 
 BindingT = TypeVar("BindingT", bound=Binding)
 
@@ -17,6 +17,6 @@ class BindingToProviderAdapter(Generic[BindingT]):
         """Return True if this adapter can handle this binding."""
         raise NotImplementedError
 
-    def create(self, binding: BindingT, providers_creator: "ProvidersCreator") -> Provider[InjectedT]:
+    def create(self, binding: BindingT, provider_creator: "ProviderCreator") -> Provider[InjectedT]:
         """Returns a provider corresponding to this binding."""
         raise NotImplementedError

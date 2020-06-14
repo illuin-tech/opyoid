@@ -4,7 +4,7 @@ from unittest.mock import create_autospec
 from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding
 from illuin_inject.bindings import InstanceBindingToProviderAdapter
 from illuin_inject.factory import Factory
-from illuin_inject.providers import ProvidersCreator
+from illuin_inject.providers import ProviderCreator
 
 
 class MyType:
@@ -15,7 +15,7 @@ class MyType:
 class TestInstanceBindingToProviderAdapter(unittest.TestCase):
     def setUp(self):
         self.adapter = InstanceBindingToProviderAdapter()
-        self.providers_creator = create_autospec(ProvidersCreator, spec_set=True)
+        self.providers_creator = create_autospec(ProviderCreator, spec_set=True)
         self.instance = MyType()
 
     def test_accept_instance_binding_returns_true(self):

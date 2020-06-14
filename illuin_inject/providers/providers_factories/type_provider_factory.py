@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Type
 
 from illuin_inject.bindings import BindingRegistry, ClassBinding, FromInstanceProvider
 from illuin_inject.exceptions import NoBindingFound
@@ -6,13 +6,13 @@ from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.type_checker import TypeChecker
 from illuin_inject.typings import InjectedT
-from .providers_factory import ProvidersFactory
+from .provider_factory import ProviderFactory
 
 if TYPE_CHECKING:
-    from illuin_inject.providers import ProvidersCreator
+    from illuin_inject.providers import ProviderCreator
 
 
-class TypeProvidersFactory(ProvidersFactory):
+class TypeProviderFactory(ProviderFactory):
     """Returns the provider for a type target by transforming ClassBindings into a FromInstanceProvider."""
 
     def __init__(self, binding_registry: BindingRegistry) -> None:
@@ -23,16 +23,9 @@ class TypeProvidersFactory(ProvidersFactory):
 
     def create(self,
                target: Target[Type[InjectedT]],
-               providers_creator: "ProvidersCreator") -> List[Provider[Type[InjectedT]]]:
+               provider_creator: "ProviderCreator") -> Provider[Type[InjectedT]]:
         new_target = Target(target.type.__args__[0], target.annotation)
-        cls_bindings = [
-            binding
-            for binding in self._binding_registry.get_bindings(new_target)
-            if isinstance(binding, ClassBinding)
-        ]
-        if not cls_bindings:
+        binding = self._binding_registry.get_binding(new_target)
+        if not isinstance(binding, ClassBinding):
             raise NoBindingFound(f"Could not find any binding for {target}")
-        return [
-            FromInstanceProvider(binding.bound_type)
-            for binding in cls_bindings
-        ]
+        return FromInstanceProvider(binding.bound_type)

@@ -2,7 +2,7 @@ from typing import List, Optional, Type
 
 from .scopes import ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
 from .bindings import Binding, BindingRegistry, BindingSpec, InstanceBinding
-from .providers import ProvidersCreator
+from .providers import ProviderCreator
 from .target import Target
 from .typings import InjectedT
 
@@ -24,13 +24,13 @@ class Injector:
             self._binding_registry.update(binding_spec.binding_registry)
         for binding in bindings or []:
             self._binding_registry.register(binding)
-        self._providers_creator = ProvidersCreator(self._binding_registry)
+        self._providers_creator = ProviderCreator(self._binding_registry)
         # Prepare providers
         for target in self._binding_registry.get_bindings_by_target():
-            self._providers_creator.get_providers(target)
+            self._providers_creator.get_provider(target)
 
     def inject(self, target_type: Type[InjectedT], annotation: Optional[str] = None) -> InjectedT:
-        return self._providers_creator.get_providers(Target(target_type, annotation))[-1].get()
+        return self._providers_creator.get_provider(Target(target_type, annotation)).get()
 
     def _add_default_bindings(self):
         self._binding_registry.register(InstanceBinding(self.__class__, self))

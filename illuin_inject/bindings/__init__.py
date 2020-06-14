@@ -5,3 +5,4 @@ from .binding_to_provider_adapter import BindingToProviderAdapter
 from .class_binding import ClassBinding, ClassBindingToProviderAdapter, FromClassProvider
 from .factory_binding import FactoryBinding, FactoryBindingToProviderAdapter, FromFactoryProvider
 from .instance_binding import FromInstanceProvider, InstanceBinding, InstanceBindingToProviderAdapter
+from .multi_binding import ItemBinding, ListProvider, MultiBinding, MultiBindingToProviderAdapter

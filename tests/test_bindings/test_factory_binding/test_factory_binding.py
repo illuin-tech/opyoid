@@ -1,7 +1,8 @@
 import unittest
 
-from illuin_inject import SingletonScope
+from illuin_inject import PerLookupScope, SingletonScope
 from illuin_inject.bindings import FactoryBinding
+from illuin_inject.exceptions import BindingError
 from illuin_inject.factory import Factory
 
 
@@ -22,3 +23,7 @@ class TestFactoryBinding(unittest.TestCase):
         self.assertEqual(MyFactory, binding.bound_factory)
         self.assertEqual(SingletonScope, binding.scope)
         self.assertIsNone(binding.annotation)
+
+    def test_bind_factory_instance_with_scope_raises_exception(self):
+        with self.assertRaises(BindingError):
+            FactoryBinding(MyType, MyFactory(), PerLookupScope)

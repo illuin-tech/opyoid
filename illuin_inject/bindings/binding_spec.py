@@ -1,15 +1,14 @@
-from typing import Optional, Type, Union
+from typing import List, Optional, Type, Union
 
 from illuin_inject.exceptions import BindingError
 from illuin_inject.factory import Factory
 from illuin_inject.scopes import Scope, SingletonScope
-from illuin_inject.typings import InjectedT
+from illuin_inject.typings import EMPTY, InjectedT
 from .binding_registry import BindingRegistry
 from .class_binding import ClassBinding
 from .factory_binding import FactoryBinding
 from .instance_binding import InstanceBinding
-
-EMPTY = object()
+from .multi_binding import ItemBinding, MultiBinding
 
 
 class BindingSpec:
@@ -59,16 +58,28 @@ class BindingSpec:
              to_factory: Union[Factory, Type[Factory]] = EMPTY,
              scope: Type[Scope] = SingletonScope,
              annotation: Optional[str] = None) -> None:
-        self._check_args(
-            target_type,
-            to_class,
-            to_instance,
-            to_factory,
-            scope,
-        )
         if to_class is EMPTY and to_instance is EMPTY and to_factory is EMPTY:
             to_class = target_type
-        self._register_binding(target_type, to_class, to_instance, to_factory, scope, annotation)
+        try:
+            self._register_binding(target_type, to_class, to_instance, to_factory, scope, annotation)
+        except BindingError as error:
+            raise BindingError(f"Error in {self!r} when binding to {target_type!r}: {error}") from None
+
+    def multi_bind(self,
+                   item_target_type: Type[InjectedT],
+                   item_bindings: List[ItemBinding[InjectedT]],
+                   scope: Type[Scope] = SingletonScope,
+                   annotation: Optional[str] = None,
+                   override_bindings: bool = True) -> None:
+        self._binding_registry.register(
+            MultiBinding(item_target_type, item_bindings, scope, annotation, override_bindings)
+        )
+
+    @staticmethod
+    def bind_item(to_class: Type[InjectedT] = EMPTY,
+                  to_instance: InjectedT = EMPTY,
+                  to_factory: Union[Factory, Type[Factory]] = EMPTY) -> ItemBinding[InjectedT]:
+        return ItemBinding(to_class, to_instance, to_factory)
 
     def _register_binding(self,
                           target_type: Type[InjectedT],
@@ -77,31 +88,15 @@ class BindingSpec:
                           bound_factory: Union[Factory, Type[Factory]],
                           scope: Type[Scope],
                           annotation: Optional[str]) -> None:
-        if bound_type is not EMPTY:
-            binding = ClassBinding(target_type, bound_type, scope, annotation)
-        elif bound_instance is not EMPTY:
+        if bound_instance is not EMPTY:
+            if scope is not SingletonScope:
+                raise BindingError("Cannot set a scope to an instance")
             binding = InstanceBinding(target_type, bound_instance, annotation)
-        else:
+        elif bound_factory is not EMPTY:
             binding = FactoryBinding(target_type, bound_factory, scope, annotation)
+        else:
+            binding = ClassBinding(target_type, bound_type, scope, annotation)
         self._binding_registry.register(binding)
 
-    @staticmethod
-    def _check_args(target_type: Type[InjectedT],
-                    to_class: Type[InjectedT],
-                    to_instance: InjectedT,
-                    to_factory: Union[Factory, Type[Factory]],
-                    scope: Type[Scope]):
-        non_empty_params = [
-            param
-            for param in (to_class, to_instance, to_factory)
-            if param is not EMPTY
-        ]
-        if len(non_empty_params) > 1:
-            raise BindingError(
-                f"Cannot bind a class, an instance or a factory at the same time to {target_type.__name__}")
-        if to_instance is not EMPTY and scope is not SingletonScope:
-            raise BindingError(f"Can only bind instance {to_instance!r} to a singleton scope")
-        if to_factory is not EMPTY \
-                and not isinstance(to_factory, Factory) \
-                and not (isinstance(to_factory, type) and issubclass(to_factory, Factory)):
-            raise BindingError(f"Factory must be either an instance or a subclass of Factory, got {to_factory!r}")
+    def __repr__(self) -> str:
+        return ".".join([self.__class__.__module__, self.__class__.__qualname__])

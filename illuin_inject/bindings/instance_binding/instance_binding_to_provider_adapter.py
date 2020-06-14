@@ -8,7 +8,7 @@ from .from_instance_provider import FromInstanceProvider
 from .instance_binding import InstanceBinding
 
 if TYPE_CHECKING:
-    from illuin_inject.providers.providers_creator import ProvidersCreator
+    from illuin_inject.providers.providers_creator import ProviderCreator
 
 
 # pylint: disable=no-self-use, unused-argument
@@ -18,5 +18,5 @@ class InstanceBindingToProviderAdapter(BindingToProviderAdapter[InstanceBinding]
     def accept(self, binding: Binding[InjectedT]) -> bool:
         return isinstance(binding, InstanceBinding)
 
-    def create(self, binding: InstanceBinding[InjectedT], providers_creator: "ProvidersCreator") -> Provider[InjectedT]:
+    def create(self, binding: InstanceBinding[InjectedT], provider_creator: "ProviderCreator") -> Provider[InjectedT]:
         return FromInstanceProvider(binding.bound_instance)
