@@ -35,16 +35,16 @@ class FromBindingProviderFactory(ProviderFactory):
         while target not in state.binding_registry:
             return state.parent_state.provider_creator.get_provider(target, state.parent_state)
         binding = state.binding_registry.get_binding(target)
-        binding_spec_path = binding.source_path
-        if not binding_spec_path:
+        module_path = binding.source_path
+        if not module_path:
             return self.create_from_binding(binding.raw_binding, state)
-        if binding_spec_path[0] not in state.state_by_binding_spec:
-            state.state_by_binding_spec[binding_spec_path[0]] = InjectionState(
+        if module_path[0] not in state.state_by_module:
+            state.state_by_module[module_path[0]] = InjectionState(
                 state.provider_creator,
-                binding_spec_path[0].binding_registry,
+                module_path[0].binding_registry,
                 state,
             )
-        return state.provider_creator.get_provider(target, state.state_by_binding_spec[binding_spec_path[0]])
+        return state.provider_creator.get_provider(target, state.state_by_module[module_path[0]])
 
     def create_from_binding(self,
                             binding: Binding[InjectedT],

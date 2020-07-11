@@ -1,9 +1,8 @@
 import unittest
 from typing import List
 
-from illuin_inject import BindingSpec, PerLookupScope, SingletonScope
+from illuin_inject import AbstractModule, Module, PerLookupScope, SingletonScope
 from illuin_inject.bindings import ClassBinding, FactoryBinding, InstanceBinding, MultiBinding
-from illuin_inject.bindings.abstract_binding_spec import AbstractBindingSpec
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import BindingError
@@ -24,96 +23,96 @@ class MyFactory(Factory[MyType]):
         return MyType()
 
 
-class TestAbstractBindingSpec(unittest.TestCase):
+class TestAbstractModule(unittest.TestCase):
     def setUp(self) -> None:
-        self.binding_spec = AbstractBindingSpec()
+        self.module = AbstractModule()
         self.my_instance = MyType()
         self.my_factory = MyFactory()
 
     def test_configure_is_not_implemented(self):
         with self.assertRaises(NotImplementedError):
-            self.binding_spec.configure()
+            self.module.configure()
 
     def test_configure_once_runs_once(self):
         with self.assertRaises(NotImplementedError):
-            self.binding_spec.configure_once()
+            self.module.configure_once()
 
-        self.binding_spec.configure_once()
+        self.module.configure_once()
 
     def test_install(self):
-        class OtherBindingSpec(BindingSpec):
+        class OtherModule(Module):
             def configure(self) -> None:
                 self.bind(MyType)
                 self.bind(OtherType, annotation="my_annotation")
 
-        binding_spec = OtherBindingSpec()
-        self.binding_spec.install(binding_spec)
+        module = OtherModule()
+        self.module.install(module)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ClassBinding(MyType), (binding_spec,)),
+                Target(MyType): RegisteredBinding(ClassBinding(MyType), (module,)),
                 Target(OtherType, "my_annotation"): RegisteredBinding(
-                    ClassBinding(OtherType, annotation="my_annotation"), (binding_spec,)),
+                    ClassBinding(OtherType, annotation="my_annotation"), (module,)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_class_to_itself(self):
-        self.binding_spec.bind(MyType)
+        self.module.bind(MyType)
 
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(ClassBinding(MyType, MyType)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_class_to_another_class(self):
-        self.binding_spec.bind(MyType, OtherType)
+        self.module.bind(MyType, OtherType)
 
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_instance(self):
         my_instance = MyType()
-        self.binding_spec.bind(MyType, to_instance=my_instance)
+        self.module.bind(MyType, to_instance=my_instance)
 
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_multiple_overrides_binding(self):
-        self.binding_spec.bind(MyType, to_instance=self.my_instance)
-        self.binding_spec.bind(MyType, OtherType)
+        self.module.bind(MyType, to_instance=self.my_instance)
+        self.module.bind(MyType, OtherType)
 
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_with_scope(self):
-        self.binding_spec.bind(MyType, scope=PerLookupScope)
+        self.module.bind(MyType, scope=PerLookupScope)
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(ClassBinding(MyType, MyType, PerLookupScope)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_with_annotation(self):
         my_instance = MyType()
-        self.binding_spec.bind(MyType, to_instance=my_instance)
-        self.binding_spec.bind(MyType, annotation="my_annotation")
+        self.module.bind(MyType, to_instance=my_instance)
+        self.module.bind(MyType, annotation="my_annotation")
         my_other_instance = OtherType()
-        self.binding_spec.bind(OtherType, to_instance=my_other_instance, annotation="my_other_annotation")
+        self.module.bind(OtherType, to_instance=my_other_instance, annotation="my_other_annotation")
 
         self.assertEqual(
             {
@@ -122,11 +121,11 @@ class TestAbstractBindingSpec(unittest.TestCase):
                 Target(OtherType, "my_other_annotation"):
                     RegisteredBinding(InstanceBinding(OtherType, my_other_instance, "my_other_annotation")),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_factory_class(self):
-        self.binding_spec.bind(MyType, to_factory=MyFactory, scope=PerLookupScope, annotation="my_annotation")
+        self.module.bind(MyType, to_factory=MyFactory, scope=PerLookupScope, annotation="my_annotation")
         self.assertEqual(
             {
                 Target(MyType, "my_annotation"): RegisteredBinding(
@@ -134,33 +133,33 @@ class TestAbstractBindingSpec(unittest.TestCase):
                 Target(MyFactory, "my_annotation"): RegisteredBinding(
                     ClassBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation")),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_factory_instance(self):
-        self.binding_spec.bind(MyType, to_factory=self.my_factory)
+        self.module.bind(MyType, to_factory=self.my_factory)
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(FactoryBinding(MyType, self.my_factory)),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_non_factory_raises_exception(self):
         with self.assertRaises(BindingError):
-            self.binding_spec.bind(MyType, to_factory=MyType)
+            self.module.bind(MyType, to_factory=MyType)
 
     def test_bind_non_class_raises_exception(self):
         with self.assertRaises(BindingError):
-            self.binding_spec.bind(MyType, to_class="hello")
+            self.module.bind(MyType, to_class="hello")
 
     def test_multi_binding(self):
         instance = MyType()
-        self.binding_spec.multi_bind(
+        self.module.multi_bind(
             MyType,
             [
-                self.binding_spec.bind_item(MyType),
-                self.binding_spec.bind_item(to_instance=instance),
+                self.module.bind_item(MyType),
+                self.module.bind_item(to_instance=instance),
             ],
             PerLookupScope,
             "my_annotation",
@@ -182,14 +181,14 @@ class TestAbstractBindingSpec(unittest.TestCase):
                     )
                 ),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_multi_binding_default_parameters(self):
-        self.binding_spec.multi_bind(
+        self.module.multi_bind(
             MyType,
             [
-                self.binding_spec.bind_item(MyType),
+                self.module.bind_item(MyType),
             ],
         )
 
@@ -207,5 +206,5 @@ class TestAbstractBindingSpec(unittest.TestCase):
                     )
                 ),
             },
-            self.binding_spec.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target()
         )

@@ -11,7 +11,7 @@ from .registered_binding import RegisteredBinding
 
 
 class BindingRegistry:
-    """Contains all bindings from a BindingSpec."""
+    """Contains all bindings from a Module."""
 
     logger = logging.getLogger(__name__)
 

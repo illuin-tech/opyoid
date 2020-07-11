@@ -9,14 +9,14 @@ Using annotations only cannot solve this, this problem is also called the robot 
 
 ### The solution
 
-Using a PrivateBindingSpec allows you to bind multiple classes to the same type and annotation.
+Using a PrivateModule allows you to bind multiple classes to the same type and annotation.
 
-By default bindings are only available to other classes bound in the same private binding spec.
-You can expose some of them with `self.expose(self.bind(...))`, they become available in the binding spec installing
+By default bindings are only available to other classes bound in the same private module.
+You can expose some of them with `self.expose(self.bind(...))`, they become available in the module installing
 them (or globally if you use them in the injector constructor).
 
 ```python
-from illuin_inject import Injector, PrivateBindingSpec
+from illuin_inject import Injector, PrivateModule
 
 
 class MyAbstractClass:
@@ -36,14 +36,14 @@ class MyParentClass:
         self.my_param = my_param
 
 
-class MyPrivateBindingSpec1(PrivateBindingSpec):
+class MyPrivateModule1(PrivateModule):
     def configure(self):
         self.bind(MyAbstractClass, MyImplementation1)
         self.expose(
             self.bind(MyParentClass, annotation="impl1")
         )
 
-class MyPrivateBindingSpec2(PrivateBindingSpec):
+class MyPrivateModule2(PrivateModule):
     def configure(self):
         self.bind(MyAbstractClass, MyImplementation2)
         self.expose(
@@ -51,7 +51,7 @@ class MyPrivateBindingSpec2(PrivateBindingSpec):
         )
 
 
-injector = Injector([MyPrivateBindingSpec1(), MyPrivateBindingSpec2()])
+injector = Injector([MyPrivateModule1(), MyPrivateModule2()])
 parent_1 = injector.inject(MyParentClass, "impl1")
 parent_2 = injector.inject(MyParentClass, "impl2")
 assert isinstance(parent_1, MyParentClass)

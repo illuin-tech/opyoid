@@ -1,12 +1,12 @@
 from typing import Set
 
-from .abstract_binding_spec import AbstractBindingSpec
+from .abstract_module import AbstractModule
 from .registered_binding import RegisteredBinding
 
 
-class PrivateBindingSpec(AbstractBindingSpec):
+class PrivateModule(AbstractModule):
     def __init__(self):
-        AbstractBindingSpec.__init__(self)
+        AbstractModule.__init__(self)
         self._exposed_bindings: Set[RegisteredBinding] = set()
 
     def configure(self) -> None:

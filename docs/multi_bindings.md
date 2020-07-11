@@ -9,7 +9,7 @@ Items can be bound to classes, instances and factories.
 ```python
 from typing import List
 
-from illuin_inject import BindingSpec, Injector, Factory
+from illuin_inject import Module, Injector, Factory
 
 class MyClass:
     pass
@@ -25,7 +25,7 @@ my_instance = MyClass()
 my_factory = MyFactory()
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.multi_bind(
             MyClass,
@@ -39,7 +39,7 @@ class MyBindingSpec(BindingSpec):
         )
 
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 parent_instance = injector.inject(List[MyClass])
 assert isinstance(my_instance, list)
 assert len(my_instance) == 5
@@ -109,27 +109,27 @@ assert tuple_1[0] is not tuple_2[0]
 ### Extending a MultiBinding
 
 You can use the argument `override_bindings` (defaults to `True`) in the `MultiBinding` constructor and
-`BindingSpec.multi_bind` to specify if the item bindings should override or extend the preexisting bindings.
+`Module.multi_bind` to specify if the item bindings should override or extend the preexisting bindings.
 
 ```python
 from typing import List
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 
 class MyClass:
     pass
 
-class BindingSpec1(BindingSpec):
+class Module1(Module):
     def configure(self) -> None:
         self.multi_bind(MyClass, [self.bind_item(to_class=MyClass)])
 
-class BindingSpec2(BindingSpec):
+class Module2(Module):
     def configure(self) -> None:
-        self.install(BindingSpec1())
+        self.install(Module1())
         self.multi_bind(MyClass, [self.bind_item(to_instance=MyClass())], override_bindings=False)
 
 
 
-injector = Injector([BindingSpec2()])
+injector = Injector([Module2()])
 
 injected_list = injector.inject(List[MyClass])
 assert len(injected_list) == 2

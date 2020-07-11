@@ -1,6 +1,6 @@
 import unittest
 
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 from illuin_inject.bindings import InstanceBinding
 
 
@@ -16,14 +16,14 @@ class TestInjector(unittest.TestCase):
         ])
         self.assertIs(my_instance, injector.inject(MyType))
 
-    def test_inject_from_binding_spec(self):
+    def test_inject_from_module(self):
         my_instance = MyType()
 
-        class MyBindingSpec(BindingSpec):
+        class MyModule(Module):
             def configure(self) -> None:
                 self.bind(MyType, to_instance=my_instance)
 
-        injector = Injector([MyBindingSpec()])
+        injector = Injector([MyModule()])
         self.assertEqual(my_instance, injector.inject(MyType))
 
     def test_inject_from_multiple_providers_takes_last(self):
