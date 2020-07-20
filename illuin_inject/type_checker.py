@@ -1,17 +1,19 @@
 import sys
 
-from .annotated import Annotated
+from illuin_inject.annotated import Annotated
 
 NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
 # pylint: disable=no-name-in-module
-if NEW_TYPING:  # pragma: nocover
+if NEW_TYPING:
     from typing import _GenericAlias, Type, Union
-else:  # pragma: nocover
+else:
     from typing import GenericMeta, List, Set, Tuple, Type, Union, _Union
 
 
 # noinspection PyUnresolvedReferences
-class TypeChecker:  # pragma: nocover
+class TypeChecker:
+    """Various helpers to check type hints."""
+
     @staticmethod
     def is_list(target_type: Type) -> bool:
         """Returns True if target_type is List[<Any>]"""

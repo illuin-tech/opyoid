@@ -25,6 +25,11 @@ class Annotated(Generic[WrappedT]):
 
 
 def annotated_arg(arg_name: str, annotation: str) -> Callable[[Callable], Callable]:
+    """Decorator used to annotate constructor arguments.
+
+    Use it to specify multiple bindings for the same type.
+    """
+
     def wrapped_init(init: Callable) -> Callable:
         init_signature = signature(init)
         parameters: Mapping[str, Parameter] = init_signature.parameters

@@ -7,7 +7,7 @@
     - pip install -r dev.requirements.txt --upgrade-strategy=eager --no-cache
   after_script:
     - . ./env/bin/activate
-    - pip uninstall -y bot-core  # https://github.com/pypa/pip/issues/4537
+    - pip uninstall -y illuin-inject  # https://github.com/pypa/pip/issues/4537
   tags:
     - docker
   cache:
@@ -45,7 +45,9 @@ lint:
   stage: test
   script:
     - pylint --load-plugins pylint_quotes illuin_inject
-    - pylint --load-plugins pylint_quotes ./tests ./tests_e2e --disable=too-many-public-methods,no-self-use
+    - >
+      pylint --load-plugins pylint_quotes ./tests ./tests_e2e
+      --disable=too-many-public-methods,no-self-use,too-many-instance-attributes
 
 deploy:
   extends: .job_template

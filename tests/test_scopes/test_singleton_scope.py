@@ -1,54 +1,18 @@
 import unittest
-from queue import Queue
-from threading import Thread
+from unittest.mock import create_autospec
 
 from illuin_inject import SingletonScope
-
-
-class MyClass:
-    pass
-
-
-def provider():
-    return MyClass()
+from illuin_inject.provider import Provider
+from illuin_inject.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
 class TestSingletonScope(unittest.TestCase):
-    def setUp(self) -> None:
-        self.scope = SingletonScope()
+    def test_get_scoped_provider_returns_singleton_scoped_provider(self):
+        inner_provider = create_autospec(Provider, spec_set=True)
 
-    def test_get_returns_instance(self):
-        instance = self.scope.get(MyClass, provider)
+        singleton_scoped_provider = SingletonScope.get_scoped_provider(inner_provider)
+        self.assertIsInstance(singleton_scoped_provider, SingletonScopedProvider)
 
-        self.assertIsInstance(instance, MyClass)
-
-    def test_multiple_get_return_same_instance(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        instance_2 = self.scope.get(MyClass, provider)
-
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
-        self.assertIs(instance_1, instance_2)
-
-    def test_different_threads_return_same_instance(self):
-        instance_1 = self.scope.get(MyClass, provider)
-        queue = Queue()
-
-        def put_in_queue():
-            queue.put(self.scope.get(MyClass, provider))
-
-        thread = Thread(target=put_in_queue)
-        thread.start()
-        thread.join(1)
-        instance_2 = queue.get()
-
-        self.assertIsInstance(instance_1, MyClass)
-        self.assertIsInstance(instance_2, MyClass)
-        self.assertIs(instance_1, instance_2)
-
-    def test_cache_is_not_shared_between_scopes(self):
-        scope_2 = SingletonScope()
-        instance_1 = self.scope.get(MyClass, provider)
-        instance_2 = scope_2.get(MyClass, provider)
-
-        self.assertIsNot(instance_1, instance_2)
+        instance = singleton_scoped_provider.get()
+        self.assertIs(inner_provider.get.return_value, instance)
+        inner_provider.get.assert_called_once_with()
