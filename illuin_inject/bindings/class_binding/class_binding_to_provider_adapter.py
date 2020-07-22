@@ -39,7 +39,12 @@ class ClassBindingToProviderAdapter(BindingToProviderAdapter[ClassBinding]):
             else:
                 args.append(parameter_provider)
         unscoped_provider = FromClassProvider(binding.bound_type, args, kwargs)
-        return binding.scope.get_scoped_provider(unscoped_provider)
+        try:
+            scope_provider = providers_creator.get_providers(Target(binding.scope))[-1]
+        except NoBindingFound:
+            raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
+                                         f" {binding.scope.__name__!r}")
+        return scope_provider.get().get_scoped_provider(unscoped_provider)
 
     @staticmethod
     def _get_parameter_provider(parameter: Parameter,

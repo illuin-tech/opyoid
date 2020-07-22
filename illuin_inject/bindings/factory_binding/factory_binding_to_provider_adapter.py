@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from illuin_inject.bindings.binding import Binding
 from illuin_inject.bindings.binding_to_provider_adapter import BindingToProviderAdapter
+from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
@@ -26,4 +27,9 @@ class FactoryBindingToProviderAdapter(BindingToProviderAdapter[FactoryBinding]):
         unscoped_provider = FromFactoryProvider(
             factory_provider,
         )
-        return binding.scope.get_scoped_provider(unscoped_provider)
+        try:
+            scope_provider = providers_creator.get_providers(Target(binding.scope))[-1]
+        except NoBindingFound:
+            raise NonInjectableTypeError(f"Could not create a provider for {binding}: they are no bindings for"
+                                         f"the scope {binding.scope}")
+        return scope_provider.get().get_scoped_provider(unscoped_provider)

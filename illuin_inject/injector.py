@@ -1,5 +1,6 @@
 from typing import List, Optional, Type
 
+from .scopes import ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
 from .bindings import Binding, BindingRegistry, BindingSpec, InstanceBinding
 from .providers import ProvidersCreator
 from .target import Target
@@ -17,7 +18,7 @@ class Injector:
                  bindings: List[Binding] = None,
                  binding_registry: BindingRegistry = None) -> None:
         self._binding_registry: BindingRegistry = binding_registry or BindingRegistry()
-        self._binding_registry.register(InstanceBinding(self.__class__, self))
+        self._add_default_bindings()
         for binding_spec in binding_specs or []:
             binding_spec.configure()
             self._binding_registry.update(binding_spec.binding_registry)
@@ -30,3 +31,10 @@ class Injector:
 
     def inject(self, target_type: Type[InjectedT], annotation: Optional[str] = None) -> InjectedT:
         return self._providers_creator.get_providers(Target(target_type, annotation))[-1].get()
+
+    def _add_default_bindings(self):
+        self._binding_registry.register(InstanceBinding(self.__class__, self))
+        self._binding_registry.register(InstanceBinding(ImmediateScope, ImmediateScope()))
+        self._binding_registry.register(InstanceBinding(PerLookupScope, PerLookupScope()))
+        self._binding_registry.register(InstanceBinding(SingletonScope, SingletonScope()))
+        self._binding_registry.register(InstanceBinding(ThreadScope, ThreadScope()))

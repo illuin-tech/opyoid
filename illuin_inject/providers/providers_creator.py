@@ -4,9 +4,9 @@ from typing import List
 
 from illuin_inject.bindings import BindingRegistry
 from illuin_inject.exceptions import NoBindingFound
+from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
-from illuin_inject.provider import Provider
 from .provider_registry import ProviderRegistry
 from .providers_factories import FromBindingsProvidersFactory, FromCacheProvidersFactory, ListProvidersFactory, \
     OptionalProvidersFactory, ProvidersFactory, SetProvidersFactory, TupleProvidersFactory, TypeProvidersFactory

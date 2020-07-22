@@ -212,69 +212,6 @@ Thread(target=thread_target).start()
 assert instance_1 is instance_2
 ```
 
-#### Custom Scope
-You can inject any custom scope that implements `illuin_inject.scopes.Scope`, or override an existing one:
-
-```python
-from illuin_inject import BindingSpec, Injector, Provider
-from illuin_inject.scopes import Scope
-from illuin_inject.typings import InjectedT
-
-
-class MyScope(Scope):
-    @classmethod
-    def get_scoped_provider(cls, inner_provider: Provider[InjectedT]) -> Provider[InjectedT]:
-        return inner_provider
-
-
-class MyClass:
-    pass
-
-
-class MyBindingSpec(BindingSpec):
-    def configure(self) -> None:
-        self.bind(MyClass, scope=MyScope)
-
-injector = Injector([MyBindingSpec()])
-instance_1 = injector.inject(MyClass)
-instance_2 = injector.inject(MyClass)
-assert instance_1 is not instance_2
-```
-
-### Annotations
-You can use annotations to inject different objects for the same type.
-
-```python
-from illuin_inject import annotated_arg, BindingSpec, Injector
-
-
-class MyClass1:
-    @annotated_arg("my_param", "class_1_param")
-    def __init__(self, my_param: str):
-        self.my_param = my_param
-
-class MyClass2:
-    @annotated_arg("my_param", "class_2_param")
-    def __init__(self, my_param: str):
-        self.my_param = my_param
-
-
-class MyBindingSpec(BindingSpec):
-    def configure(self) -> None:
-        self.bind(MyClass1)
-        self.bind(MyClass2)
-        self.bind(str, to_instance="my_value_1", annotation="class_1_param")
-        self.bind(str, to_instance="my_value_2", annotation="class_2_param")
-
-injector = Injector([MyBindingSpec()])
-instance_1 = injector.inject(MyClass1)
-assert isinstance(instance_1, MyClass1)
-assert instance_1.my_param == "my_value_1"
-instance_2 = injector.inject(MyClass2)
-assert isinstance(instance_2, MyClass2)
-assert instance_2.my_param == "my_value_2"
-```
-
 
 ### Bindings without BindingSpec
 If you prefer, you can add bindings to your injector without creating a BindingSpec class (or using both).
@@ -405,9 +342,12 @@ assert my_instance.my_param is SubClass
 `illuin_inject` can inject classes and parameters defined with the `attrs` library and python data classes.
 
 
-# Limitations
+##  Notes about Generics
 - The only supported generic types are `List`, `Set`, `Tuple`, `Optional` and `Type` (and any combination of them).
-Other generics must be bound explicitly (e.g. you must bind a tuple to `Tuple[MyClass]` if you want to inject it).
+Other generics must be bound explicitly (e.g. you must bind a dict to `Dict[str, MyClass]` if you want to inject it).
 - Be careful when using generics, the bindings will only be used if the type matches exactly. For example, you cannot
 implicitly bind `MyClass[T]` to inject `MyClass`, or `MyClass[str]` to inject `MyClass[T]`. You need to bind something
 to `MyClass[str]` to be able to inject it.
+
+# Advanced usage
+More advanced features and examples are available in the [./docs](docs) folder.

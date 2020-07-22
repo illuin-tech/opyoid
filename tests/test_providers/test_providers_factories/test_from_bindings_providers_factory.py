@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding
+from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding, PerLookupScope, Provider
 from illuin_inject.bindings import Binding, BindingRegistry, FromInstanceProvider
 from illuin_inject.exceptions import BindingError
 from illuin_inject.factory import Factory
@@ -21,6 +21,9 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
             self.binding_registry,
         )
         self.providers_creator = create_autospec(ProvidersCreator, spec_set=True)
+        self.mock_scope_provider = create_autospec(Provider, spec_set=True)
+        self.scope = PerLookupScope()
+        self.mock_scope_provider.get.return_value = self.scope
 
     def test_unknown_binding_type_raises_binding_error(self):
         self.binding_registry.get_bindings.return_value = [
@@ -56,6 +59,9 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
 
     def test_create_creates_provider_for_class_binding(self):
         binding = ClassBinding(MyType)
+        self.providers_creator.get_providers.return_value = [
+            self.mock_scope_provider,
+        ]
         self.binding_registry.get_bindings.return_value = [binding]
 
         providers = self.providers_factory.create(Target(MyType), self.providers_creator)
@@ -68,7 +74,14 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
         factory.create.return_value = MyType()
         binding = FactoryBinding(MyType, factory)
         self.binding_registry.get_bindings.return_value = [binding]
-        self.providers_creator.get_providers.return_value = [FromInstanceProvider(factory)]
+        self.providers_creator.get_providers.side_effect = [
+            [
+                FromInstanceProvider(factory)
+            ],
+            [
+                self.mock_scope_provider,
+            ]
+        ]
 
         providers = self.providers_factory.create(Target(MyType), self.providers_creator)
         self.assertEqual(1, len(providers))

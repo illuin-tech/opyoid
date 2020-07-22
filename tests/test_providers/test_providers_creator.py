@@ -8,6 +8,7 @@ from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 from illuin_inject.factory import Factory
 from illuin_inject.providers import ProvidersCreator
 from illuin_inject.providers.list_provider import ListProvider
+from illuin_inject.scopes import SingletonScope
 from illuin_inject.scopes.singleton_scoped_provider import SingletonScopedProvider
 from illuin_inject.target import Target
 
@@ -20,9 +21,10 @@ class MyOtherType:
     pass
 
 
-class TestGraphBuilder(unittest.TestCase):
+class TestProvidersCreator(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_registry = BindingRegistry()
+        self.binding_registry.register(InstanceBinding(SingletonScope, SingletonScope()))
         self.providers_creator = ProvidersCreator(self.binding_registry)
         self.my_instance = MyType()
         self.my_instance_binding = InstanceBinding(MyType, self.my_instance)
