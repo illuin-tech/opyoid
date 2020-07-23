@@ -2,9 +2,7 @@ from threading import Lock
 from typing import Union
 
 from illuin_inject.provider import Provider
-from illuin_inject.typings import InjectedT
-
-EMPTY = object()
+from illuin_inject.typings import EMPTY, InjectedT
 
 
 class SingletonScopedProvider(Provider[InjectedT]):

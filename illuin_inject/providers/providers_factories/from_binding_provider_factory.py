@@ -2,18 +2,18 @@ import logging
 from typing import List, TYPE_CHECKING
 
 from illuin_inject.bindings import Binding, BindingRegistry, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
-    FactoryBindingToProviderAdapter, InstanceBindingToProviderAdapter
+    FactoryBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter
 from illuin_inject.exceptions import BindingError
 from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
-from .providers_factory import ProvidersFactory
+from .provider_factory import ProviderFactory
 
 if TYPE_CHECKING:
-    from illuin_inject.providers.providers_creator import ProvidersCreator
+    from illuin_inject.providers.providers_creator import ProviderCreator
 
 
-class FromBindingsProvidersFactory(ProvidersFactory):
+class FromBindingProviderFactory(ProviderFactory):
     """Creates Providers, one per binding."""
 
     logger = logging.getLogger(__name__)
@@ -24,21 +24,20 @@ class FromBindingsProvidersFactory(ProvidersFactory):
             InstanceBindingToProviderAdapter(),
             ClassBindingToProviderAdapter(),
             FactoryBindingToProviderAdapter(),
+            MultiBindingToProviderAdapter(self),
         ]
 
     def accept(self, target: Target[InjectedT]) -> bool:
-        return len(self._binding_registry.get_bindings(target)) > 0
+        return target in self._binding_registry
 
-    def create(self, target: Target[InjectedT], providers_creator: "ProvidersCreator") -> List[Provider[InjectedT]]:
-        return [
-            self._get_provider_from_binding(binding, providers_creator)
-            for binding in self._binding_registry.get_bindings(target)
-        ]
+    def create(self, target: Target[InjectedT], provider_creator: "ProviderCreator") -> Provider[InjectedT]:
+        binding = self._binding_registry.get_binding(target)
+        return self.create_from_binding(binding, provider_creator)
 
-    def _get_provider_from_binding(self,
-                                   binding: Binding[InjectedT],
-                                   providers_creator: "ProvidersCreator") -> Provider[InjectedT]:
+    def create_from_binding(self,
+                            binding: Binding[InjectedT],
+                            providers_creator: "ProviderCreator") -> Provider[InjectedT]:
         for adapter in self._binding_to_provider_adapters:
             if adapter.accept(binding):
                 return adapter.create(binding, providers_creator)
-        raise BindingError(f"Could not find a BindingToProviderAdapter for {binding}")
+        raise BindingError(f"Could not find a BindingToProviderAdapter for {binding!r}")

@@ -13,7 +13,7 @@ from .class_binding import ClassBinding
 from .from_class_provider import FromClassProvider
 
 if TYPE_CHECKING:
-    from illuin_inject.providers.providers_creator import ProvidersCreator
+    from illuin_inject.providers.providers_creator import ProviderCreator
 
 
 # pylint: disable=no-self-use
@@ -23,7 +23,7 @@ class ClassBindingToProviderAdapter(BindingToProviderAdapter[ClassBinding]):
     def accept(self, binding: Binding[InjectedT]) -> bool:
         return isinstance(binding, ClassBinding)
 
-    def create(self, binding: ClassBinding[InjectedT], providers_creator: "ProvidersCreator") -> Provider:
+    def create(self, binding: ClassBinding[InjectedT], provider_creator: "ProviderCreator") -> Provider:
         parameters = signature(binding.bound_type.__init__).parameters
         args: List[Provider] = []
         kwargs: Dict[str, Provider] = {}
@@ -33,14 +33,14 @@ class ClassBindingToProviderAdapter(BindingToProviderAdapter[ClassBinding]):
             if parameter.kind in [Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD]:
                 continue
 
-            parameter_provider = self._get_parameter_provider(parameter, binding.bound_type, providers_creator)
+            parameter_provider = self._get_parameter_provider(parameter, binding.bound_type, provider_creator)
             if parameter.kind == Parameter.KEYWORD_ONLY:
                 kwargs[parameter.name] = parameter_provider
             else:
                 args.append(parameter_provider)
         unscoped_provider = FromClassProvider(binding.bound_type, args, kwargs)
         try:
-            scope_provider = providers_creator.get_providers(Target(binding.scope))[-1]
+            scope_provider = provider_creator.get_provider(Target(binding.scope))
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
                                          f" {binding.scope.__name__!r}")
@@ -49,14 +49,14 @@ class ClassBindingToProviderAdapter(BindingToProviderAdapter[ClassBinding]):
     @staticmethod
     def _get_parameter_provider(parameter: Parameter,
                                 current_class: Type,
-                                providers_creator: "ProvidersCreator") -> Provider:
+                                providers_creator: "ProviderCreator") -> Provider:
         if parameter.annotation is not Parameter.empty:
             if TypeChecker.is_annotated(parameter.annotation):
                 target = Target(parameter.annotation.original_type, parameter.annotation.annotation)
             else:
                 target = Target(parameter.annotation, None)
             try:
-                return providers_creator.get_providers(target)[-1]
+                return providers_creator.get_provider(target)
             except NoBindingFound:
                 pass
         if parameter.default is not Parameter.empty:

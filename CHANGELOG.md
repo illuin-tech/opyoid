@@ -5,6 +5,19 @@
 - Custom scopes must now be bound to `Scope`. By default, `SingletonScope`, `ThreadScope`, `ImmediateScope` and
 `PerLookupScope` are bound, but they can be overridden. `SingletonScope` can only be bound in an instance binding.
 - `Scope.get_scoped_provider` is now an instance method, it used to be a class method
+- Lists, sets and tuples must now be bound using `MultiBinding`. You can create one from the binding spec:
+```python
+class MyBindingSpec(BindingSpec):
+    def configure(self):
+        self.multi_bind(MyClass, [
+            self.bind_item(MySubClass1),
+            self.bind_item(MySubClass2),
+        ])
+```
+More details are available in the documentation.
+
+### Features
+- Added `MultiBinding` and `ItemBinding`
 
 
 ## 0.4.0

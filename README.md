@@ -3,8 +3,7 @@ illuin-inject
 
 Dependency injection library using typings, to easily manage large applications.
 
-This project is inspired from [pinject](https://github.com/google/pinject), [Guice](https://github.com/google/guice),
-[HK2](https://javaee.github.io/hk2/) and [Spring](https://spring.io/).
+This project is inspired from [Guice](https://github.com/google/guice).
 
 # Usage
 ### Simple Injection
@@ -260,46 +259,6 @@ ClassBinding(MyClass, scope=PerLookupScope)  # specifying scope
 InstanceBinding(MyClass, my_instance)  # binding an instance
 ClassBinding(MyClass, annotation="my_annotation")  # binding a class to itself with an annotation
 InstanceBinding(MyClass, my_instance, annotation="my_annotation")  # binding an instance with an annotation
-```
-
-
-### Injecting lists
-If no explicit binding is defined, all the bindings to the item type will be used in the order of the binding. 
-
-
-```python
-from typing import List
-
-from illuin_inject import BindingSpec, Injector
-
-class MyClass:
-    pass
-
-class SubClass(MyClass):
-    pass
-
-class MyParentClass:
-    def __init__(self, my_param: List[MyClass]):
-        self.my_param = my_param
-
-my_instance = MyClass()
-
-class MyBindingSpec(BindingSpec):
-    def configure(self) -> None:
-        self.bind(MyClass, SubClass)
-        self.bind(MyClass)
-        self.bind(MyClass, to_instance=my_instance)
-        self.bind(MyParentClass)
-
-
-injector = Injector([MyBindingSpec()])
-parent_instance = injector.inject(MyParentClass)
-assert isinstance(my_instance, MyParentClass)
-assert isinstance(my_instance.my_param, list)
-assert len(my_instance.my_param) == 3
-assert isinstance(my_instance.my_param[0], SubClass)
-assert isinstance(my_instance.my_param[1], MyClass)
-assert my_instance.my_param[2] is my_instance
 ```
 
 

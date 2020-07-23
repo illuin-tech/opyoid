@@ -3,8 +3,6 @@ from illuin_inject.typings import InjectedT
 from .scope import Scope
 from .singleton_scoped_provider import SingletonScopedProvider
 
-EMPTY = object()
-
 
 class SingletonScope(Scope):
     """Always provides the same instance."""

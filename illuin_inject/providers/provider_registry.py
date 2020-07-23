@@ -1,18 +1,21 @@
-from typing import Dict, List
+from typing import Dict
 
+from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
-from illuin_inject.provider import Provider
 
 
 class ProviderRegistry:
     """Stores Providers for each Target to create a cache."""
 
     def __init__(self):
-        self._providers_by_target: Dict[Target, List[Provider]] = {}
+        self._provider_by_target: Dict[Target, Provider] = {}
 
-    def set_providers(self, target: Target[InjectedT], providers: List[Provider[InjectedT]]) -> None:
-        self._providers_by_target[target] = providers
+    def __contains__(self, item: Target[InjectedT]) -> bool:
+        return item in self._provider_by_target
 
-    def get_providers(self, target: Target[InjectedT]) -> List[Provider[InjectedT]]:
-        return self._providers_by_target.get(target, [])
+    def set_provider(self, target: Target[InjectedT], provider: Provider[InjectedT]) -> None:
+        self._provider_by_target[target] = provider
+
+    def get_provider(self, target: Target[InjectedT]) -> Provider[InjectedT]:
+        return self._provider_by_target.get(target, [])
