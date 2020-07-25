@@ -1,5 +1,6 @@
 from .annotated import annotated_arg
-from .bindings import BindingSpec, ClassBinding, FactoryBinding, InstanceBinding, ItemBinding, MultiBinding
+from .bindings import BindingSpec, ClassBinding, FactoryBinding, InstanceBinding, ItemBinding, MultiBinding, \
+    PrivateBindingSpec
 from .factory import Factory
 from .injector import Injector
 from .provider import Provider

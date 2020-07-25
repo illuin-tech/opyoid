@@ -1,8 +1,8 @@
 from typing import Dict
 
-from illuin_inject.provider import Provider
-from illuin_inject.target import Target
-from illuin_inject.typings import InjectedT
+from .provider import Provider
+from .target import Target
+from .typings import InjectedT
 
 
 class ProviderRegistry:

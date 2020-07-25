@@ -5,6 +5,7 @@ from unittest.mock import create_autospec, patch
 from illuin_inject import ClassBinding, PerLookupScope
 from illuin_inject.bindings import Binding, BindingRegistry, FactoryBinding, InstanceBinding, MultiBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
+from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.factory import Factory
 from illuin_inject.target import Target
 
@@ -20,13 +21,16 @@ class OtherType:
 class TestBindingRegistry(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_registry = BindingRegistry()
-        self.my_type_binding = create_autospec(Binding, spec_set=True)
-        self.my_type_binding.target = Target(MyType)
-        self.my_type_annotated_binding = create_autospec(Binding, spec_set=True)
-        self.my_type_annotated_binding.target = Target(MyType, "my_annotation")
-        self.my_type_binding_2 = InstanceBinding(MyType, MyType())
-        self.other_type_binding = create_autospec(Binding, spec_set=True)
-        self.other_type_binding.target = Target(OtherType)
+        mock_binding = create_autospec(Binding, spec_set=True)
+        mock_binding.target = Target(MyType)
+        self.my_type_binding = RegisteredBinding(mock_binding)
+        mock_annotated_binding = create_autospec(Binding, spec_set=True)
+        mock_annotated_binding.target = Target(MyType, "my_annotation")
+        self.my_type_annotated_binding = RegisteredBinding(mock_annotated_binding)
+        self.my_type_binding_2 = RegisteredBinding(InstanceBinding(MyType, MyType()))
+        other_mock_binding = create_autospec(Binding, spec_set=True)
+        other_mock_binding.target = Target(OtherType)
+        self.other_type_binding = RegisteredBinding(other_mock_binding)
 
     def test_register_saves_binding_to_new_type(self):
         self.binding_registry.register(self.my_type_binding)
@@ -41,20 +45,24 @@ class TestBindingRegistry(unittest.TestCase):
     def test_register_multi_binding_saves_binding_to_known_type_in_order(self):
         item_binding_1 = ItemBinding(MyType)
         item_binding_2 = ItemBinding(bound_instance=MyType())
-        self.binding_registry.register(MultiBinding(MyType, [item_binding_1]))
-        self.binding_registry.register(MultiBinding(MyType, [item_binding_2], override_bindings=False))
-        self.assertEqual({
-            Target(List[MyType]): MultiBinding(MyType, [item_binding_1, item_binding_2])
-        }, self.binding_registry.get_bindings_by_target())
+        binding_1 = RegisteredBinding(MultiBinding(MyType, [item_binding_1]))
+        binding_2 = RegisteredBinding(MultiBinding(MyType, [item_binding_2], override_bindings=False))
+        self.binding_registry.register(binding_1)
+        self.binding_registry.register(binding_2)
+        binding = self.binding_registry.get_binding(Target(List[MyType])).raw_binding
+        self.assertIsInstance(binding, MultiBinding)
+        self.assertEqual([item_binding_1, item_binding_2], binding.item_bindings)
 
     def test_register_multi_binding_with_override(self):
         item_binding_1 = ItemBinding(MyType)
         item_binding_2 = ItemBinding(bound_instance=MyType())
-        self.binding_registry.register(MultiBinding(MyType, [item_binding_1]))
-        self.binding_registry.register(MultiBinding(MyType, [item_binding_2], override_bindings=True))
-        self.assertEqual({
-            Target(List[MyType]): MultiBinding(MyType, [item_binding_2])
-        }, self.binding_registry.get_bindings_by_target())
+        binding_1 = RegisteredBinding(MultiBinding(MyType, [item_binding_1]))
+        binding_2 = RegisteredBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True))
+        self.binding_registry.register(binding_1)
+        self.binding_registry.register(binding_2)
+        binding = self.binding_registry.get_binding(Target(List[MyType])).raw_binding
+        self.assertIsInstance(binding, MultiBinding)
+        self.assertEqual([item_binding_2], binding.item_bindings)
 
     def test_update(self):
         binding_registry = BindingRegistry()
@@ -122,8 +130,8 @@ class TestBindingRegistry(unittest.TestCase):
         binding_2 = create_autospec(Binding, spec_set=True)
         binding_2.target = Target(MyNewType)
 
-        self.binding_registry.register(binding_1)
-        self.binding_registry.register(binding_2)
+        self.binding_registry.register(RegisteredBinding(binding_1))
+        self.binding_registry.register(RegisteredBinding(binding_2))
 
         with patch("logging.Logger.error") as mock_error:
             binding = self.binding_registry.get_binding(Target("MyNewType"))
@@ -137,7 +145,7 @@ class TestBindingRegistry(unittest.TestCase):
                 return "hello"
 
         factory_instance = MyFactory()
-        factory_binding = FactoryBinding(str, factory_instance, annotation="my_annotation")
+        factory_binding = RegisteredBinding(FactoryBinding(str, factory_instance, annotation="my_annotation"))
         self.binding_registry.register(factory_binding)
 
         self.assertEqual(
@@ -152,14 +160,12 @@ class TestBindingRegistry(unittest.TestCase):
             def create(self) -> str:
                 return "hello"
 
-        factory_binding = FactoryBinding(str, MyFactory, PerLookupScope, "my_annotation")
+        factory_binding = RegisteredBinding(FactoryBinding(str, MyFactory, PerLookupScope, "my_annotation"))
         self.binding_registry.register(factory_binding)
 
-        self.assertEqual(
-            {
-                Target(str, "my_annotation"): factory_binding,
-                Target(MyFactory, "my_annotation"):
-                    ClassBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation"),
-            },
-            self.binding_registry.get_bindings_by_target()
-        )
+        self.assertEqual(factory_binding, self.binding_registry.get_binding(Target(str, "my_annotation")))
+        factory_binding = self.binding_registry.get_binding(Target(MyFactory, "my_annotation"))
+        self.assertIsInstance(factory_binding.raw_binding, ClassBinding)
+        self.assertEqual(MyFactory, factory_binding.raw_binding.target_type)
+        self.assertEqual(PerLookupScope, factory_binding.raw_binding.scope)
+        self.assertEqual(MyFactory, factory_binding.raw_binding.bound_type)

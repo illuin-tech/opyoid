@@ -6,9 +6,9 @@ from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@attr.s(auto_attribs=True, frozen=True, eq=False)
 class Binding(Generic[InjectedT]):
-    """Represents a link between a Target and something used to create it."""
+    """Abstract class representing a link between a Target and something used to create it."""
 
     @property
     def target_type(self) -> Type[InjectedT]:

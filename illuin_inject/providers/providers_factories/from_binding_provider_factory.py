@@ -1,16 +1,14 @@
 import logging
-from typing import List, TYPE_CHECKING
+from typing import List
 
-from illuin_inject.bindings import Binding, BindingRegistry, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
+from illuin_inject.bindings import Binding, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
     FactoryBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter
 from illuin_inject.exceptions import BindingError
+from illuin_inject.injection_state import InjectionState
 from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
 from .provider_factory import ProviderFactory
-
-if TYPE_CHECKING:
-    from illuin_inject.providers.providers_creator import ProviderCreator
 
 
 class FromBindingProviderFactory(ProviderFactory):
@@ -18,8 +16,7 @@ class FromBindingProviderFactory(ProviderFactory):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, binding_registry: BindingRegistry) -> None:
-        self._binding_registry = binding_registry
+    def __init__(self) -> None:
         self._binding_to_provider_adapters: List[BindingToProviderAdapter] = [
             InstanceBindingToProviderAdapter(),
             ClassBindingToProviderAdapter(),
@@ -27,17 +24,32 @@ class FromBindingProviderFactory(ProviderFactory):
             MultiBindingToProviderAdapter(self),
         ]
 
-    def accept(self, target: Target[InjectedT]) -> bool:
-        return target in self._binding_registry
+    def accept(self, target: Target[InjectedT], state: InjectionState) -> bool:
+        while target not in state.binding_registry:
+            if not state.parent_state:
+                return False
+            state = state.parent_state
+        return True
 
-    def create(self, target: Target[InjectedT], provider_creator: "ProviderCreator") -> Provider[InjectedT]:
-        binding = self._binding_registry.get_binding(target)
-        return self.create_from_binding(binding, provider_creator)
+    def create(self, target: Target[InjectedT], state: InjectionState) -> Provider[InjectedT]:
+        while target not in state.binding_registry:
+            return state.parent_state.provider_creator.get_provider(target, state.parent_state)
+        binding = state.binding_registry.get_binding(target)
+        binding_spec_path = binding.source_path
+        if not binding_spec_path:
+            return self.create_from_binding(binding.raw_binding, state)
+        if binding_spec_path[0] not in state.state_by_binding_spec:
+            state.state_by_binding_spec[binding_spec_path[0]] = InjectionState(
+                state.provider_creator,
+                binding_spec_path[0].binding_registry,
+                state,
+            )
+        return state.provider_creator.get_provider(target, state.state_by_binding_spec[binding_spec_path[0]])
 
     def create_from_binding(self,
                             binding: Binding[InjectedT],
-                            providers_creator: "ProviderCreator") -> Provider[InjectedT]:
+                            state: InjectionState) -> Provider[InjectedT]:
         for adapter in self._binding_to_provider_adapters:
-            if adapter.accept(binding):
-                return adapter.create(binding, providers_creator)
+            if adapter.accept(binding, state):
+                return adapter.create(binding, state)
         raise BindingError(f"Could not find a BindingToProviderAdapter for {binding!r}")
