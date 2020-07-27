@@ -37,7 +37,9 @@ class BindingRegistry:
             self._register_factory(registered_binding.raw_binding)
 
     def _register_factory(self, binding: FactoryBinding) -> None:
-        if isinstance(binding.bound_factory, type) and issubclass(binding.bound_factory, Factory):
+        if isinstance(binding.bound_factory, type) \
+            and issubclass(binding.bound_factory, Factory) \
+            and Target(binding.bound_factory, binding.annotation) not in self:
             self.register(
                 RegisteredBinding(
                     ClassBinding(binding.bound_factory, scope=binding.scope, annotation=binding.annotation)
