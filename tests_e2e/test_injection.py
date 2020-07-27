@@ -3,9 +3,10 @@ from typing import Generic, List, Optional, Set, Type, TypeVar
 
 import attr
 
-from illuin_inject import BindingSpec, ClassBinding, Factory, FactoryBinding, ImmediateScope, Injector, \
-    InstanceBinding, ItemBinding, MultiBinding, PerLookupScope, annotated_arg
-from illuin_inject.bindings.private_binding_spec import PrivateBindingSpec
+from illuin_inject import ClassBinding, Factory, FactoryBinding, ImmediateScope, Injector, InstanceBinding, \
+    ItemBinding, \
+    Module, MultiBinding, PerLookupScope, annotated_arg
+from illuin_inject.bindings.private_module import PrivateModule
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 
 
@@ -142,7 +143,7 @@ class TestInjector(unittest.TestCase):
 
         my_instance = MyClass()
 
-        class NewBindingSpec(BindingSpec):
+        class NewModule(Module):
             def configure(self) -> None:
                 self.multi_bind(
                     MyClass,
@@ -154,7 +155,7 @@ class TestInjector(unittest.TestCase):
                 )
                 self.bind(MyParentClass)
 
-        injector = Injector([NewBindingSpec()])
+        injector = Injector([NewModule()])
         parent = injector.inject(MyParentClass)
         self.assertIsInstance(parent.param, list)
         self.assertEqual(3, len(parent.param))
@@ -454,53 +455,53 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(list_1[1], SubClass2)
         self.assertIs(list_1[1], list_2[1])
 
-    def test_private_binding_spec_does_not_expose_bindings(self):
+    def test_private_module_does_not_expose_bindings(self):
         instance_1 = MyClass()
 
-        class MyPrivateBindingSpec(PrivateBindingSpec):
+        class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
                 self.bind(MyClass, to_instance=instance_1)
 
-        injector = Injector([MyPrivateBindingSpec()])
+        injector = Injector([MyPrivateModule()])
         with self.assertRaises(NonInjectableTypeError):
             injector.inject(MyClass)
 
-    def test_private_binding_spec_uses_exposed_bindings(self):
+    def test_private_module_uses_exposed_bindings(self):
         instance_1 = MyClass()
 
-        class MyPrivateBindingSpec(PrivateBindingSpec):
+        class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
                 self.expose(
                     self.bind(MyClass, to_instance=instance_1)
                 )
 
-        injector = Injector([MyPrivateBindingSpec()])
+        injector = Injector([MyPrivateModule()])
         instance = injector.inject(MyClass)
         self.assertIs(instance_1, instance)
 
-    def test_private_binding_spec_use_private_binding_through_exposed_binding(self):
+    def test_private_module_use_private_binding_through_exposed_binding(self):
         class MyParentClass:
             def __init__(self, arg: MyClass):
                 self.arg = arg
 
-        class MyPrivateBindingSpec(PrivateBindingSpec):
+        class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
                 self.expose(
                     self.bind(MyParentClass)
                 )
                 self.bind(MyClass)
 
-        injector = Injector([MyPrivateBindingSpec()])
+        injector = Injector([MyPrivateModule()])
         instance = injector.inject(MyParentClass)
         self.assertIsInstance(instance, MyParentClass)
         self.assertIsInstance(instance.arg, MyClass)
 
-    def test_private_binding_spec_use_public_binding_through_private_binding(self):
+    def test_private_module_uses_public_binding_through_private_binding(self):
         class MyParentClass:
             def __init__(self, arg: MyClass):
                 self.arg = arg
 
-        class MyPrivateModule(PrivateBindingSpec):
+        class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
                 self.expose(
                     self.bind(MyParentClass)
@@ -513,12 +514,12 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(parent.arg, MyClass)
         self.assertIs(parent.arg, child)
 
-    def test_private_binding_spec_reuse_state(self):
+    def test_private_module_reuses_state(self):
         class MyParentClass:
             def __init__(self, arg: MyClass):
                 self.arg = arg
 
-        class MyPrivateModule(PrivateBindingSpec):
+        class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
                 self.expose(
                     self.bind(MyParentClass),

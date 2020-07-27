@@ -5,9 +5,11 @@
 - Custom scopes must now be bound to `Scope`. By default, `SingletonScope`, `ThreadScope`, `ImmediateScope` and
 `PerLookupScope` are bound, but they can be overridden. `SingletonScope` can only be bound in an instance binding.
 - `Scope.get_scoped_provider` is now an instance method, it used to be a class method
-- Lists, sets and tuples must now be bound using `MultiBinding`. You can create one from the binding spec:
+- Renamed `BindingSpec` to `Module`
+- Renamed `binding_specs` argument to `modules` in Injector constructor
+- Lists, sets and tuples must now be bound using `MultiBinding`. You can create one from your modules:
 ```python
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self):
         self.multi_bind(MyClass, [
             self.bind_item(MySubClass1),

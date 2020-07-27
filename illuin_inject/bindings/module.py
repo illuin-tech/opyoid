@@ -1,7 +1,7 @@
-from .abstract_binding_spec import AbstractBindingSpec
+from .abstract_module import AbstractModule
 
 
-class BindingSpec(AbstractBindingSpec):
+class Module(AbstractModule):
     def configure(self) -> None:
         """Contains all bindings, called at injector initialization.
 
@@ -24,7 +24,7 @@ class BindingSpec(AbstractBindingSpec):
             self.bind(MyClass, to_factory=MyFactory())
             self.bind(MyClass, to_factory=MyFactory, scope=PerLookupScope)
 
-        You can also include another BindingSpec with install:
-            self.install(OtherBindingSpecInstance)
+        You can also include another Module with install:
+            self.install(OtherModuleInstance)
         """
         raise NotImplementedError

@@ -13,8 +13,8 @@ from .multi_binding import ItemBinding, MultiBinding
 from .registered_binding import RegisteredBinding
 
 
-class AbstractBindingSpec:
-    """Base class for BindingSpecs, should not be used outside of the library."""
+class AbstractModule:
+    """Base class for Modules, should not be used outside of the library."""
 
     def __init__(self):
         self._is_configured = False
@@ -35,18 +35,18 @@ class AbstractBindingSpec:
         """
         raise NotImplementedError
 
-    def install(self, binding_spec: "AbstractBindingSpec") -> None:
-        """Adds bindings from another BindingSpec to this one."""
+    def install(self, module: "AbstractModule") -> None:
+        """Adds bindings from another Module to this one."""
         # pylint: disable=import-outside-toplevel
-        from illuin_inject.bindings.private_binding_spec import PrivateBindingSpec
+        from .private_module import PrivateModule
 
-        binding_spec.configure_once()
-        for binding in binding_spec.binding_registry.get_bindings_by_target().values():
-            if isinstance(binding_spec, PrivateBindingSpec) and not binding_spec.is_exposed(binding):
+        module.configure_once()
+        for binding in module.binding_registry.get_bindings_by_target().values():
+            if isinstance(module, PrivateModule) and not module.is_exposed(binding):
                 continue
             binding = RegisteredBinding(
                 binding.raw_binding,
-                (binding_spec,) + binding.source_path,
+                (module,) + binding.source_path,
             )
             self._binding_registry.register(binding)
 

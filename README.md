@@ -8,7 +8,7 @@ This project is inspired from [Guice](https://github.com/google/guice).
 # Usage
 ### Simple Injection
 ```python
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 
 
 class MyClass:
@@ -20,13 +20,13 @@ class MyParentClass:
         self.my_param = my_param
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass)
         self.bind(MyParentClass)
 
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
@@ -34,18 +34,18 @@ assert isinstance(my_instance.my_param, MyClass)
 If they are multiple bindings for the same class, the latest will be used.
 
 
-### BindingSpec
-The binding spec is used to group bindings related to a feature.
-You can include a binding spec in another with `install`:
+### Module
+The module is used to group bindings related to a feature.
+You can include a module in another with `install`:
 ```python
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 
 
 class MyClass:
     pass
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass)
 
@@ -55,13 +55,13 @@ class MyParentClass:
         self.my_param = my_param
 
 
-class MyParentBindingSpec(BindingSpec):
+class MyParentModule(Module):
     def configure(self) -> None:
-        self.install(MyBindingSpec())
+        self.install(MyModule())
         self.bind(MyParentClass)
 
 
-injector = Injector([MyParentBindingSpec()])
+injector = Injector([MyParentModule()])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
@@ -70,7 +70,7 @@ assert isinstance(my_instance.my_param, MyClass)
 
 ### Binding Subclasses
 ```python
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 
 
 class MyClass:
@@ -81,11 +81,11 @@ class MySubClass(MyClass):
     pass
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, MySubClass)
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 my_instance = injector.inject(MyClass)
 assert isinstance(my_instance, MySubClass)
 ```
@@ -93,7 +93,7 @@ assert isinstance(my_instance, MySubClass)
 
 ### Binding Instances
 ```python
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 
 
 class MyClass:
@@ -103,12 +103,12 @@ class MyClass:
 my_instance = MyClass("hello")
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, to_instance=my_instance)
 
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 injected_instance = injector.inject(MyClass)
 assert my_instance is injected_instance
 ```
@@ -124,7 +124,7 @@ By default, all classes are instantiated in a Singleton scope.
 This means that only one instance of each class will be created, and it will be shared between all classes requiring it.
 
 ```python
-from illuin_inject import BindingSpec, Injector, SingletonScope
+from illuin_inject import Module, Injector, SingletonScope
 
 
 class MyClass:
@@ -136,12 +136,12 @@ class MyParentClass:
         self.my_param = my_param
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, scope=SingletonScope)
         self.bind(MyParentClass, scope=SingletonScope)
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 parent_instance = injector.inject(MyParentClass)
@@ -153,7 +153,7 @@ assert instance_1 is parent_instance.my_param
 #### PerLookup Scope
 If you use the per lookup scope, a new instance will be created every time each class is injected.
 ```python
-from illuin_inject import BindingSpec, Injector, PerLookupScope
+from illuin_inject import Module, Injector, PerLookupScope
 
 
 class MyClass:
@@ -165,12 +165,12 @@ class MyParentClass:
         self.my_param = my_param
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, scope=PerLookupScope)
         self.bind(MyParentClass)
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 parent_instance = injector.inject(MyParentClass)
@@ -187,18 +187,18 @@ different objects.
 ```python
 from threading import Thread
 
-from illuin_inject import BindingSpec, Injector, ThreadScope
+from illuin_inject import Module, Injector, ThreadScope
 
 
 class MyClass:
     pass
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, scope=ThreadScope)
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 
@@ -212,11 +212,11 @@ assert instance_1 is instance_2
 ```
 
 
-### Bindings without BindingSpec
-If you prefer, you can add bindings to your injector without creating a BindingSpec class (or using both).
+### Bindings without Module
+If you prefer, you can add bindings to your injector without creating a Module class (or using both).
 
 ```python
-from illuin_inject import BindingSpec, ClassBinding, Injector
+from illuin_inject import Module, ClassBinding, Injector
 
 
 class MyClass:
@@ -228,18 +228,18 @@ class MyParentClass:
         self.my_param = my_param
 
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass)
 
 
-injector = Injector([MyBindingSpec()], [ClassBinding(MyParentClass)])
+injector = Injector([MyModule()], [ClassBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
 ```
 
-The same options of BindingSpec.bind are available when using bindings:
+The same options of Module.bind are available when using bindings:
 ```python
 from illuin_inject import ClassBinding, InstanceBinding, PerLookupScope
 
@@ -261,14 +261,13 @@ ClassBinding(MyClass, annotation="my_annotation")  # binding a class to itself w
 InstanceBinding(MyClass, my_instance, annotation="my_annotation")  # binding an instance with an annotation
 ```
 
-
 ### Injecting Type
 If no explicit binding is defined, the last class binding will be used to inject a type:
 
 ```python
 from typing import Type
 
-from illuin_inject import BindingSpec, Injector
+from illuin_inject import Module, Injector
 
 class MyClass:
     pass
@@ -282,7 +281,7 @@ class MyParentClass:
 
 my_instance = MyClass()
 
-class MyBindingSpec(BindingSpec):
+class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass)
         self.bind(MyClass, SubClass)
@@ -290,7 +289,7 @@ class MyBindingSpec(BindingSpec):
         self.bind(MyParentClass)
 
 
-injector = Injector([MyBindingSpec()])
+injector = Injector([MyModule()])
 parent_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert my_instance.my_param is SubClass
