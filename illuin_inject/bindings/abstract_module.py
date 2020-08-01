@@ -11,6 +11,7 @@ from .factory_binding import FactoryBinding
 from .instance_binding import InstanceBinding
 from .multi_binding import ItemBinding, MultiBinding
 from .registered_binding import RegisteredBinding
+from .self_binding import SelfBinding
 
 
 class AbstractModule:
@@ -42,12 +43,13 @@ class AbstractModule:
 
         module.configure_once()
         for binding in module.binding_registry.get_bindings_by_target().values():
-            if isinstance(module, PrivateModule) and not module.is_exposed(binding):
-                continue
-            binding = RegisteredBinding(
-                binding.raw_binding,
-                (module,) + binding.source_path,
-            )
+            if isinstance(module, PrivateModule):
+                if not module.is_exposed(binding):
+                    continue
+                binding = RegisteredBinding(
+                    binding.raw_binding,
+                    (module,) + binding.source_path,
+                )
             self._binding_registry.register(binding)
 
     # pylint: disable=too-many-arguments
@@ -58,8 +60,6 @@ class AbstractModule:
              to_factory: Union[Factory, Type[Factory]] = EMPTY,
              scope: Type[Scope] = SingletonScope,
              annotation: Optional[str] = None) -> RegisteredBinding:
-        if to_class is EMPTY and to_instance is EMPTY and to_factory is EMPTY:
-            to_class = target_type
         try:
             binding = self._create_binding(
                 target_type,
@@ -109,7 +109,9 @@ class AbstractModule:
             return InstanceBinding(target_type, bound_instance, annotation)
         if bound_factory is not EMPTY:
             return FactoryBinding(target_type, bound_factory, scope, annotation)
-        return ClassBinding(target_type, bound_type, scope, annotation)
+        if bound_type is not EMPTY and bound_type != target_type:
+            return ClassBinding(target_type, bound_type, scope, annotation)
+        return SelfBinding(target_type, scope, annotation)
 
     def _register(self, binding: Binding[InjectedT]) -> RegisteredBinding:
         registered_binding = RegisteredBinding(binding)

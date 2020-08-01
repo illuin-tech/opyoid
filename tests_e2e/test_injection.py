@@ -1,5 +1,5 @@
 import unittest
-from typing import Generic, List, Optional, Set, Type, TypeVar
+from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar
 
 import attr
 
@@ -57,9 +57,6 @@ class TestInjector(unittest.TestCase):
         my_instance = injector.inject(MyClass)
         self.assertIsInstance(my_instance, MyClass)
         self.assertIsInstance(my_instance, MySubClass)
-
-        with self.assertRaises(NonInjectableTypeError):
-            injector.inject(MySubClass)
 
     def test_unknown_type_injection(self):
         injector = self.get_injector()
@@ -256,7 +253,30 @@ class TestInjector(unittest.TestCase):
         sub_instance_from_sub_type = injector.inject(MySubType)
         sub_instance_from_mother_type = injector.inject(MyClass)
 
-        self.assertIsNot(sub_instance_from_mother_type, sub_instance_from_sub_type)
+        self.assertIs(sub_instance_from_mother_type, sub_instance_from_sub_type)
+
+    def test_singleton_scope_multiple_modules(self):
+        class MyOtherClass:
+            pass
+
+        class MyCompositeClass(MyClass, MyOtherClass):
+            pass
+
+        class Module1(Module):
+            def configure(self) -> None:
+                self.bind(MyClass, MyCompositeClass)
+
+        class Module2(Module):
+            def configure(self) -> None:
+                self.bind(MyOtherClass, MyCompositeClass)
+
+        injector = Injector([
+            Module1(),
+            Module2(),
+        ])
+        instance_1 = injector.inject(MyClass)
+        instance_2 = injector.inject(MyOtherClass)
+        self.assertIs(instance_1, instance_2)
 
     def test_generic_type_parameter_injection(self):
         MyTypeVar = TypeVar("MyTypeVar")
@@ -486,6 +506,14 @@ class TestInjector(unittest.TestCase):
         self.assertIs(list_1[0], list_2[0])
         self.assertIsInstance(list_1[1], SubClass2)
         self.assertIs(list_1[1], list_2[1])
+
+    def test_list_injection_item_singletons(self):
+        injector = Injector(
+            bindings=[MultiBinding(MyClass, [ItemBinding(MyClass)])]
+        )
+        list_instance = injector.inject(List[MyClass])
+        tuple_instance = injector.inject(Tuple[MyClass])
+        self.assertIs(list_instance[0], tuple_instance[0])
 
     def test_private_module_does_not_expose_bindings(self):
         instance_1 = MyClass()

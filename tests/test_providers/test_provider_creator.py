@@ -2,8 +2,8 @@ import unittest
 from typing import List, Optional, Set, Tuple, Type
 from unittest.mock import ANY
 
-from illuin_inject.bindings import BindingRegistry, ClassBinding, FactoryBinding, FromClassProvider, \
-    FromInstanceProvider, InstanceBinding, ListProvider, MultiBinding
+from illuin_inject.bindings import BindingRegistry, ClassBinding, FactoryBinding, \
+    FromInstanceProvider, FromClassProvider, InstanceBinding, ListProvider, MultiBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError

@@ -2,7 +2,8 @@ import logging
 from typing import List
 
 from illuin_inject.bindings import Binding, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
-    FactoryBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter
+    FactoryBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter, \
+    SelfBindingToProviderAdapter
 from illuin_inject.exceptions import BindingError
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.provider import Provider
@@ -18,6 +19,7 @@ class FromBindingProviderFactory(ProviderFactory):
 
     def __init__(self) -> None:
         self._binding_to_provider_adapters: List[BindingToProviderAdapter] = [
+            SelfBindingToProviderAdapter(),
             InstanceBindingToProviderAdapter(),
             ClassBindingToProviderAdapter(),
             FactoryBindingToProviderAdapter(),

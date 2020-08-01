@@ -1,4 +1,4 @@
-from illuin_inject.bindings import ClassBinding
+from illuin_inject.bindings import SelfBinding
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.provider import Provider
 from illuin_inject.target import Target
@@ -15,4 +15,4 @@ class JitProviderFactory(ProviderFactory):
         return state.options.auto_bindings
 
     def create(self, target: Target[InjectedT], state: InjectionState) -> Provider[InjectedT]:
-        return self.provider_factory.create_from_binding(ClassBinding(target.type, annotation=target.annotation), state)
+        return self.provider_factory.create_from_binding(SelfBinding(target.type, annotation=target.annotation), state)
