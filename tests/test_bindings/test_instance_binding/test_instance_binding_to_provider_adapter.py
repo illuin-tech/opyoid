@@ -1,9 +1,8 @@
 import unittest
 from unittest.mock import create_autospec
 
-from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding
+from illuin_inject import ClassBinding, InstanceBinding, Provider, ProviderBinding
 from illuin_inject.bindings import BindingRegistry, InstanceBindingToProviderAdapter
-from illuin_inject.factory import Factory
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.providers import ProviderCreator
 
@@ -28,7 +27,7 @@ class TestInstanceBindingToProviderAdapter(unittest.TestCase):
 
     def test_accept_non_instance_binding_returns_false(self):
         self.assertFalse(self.adapter.accept(ClassBinding(MyType), self.state))
-        self.assertFalse(self.adapter.accept(FactoryBinding(MyType, create_autospec(Factory)), self.state))
+        self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.state))
 
     def test_create_returns_provider(self):
         provider = self.adapter.create(InstanceBinding(MyType, self.instance), self.providers_creator)

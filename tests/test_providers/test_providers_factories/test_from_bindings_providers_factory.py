@@ -1,11 +1,10 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding, PerLookupScope, Provider, SelfBinding
+from illuin_inject import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding
 from illuin_inject.bindings import Binding, BindingRegistry
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import BindingError
-from illuin_inject.factory import Factory
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.providers import ProviderCreator
 from illuin_inject.providers.providers_factories import FromBindingProviderFactory
@@ -15,14 +14,15 @@ from illuin_inject.target import Target
 class MyType:
     pass
 
+
 class OtherType(MyType):
     pass
 
 
-class TestFromBindingsProvidersFactory(unittest.TestCase):
+class TestFromBindingsProviderFactory(unittest.TestCase):
     def setUp(self):
         self.binding_registry = create_autospec(BindingRegistry, spec_set=True)
-        self.providers_factory = FromBindingProviderFactory()
+        self.provider_factory = FromBindingProviderFactory()
         self.provider_creator = create_autospec(ProviderCreator, spec_set=True)
         self.mock_scope_provider = create_autospec(Provider, spec_set=True)
         self.scope = PerLookupScope()
@@ -37,7 +37,7 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(mock_binding)
         self.binding_registry.__contains__.return_value = True
         with self.assertRaises(BindingError):
-            self.providers_factory.create(Target(str), self.state)
+            self.provider_factory.create(Target(str), self.state)
 
     def test_accept(self):
         self.binding_registry.__contains__.side_effect = [
@@ -45,8 +45,8 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
             False,
         ]
 
-        self.assertTrue(self.providers_factory.accept(Target(str), self.state))
-        self.assertFalse(self.providers_factory.accept(Target(int), self.state))
+        self.assertTrue(self.provider_factory.accept(Target(str), self.state))
+        self.assertFalse(self.provider_factory.accept(Target(int), self.state))
         self.assertEqual(
             [
                 call(Target(str)),
@@ -62,7 +62,7 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
             True,
         ]
 
-        self.assertTrue(self.providers_factory.accept(Target(str), self.state))
+        self.assertTrue(self.provider_factory.accept(Target(str), self.state))
         self.assertEqual(
             [
                 call(Target(str)),
@@ -76,7 +76,7 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
 
-        provider = self.providers_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(Target(MyType), self.state)
         instance = provider.get()
         self.assertIs(binding.bound_instance, instance)
 
@@ -88,7 +88,7 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
 
-        provider = self.providers_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(Target(MyType), self.state)
         instance = provider.get()
         self.assertIsInstance(instance, OtherType)
 
@@ -98,18 +98,18 @@ class TestFromBindingsProvidersFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
 
-        provider = self.providers_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(Target(MyType), self.state)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
-    def test_create_creates_provider_for_factory_binding(self):
-        factory = create_autospec(Factory, spec_set=True)
-        factory.create.return_value = MyType()
-        binding = FactoryBinding(MyType, factory)
+    def test_create_creates_provider_for_provider_binding(self):
+        provider = create_autospec(Provider, spec_set=True)
+        provider.get.return_value = MyType()
+        binding = ProviderBinding(MyType, provider)
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
         self.provider_creator.get_provider.return_value = self.mock_scope_provider
 
-        provider = self.providers_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(Target(MyType), self.state)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)

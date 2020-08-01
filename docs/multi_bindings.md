@@ -9,7 +9,7 @@ Items can be bound to classes, instances and factories.
 ```python
 from typing import List
 
-from illuin_inject import Module, Injector, Factory
+from illuin_inject import Module, Injector, Provider
 
 class MyClass:
     pass
@@ -17,12 +17,12 @@ class MyClass:
 class SubClass(MyClass):
     pass
 
-class MyFactory(Factory[MyClass]):
-    def create(self) -> MyClass:
+class MyProvider(Provider[MyClass]):
+    def get(self) -> MyClass:
         return MyClass()
 
 my_instance = MyClass()
-my_factory = MyFactory()
+my_provider = MyProvider()
 
 
 class MyModule(Module):
@@ -33,8 +33,8 @@ class MyModule(Module):
                 self.bind_item(to_class=SubClass),
                 self.bind_item(to_class=MyClass),
                 self.bind_item(to_instance=my_instance),
-                self.bind_item(to_factory=my_factory),
-                self.bind_item(to_factory=MyFactory),
+                self.bind_item(to_provider=my_provider),
+                self.bind_item(to_provider=MyProvider),
             ]
         )
 
@@ -55,7 +55,7 @@ assert isinstance(my_instance[4], MyClass)
 You can create MultiBindings and ItemBindings manually:
 
 ```python
-from illuin_inject import Injector, Factory, ItemBinding, MultiBinding
+from illuin_inject import Injector, Provider, ItemBinding, MultiBinding
 
 class MyClass:
     pass
@@ -63,18 +63,18 @@ class MyClass:
 class SubClass(MyClass):
     pass
 
-class MyFactory(Factory[MyClass]):
-    def create(self) -> MyClass:
+class MyProvider(Provider[MyClass]):
+    def get(self) -> MyClass:
         return MyClass()
 
 my_instance = MyClass()
-my_factory = MyFactory()
+my_provider = MyProvider()
 
 injector = Injector(bindings=[
     MultiBinding(MyClass, [
         ItemBinding(bound_type=SubClass),
         ItemBinding(bound_instance=my_instance),
-        ItemBinding(bound_factory=my_factory),
+        ItemBinding(bound_provider=my_provider),
     ])
 ])
 ```

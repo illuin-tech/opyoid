@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from illuin_inject.bindings import Binding, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
-    FactoryBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter, \
+    ProviderBindingToProviderAdapter, InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter, \
     SelfBindingToProviderAdapter
 from illuin_inject.exceptions import BindingError
 from illuin_inject.injection_state import InjectionState
@@ -22,7 +22,7 @@ class FromBindingProviderFactory(ProviderFactory):
             SelfBindingToProviderAdapter(),
             InstanceBindingToProviderAdapter(),
             ClassBindingToProviderAdapter(),
-            FactoryBindingToProviderAdapter(),
+            ProviderBindingToProviderAdapter(),
             MultiBindingToProviderAdapter(self),
         ]
 

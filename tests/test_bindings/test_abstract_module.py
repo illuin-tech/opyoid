@@ -1,12 +1,11 @@
 import unittest
 from typing import List
 
-from illuin_inject import AbstractModule, Module, PerLookupScope, SelfBinding, SingletonScope
-from illuin_inject.bindings import ClassBinding, FactoryBinding, InstanceBinding, MultiBinding
+from illuin_inject import AbstractModule, Module, PerLookupScope, Provider, SelfBinding, SingletonScope
+from illuin_inject.bindings import ClassBinding, InstanceBinding, MultiBinding, ProviderBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import BindingError
-from illuin_inject.factory import Factory
 from illuin_inject.target import Target
 
 
@@ -18,8 +17,8 @@ class OtherType(MyType):
     pass
 
 
-class MyFactory(Factory[MyType]):
-    def create(self) -> MyType:
+class MyProvider(Provider[MyType]):
+    def get(self) -> MyType:
         return MyType()
 
 
@@ -27,7 +26,7 @@ class TestAbstractModule(unittest.TestCase):
     def setUp(self) -> None:
         self.module = AbstractModule()
         self.my_instance = MyType()
-        self.my_factory = MyFactory()
+        self.my_provider = MyProvider()
 
     def test_configure_is_not_implemented(self):
         with self.assertRaises(NotImplementedError):
@@ -126,30 +125,30 @@ class TestAbstractModule(unittest.TestCase):
             self.module.binding_registry.get_bindings_by_target()
         )
 
-    def test_bind_factory_class(self):
-        self.module.bind(MyType, to_factory=MyFactory, scope=PerLookupScope, annotation="my_annotation")
+    def test_bind_provider_class(self):
+        self.module.bind(MyType, to_provider=MyProvider, scope=PerLookupScope, annotation="my_annotation")
         self.assertEqual(
             {
                 Target(MyType, "my_annotation"): RegisteredBinding(
-                    FactoryBinding(MyType, MyFactory, PerLookupScope, "my_annotation")),
-                Target(MyFactory, "my_annotation"): RegisteredBinding(
-                    SelfBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation")),
+                    ProviderBinding(MyType, MyProvider, PerLookupScope, "my_annotation")),
+                Target(MyProvider, "my_annotation"): RegisteredBinding(
+                    SelfBinding(MyProvider, scope=PerLookupScope, annotation="my_annotation")),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_factory_instance(self):
-        self.module.bind(MyType, to_factory=self.my_factory)
+        self.module.bind(MyType, to_provider=self.my_provider)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(FactoryBinding(MyType, self.my_factory)),
+                Target(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
 
-    def test_bind_non_factory_raises_exception(self):
+    def test_bind_non_provider_raises_exception(self):
         with self.assertRaises(BindingError):
-            self.module.bind(MyType, to_factory=MyType)
+            self.module.bind(MyType, to_provider=MyType)
 
     def test_bind_non_class_raises_exception(self):
         with self.assertRaises(BindingError):

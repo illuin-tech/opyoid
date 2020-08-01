@@ -2,11 +2,9 @@ import unittest
 from typing import List
 from unittest.mock import create_autospec, patch
 
-from illuin_inject import PerLookupScope, SelfBinding
-from illuin_inject.bindings import Binding, BindingRegistry, FactoryBinding, InstanceBinding, MultiBinding
-from illuin_inject.bindings.multi_binding import ItemBinding
+from illuin_inject import ItemBinding, PerLookupScope, Provider, SelfBinding
+from illuin_inject.bindings import Binding, BindingRegistry, InstanceBinding, MultiBinding, ProviderBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
-from illuin_inject.factory import Factory
 from illuin_inject.target import Target
 
 
@@ -127,32 +125,32 @@ class TestBindingRegistry(unittest.TestCase):
         mock_error.assert_called_once_with(
             "Could not find binding for 'MyNewType': multiple types with this name found")
 
-    def test_register_factory_binding_does_not_create_additional_binding(self):
-        class MyFactory(Factory[str]):
-            def create(self) -> str:
+    def test_register_provider_binding_does_not_create_additional_binding(self):
+        class MyProvider(Provider[str]):
+            def get(self) -> str:
                 return "hello"
 
-        factory_instance = MyFactory()
-        factory_binding = RegisteredBinding(FactoryBinding(str, factory_instance, annotation="my_annotation"))
-        self.binding_registry.register(factory_binding)
+        provider_instance = MyProvider()
+        provider_binding = RegisteredBinding(ProviderBinding(str, provider_instance, annotation="my_annotation"))
+        self.binding_registry.register(provider_binding)
 
         self.assertEqual(
             {
-                Target(str, "my_annotation"): factory_binding,
+                Target(str, "my_annotation"): provider_binding,
             },
             self.binding_registry.get_bindings_by_target()
         )
 
-    def test_register_factory_binding_creates_self_binding(self):
-        class MyFactory(Factory[str]):
-            def create(self) -> str:
+    def test_register_provider_binding_creates_self_binding(self):
+        class MyProvider(Provider[str]):
+            def get(self) -> str:
                 return "hello"
 
-        factory_binding = RegisteredBinding(FactoryBinding(str, MyFactory, PerLookupScope, "my_annotation"))
-        self.binding_registry.register(factory_binding)
+        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider, PerLookupScope, "my_annotation"))
+        self.binding_registry.register(provider_binding)
 
-        self.assertEqual(factory_binding, self.binding_registry.get_binding(Target(str, "my_annotation")))
-        factory_binding = self.binding_registry.get_binding(Target(MyFactory, "my_annotation"))
-        self.assertIsInstance(factory_binding.raw_binding, SelfBinding)
-        self.assertEqual(MyFactory, factory_binding.raw_binding.target_type)
-        self.assertEqual(PerLookupScope, factory_binding.raw_binding.scope)
+        self.assertEqual(provider_binding, self.binding_registry.get_binding(Target(str, "my_annotation")))
+        provider_binding = self.binding_registry.get_binding(Target(MyProvider, "my_annotation"))
+        self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
+        self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
+        self.assertEqual(PerLookupScope, provider_binding.raw_binding.scope)

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from illuin_inject.bindings.binding import Binding
 from illuin_inject.bindings.binding_to_provider_adapter import BindingToProviderAdapter
-from illuin_inject.bindings.factory_binding import FactoryBinding
+from illuin_inject.bindings.provider_binding import ProviderBinding
 from illuin_inject.bindings.instance_binding import InstanceBinding
 from illuin_inject.bindings.self_binding import SelfBinding
 from illuin_inject.exceptions import BindingError, NoBindingFound, NonInjectableTypeError
@@ -58,15 +58,15 @@ class MultiBindingToProviderAdapter(BindingToProviderAdapter[MultiBinding]):
                 item_binding.bound_instance,
                 parent_binding.annotation,
             )
-        elif item_binding.bound_factory is not EMPTY:
-            item_binding = FactoryBinding(
+        elif item_binding.bound_provider is not EMPTY:
+            item_binding = ProviderBinding(
                 parent_binding.target_type,
-                item_binding.bound_factory,
+                item_binding.bound_provider,
                 parent_binding.scope,
                 parent_binding.annotation,
             )
         else:
             raise BindingError(
-                f"{item_binding!r} in {parent_binding!r} has no instance, class or factory, one should be set")
+                f"ItemBinding in {parent_binding!r} has no instance, class or provider, one should be set")
 
         return self._item_provider_factory.create_from_binding(item_binding, state)

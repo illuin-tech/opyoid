@@ -1,12 +1,11 @@
 import unittest
 from unittest.mock import create_autospec
 
-from illuin_inject import ImmediateScope, InstanceBinding, SingletonScope, ThreadScope
+from illuin_inject import ImmediateScope, InstanceBinding, Provider, SingletonScope, ThreadScope
 from illuin_inject.bindings import BindingRegistry, MultiBinding, MultiBindingToProviderAdapter
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import BindingError, NonInjectableTypeError
-from illuin_inject.factory import Factory
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.providers import ProviderCreator
 from illuin_inject.providers.providers_factories import FromBindingProviderFactory
@@ -48,11 +47,11 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
         self.assertEqual(1, len(list_instance))
         self.assertIsInstance(list_instance[0], MyType)
 
-    def test_create_from_factory_binding(self):
-        factory = create_autospec(Factory, spec_set=True)
+    def test_create_from_provider_binding(self):
+        provider = create_autospec(Provider, spec_set=True)
         instance = MyType()
-        factory.create.return_value = instance
-        binding = MultiBinding(MyType, [ItemBinding(bound_factory=factory)])
+        provider.get.return_value = instance
+        binding = MultiBinding(MyType, [ItemBinding(bound_provider=provider)])
 
         provider = self.adapter.create(binding, self.state)
 

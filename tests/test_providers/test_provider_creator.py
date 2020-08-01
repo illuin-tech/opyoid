@@ -2,12 +2,12 @@ import unittest
 from typing import List, Optional, Set, Tuple, Type
 from unittest.mock import ANY
 
-from illuin_inject.bindings import BindingRegistry, ClassBinding, FactoryBinding, \
-    FromInstanceProvider, FromClassProvider, InstanceBinding, ListProvider, MultiBinding
+from illuin_inject import Provider
+from illuin_inject.bindings import BindingRegistry, ClassBinding, FromClassProvider, FromInstanceProvider, \
+    InstanceBinding, ListProvider, MultiBinding, ProviderBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
-from illuin_inject.factory import Factory
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.providers import ProviderCreator
 from illuin_inject.scopes import SingletonScope
@@ -208,20 +208,20 @@ class TestProviderCreator(unittest.TestCase):
         with self.assertRaises(NonInjectableTypeError):
             self.provider_creator.get_provider(Target(Type[MyType]), self.state)
 
-    def test_factory_binding(self):
+    def test_provider_binding(self):
         class MyInjectee:
             pass
 
-        class MyFactory(Factory[MyInjectee]):
+        class MyProvider(Provider[MyInjectee]):
             def __init__(self, my_param: MyType):
                 self.my_param = my_param
 
-            def create(self) -> MyInjectee:
+            def get(self) -> MyInjectee:
                 return MyInjectee()
 
-        factory_binding = FactoryBinding(MyInjectee, MyFactory)
+        provider_binding = ProviderBinding(MyInjectee, MyProvider)
         self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
-        self.binding_registry.register(RegisteredBinding(factory_binding))
+        self.binding_registry.register(RegisteredBinding(provider_binding))
 
         self.provider_creator.get_provider(Target(MyInjectee), self.state)
 

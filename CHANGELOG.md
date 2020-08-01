@@ -19,6 +19,9 @@ class MyModule(Module):
 More details are available in the documentation.
 - Singletons are now shared between bindings. This means that if you bind the same implementation to two different
 classes, the same instance will be injected for each class.
+- Renamed `Factory` to `Provider`
+- Renamed `FactoryBinding` to `ProviderBinding`
+- Renamed `to_factory` argument to `to_provider` in the `Module.bind` method
 
 ### Features
 - Added `MultiBinding` and `ItemBinding`
@@ -27,7 +30,7 @@ classes, the same instance will be injected for each class.
 argument that can be used to implicitly bind all classes to themselves in a SingletonScope.
 
 ### Fixes
-- You can now bind any binding to a Factory class, by default a ClassBinding with the factory class will be created
+- You can now bind any binding to a Provider class, by default a ClassBinding with the provider class will be created
 
 
 ## 0.4.0

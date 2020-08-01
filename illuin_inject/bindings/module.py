@@ -19,10 +19,10 @@ class Module(AbstractModule):
             self.bind(MyClass, scope=ThreadScope)
         - Binding a class to an instance of it
             self.bind(MyClass, to_instance=MyInstance)
-        - Binding a class to a Factory providing it
-            self.bind(MyClass, to_factory=MyFactory)
-            self.bind(MyClass, to_factory=MyFactory())
-            self.bind(MyClass, to_factory=MyFactory, scope=PerLookupScope)
+        - Binding a class to a Provider providing it
+            self.bind(MyClass, to_provider=MyProvider)
+            self.bind(MyClass, to_provider=MyProvider())
+            self.bind(MyClass, to_provider=MyProvider, scope=PerLookupScope)
 
         You can also include another Module with install:
             self.install(OtherModuleInstance)

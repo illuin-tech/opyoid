@@ -1,12 +1,12 @@
 import logging
 from typing import Dict, Optional
 
-from illuin_inject.factory import Factory
+from illuin_inject.provider import Provider
 from illuin_inject.target import Target
 from illuin_inject.typings import InjectedT
 from .class_binding import ClassBinding
-from .factory_binding import FactoryBinding
 from .multi_binding import MultiBinding
+from .provider_binding import ProviderBinding
 from .registered_binding import RegisteredBinding
 from .self_binding import SelfBinding
 
@@ -39,11 +39,11 @@ class BindingRegistry:
     def _register_self_binding(self, registered_binding: RegisteredBinding) -> None:
         binding = registered_binding.raw_binding
         self_binding = None
-        if isinstance(binding, FactoryBinding):
-            if isinstance(binding.bound_factory, type) \
-                and issubclass(binding.bound_factory, Factory) \
-                and Target(binding.bound_factory, binding.annotation) not in self:
-                self_binding = SelfBinding(binding.bound_factory, scope=binding.scope, annotation=binding.annotation)
+        if isinstance(binding, ProviderBinding):
+            if isinstance(binding.bound_provider, type) \
+                and issubclass(binding.bound_provider, Provider) \
+                and Target(binding.bound_provider, binding.annotation) not in self:
+                self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, annotation=binding.annotation)
         elif isinstance(binding, ClassBinding):
             self_binding = SelfBinding(binding.bound_type, binding.scope, binding.annotation)
 

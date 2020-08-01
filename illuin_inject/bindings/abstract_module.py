@@ -1,15 +1,15 @@
 from typing import List, Optional, Type, Union
 
 from illuin_inject.exceptions import BindingError
-from illuin_inject.factory import Factory
+from illuin_inject.provider import Provider
 from illuin_inject.scopes import Scope, SingletonScope
 from illuin_inject.typings import EMPTY, InjectedT
 from .binding import Binding
 from .binding_registry import BindingRegistry
 from .class_binding import ClassBinding
-from .factory_binding import FactoryBinding
 from .instance_binding import InstanceBinding
 from .multi_binding import ItemBinding, MultiBinding
+from .provider_binding import ProviderBinding
 from .registered_binding import RegisteredBinding
 from .self_binding import SelfBinding
 
@@ -57,7 +57,7 @@ class AbstractModule:
              target_type: Type[InjectedT],
              to_class: Type[InjectedT] = EMPTY,
              to_instance: InjectedT = EMPTY,
-             to_factory: Union[Factory, Type[Factory]] = EMPTY,
+             to_provider: Union[Provider, Type[Provider]] = EMPTY,
              scope: Type[Scope] = SingletonScope,
              annotation: Optional[str] = None) -> RegisteredBinding:
         try:
@@ -65,7 +65,7 @@ class AbstractModule:
                 target_type,
                 to_class,
                 to_instance,
-                to_factory,
+                to_provider,
                 scope,
                 annotation,
             )
@@ -95,20 +95,20 @@ class AbstractModule:
     @staticmethod
     def bind_item(to_class: Type[InjectedT] = EMPTY,
                   to_instance: InjectedT = EMPTY,
-                  to_factory: Union[Factory, Type[Factory]] = EMPTY) -> ItemBinding[InjectedT]:
-        return ItemBinding(to_class, to_instance, to_factory)
+                  to_provider: Union[Provider, Type[Provider]] = EMPTY) -> ItemBinding[InjectedT]:
+        return ItemBinding(to_class, to_instance, to_provider)
 
     @staticmethod
     def _create_binding(target_type: Type[InjectedT],
                         bound_type: Type[InjectedT],
                         bound_instance: InjectedT,
-                        bound_factory: Union[Factory, Type[Factory]],
+                        bound_provider: Union[Provider, Type[Provider]],
                         scope: Type[Scope],
                         annotation: Optional[str]) -> Binding:
         if bound_instance is not EMPTY:
             return InstanceBinding(target_type, bound_instance, annotation)
-        if bound_factory is not EMPTY:
-            return FactoryBinding(target_type, bound_factory, scope, annotation)
+        if bound_provider is not EMPTY:
+            return ProviderBinding(target_type, bound_provider, scope, annotation)
         if bound_type is not EMPTY and bound_type != target_type:
             return ClassBinding(target_type, bound_type, scope, annotation)
         return SelfBinding(target_type, scope, annotation)

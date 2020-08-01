@@ -5,7 +5,7 @@ from illuin_inject.typings import InjectedT
 
 
 class ProviderFactory:
-    """Creates provider for each target.
+    """Creates a provider for each target.
 
     A target corresponds to either a Binding target or a dependency of a Binding target.
     """
