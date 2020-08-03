@@ -1,6 +1,6 @@
 from typing import List, Set
 
-from illuin_inject.bindings.class_binding import FromClassProvider
+from illuin_inject.bindings import FromClassProvider
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.provider import Provider
 from illuin_inject.target import Target

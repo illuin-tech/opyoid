@@ -1,7 +1,7 @@
 import unittest
 from typing import List
 
-from illuin_inject import AbstractModule, Module, PerLookupScope, SingletonScope
+from illuin_inject import AbstractModule, Module, PerLookupScope, SelfBinding, SingletonScope
 from illuin_inject.bindings import ClassBinding, FactoryBinding, InstanceBinding, MultiBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
@@ -49,9 +49,9 @@ class TestAbstractModule(unittest.TestCase):
         self.module.install(module)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ClassBinding(MyType), (module,)),
+                Target(MyType): RegisteredBinding(SelfBinding(MyType)),
                 Target(OtherType, "my_annotation"): RegisteredBinding(
-                    ClassBinding(OtherType, annotation="my_annotation"), (module,)),
+                    SelfBinding(OtherType, annotation="my_annotation")),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -61,7 +61,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ClassBinding(MyType, MyType)),
+                Target(MyType): RegisteredBinding(SelfBinding(MyType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -72,6 +72,7 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
+                Target(OtherType): RegisteredBinding(SelfBinding(OtherType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -94,6 +95,7 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
+                Target(OtherType): RegisteredBinding(SelfBinding(OtherType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -102,7 +104,7 @@ class TestAbstractModule(unittest.TestCase):
         self.module.bind(MyType, scope=PerLookupScope)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ClassBinding(MyType, MyType, PerLookupScope)),
+                Target(MyType): RegisteredBinding(SelfBinding(MyType, PerLookupScope)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -117,7 +119,7 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 Target(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
-                Target(MyType, "my_annotation"): RegisteredBinding(ClassBinding(MyType, annotation="my_annotation")),
+                Target(MyType, "my_annotation"): RegisteredBinding(SelfBinding(MyType, annotation="my_annotation")),
                 Target(OtherType, "my_other_annotation"):
                     RegisteredBinding(InstanceBinding(OtherType, my_other_instance, "my_other_annotation")),
             },
@@ -131,7 +133,7 @@ class TestAbstractModule(unittest.TestCase):
                 Target(MyType, "my_annotation"): RegisteredBinding(
                     FactoryBinding(MyType, MyFactory, PerLookupScope, "my_annotation")),
                 Target(MyFactory, "my_annotation"): RegisteredBinding(
-                    ClassBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation")),
+                    SelfBinding(MyFactory, scope=PerLookupScope, annotation="my_annotation")),
             },
             self.module.binding_registry.get_bindings_by_target()
         )

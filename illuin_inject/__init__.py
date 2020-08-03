@@ -1,7 +1,6 @@
 from .annotated import annotated_arg
 from .bindings import AbstractModule, ClassBinding, FactoryBinding, InstanceBinding, ItemBinding, Module, \
-    MultiBinding, \
-    PrivateModule
+    MultiBinding, PrivateModule, SelfBinding
 from .factory import Factory
 from .injector import Injector
 from .provider import Provider

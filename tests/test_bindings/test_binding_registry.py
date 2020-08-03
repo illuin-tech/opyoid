@@ -2,7 +2,7 @@ import unittest
 from typing import List
 from unittest.mock import create_autospec, patch
 
-from illuin_inject import ClassBinding, PerLookupScope
+from illuin_inject import PerLookupScope, SelfBinding
 from illuin_inject.bindings import Binding, BindingRegistry, FactoryBinding, InstanceBinding, MultiBinding
 from illuin_inject.bindings.multi_binding import ItemBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
@@ -63,18 +63,6 @@ class TestBindingRegistry(unittest.TestCase):
         binding = self.binding_registry.get_binding(Target(List[MyType])).raw_binding
         self.assertIsInstance(binding, MultiBinding)
         self.assertEqual([item_binding_2], binding.item_bindings)
-
-    def test_update(self):
-        binding_registry = BindingRegistry()
-        binding_registry.register(self.my_type_binding_2)
-        binding_registry.register(self.other_type_binding)
-        self.binding_registry.register(self.my_type_binding)
-
-        self.binding_registry.update(binding_registry)
-        self.assertEqual({
-            Target(MyType): self.my_type_binding_2,
-            Target(OtherType): self.other_type_binding,
-        }, self.binding_registry.get_bindings_by_target())
 
     def test_get_binding_returns_binding(self):
         self.binding_registry.register(self.my_type_binding)
@@ -155,7 +143,7 @@ class TestBindingRegistry(unittest.TestCase):
             self.binding_registry.get_bindings_by_target()
         )
 
-    def test_register_factory_binding_creates_class_binding(self):
+    def test_register_factory_binding_creates_self_binding(self):
         class MyFactory(Factory[str]):
             def create(self) -> str:
                 return "hello"
@@ -165,7 +153,6 @@ class TestBindingRegistry(unittest.TestCase):
 
         self.assertEqual(factory_binding, self.binding_registry.get_binding(Target(str, "my_annotation")))
         factory_binding = self.binding_registry.get_binding(Target(MyFactory, "my_annotation"))
-        self.assertIsInstance(factory_binding.raw_binding, ClassBinding)
+        self.assertIsInstance(factory_binding.raw_binding, SelfBinding)
         self.assertEqual(MyFactory, factory_binding.raw_binding.target_type)
         self.assertEqual(PerLookupScope, factory_binding.raw_binding.scope)
-        self.assertEqual(MyFactory, factory_binding.raw_binding.bound_type)

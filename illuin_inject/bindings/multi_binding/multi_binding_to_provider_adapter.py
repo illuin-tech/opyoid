@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING
 
 from illuin_inject.bindings.binding import Binding
 from illuin_inject.bindings.binding_to_provider_adapter import BindingToProviderAdapter
-from illuin_inject.bindings.class_binding import ClassBinding
 from illuin_inject.bindings.factory_binding import FactoryBinding
 from illuin_inject.bindings.instance_binding import InstanceBinding
+from illuin_inject.bindings.self_binding import SelfBinding
 from illuin_inject.exceptions import BindingError, NoBindingFound, NonInjectableTypeError
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.provider import Provider
@@ -47,8 +47,7 @@ class MultiBindingToProviderAdapter(BindingToProviderAdapter[MultiBinding]):
                            item_binding: ItemBinding[InjectedT],
                            state: InjectionState) -> Provider[InjectedT]:
         if item_binding.bound_type is not EMPTY:
-            item_binding = ClassBinding(
-                parent_binding.target_type,
+            item_binding = SelfBinding(
                 item_binding.bound_type,
                 parent_binding.scope,
                 parent_binding.annotation,

@@ -1,6 +1,6 @@
 from typing import Type
 
-from illuin_inject.bindings import ClassBinding, FromInstanceProvider
+from illuin_inject.bindings import ClassBinding, FromInstanceProvider, SelfBinding
 from illuin_inject.exceptions import NoBindingFound
 from illuin_inject.injection_state import InjectionState
 from illuin_inject.provider import Provider
@@ -21,6 +21,8 @@ class TypeProviderFactory(ProviderFactory):
                state: InjectionState) -> Provider[Type[InjectedT]]:
         new_target = Target(target.type.__args__[0], target.annotation)
         binding = state.binding_registry.get_binding(new_target)
-        if not binding or not isinstance(binding.raw_binding, ClassBinding):
+        if not binding or not isinstance(binding.raw_binding, (ClassBinding, SelfBinding)):
             raise NoBindingFound(f"Could not find any binding for {target}")
-        return FromInstanceProvider(binding.raw_binding.bound_type)
+        if isinstance(binding.raw_binding, ClassBinding):
+            return FromInstanceProvider(binding.raw_binding.bound_type)
+        return FromInstanceProvider(binding.raw_binding.target_type)

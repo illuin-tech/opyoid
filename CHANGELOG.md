@@ -17,6 +17,8 @@ class MyModule(Module):
         ])
 ```
 More details are available in the documentation.
+- Singletons are now shared between bindings. This means that if you bind the same implementation to two different
+classes, the same instance will be injected for each class.
 
 ### Features
 - Added `MultiBinding` and `ItemBinding`

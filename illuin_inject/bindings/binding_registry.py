@@ -8,6 +8,7 @@ from .class_binding import ClassBinding
 from .factory_binding import FactoryBinding
 from .multi_binding import MultiBinding
 from .registered_binding import RegisteredBinding
+from .self_binding import SelfBinding
 
 
 class BindingRegistry:
@@ -33,25 +34,24 @@ class BindingRegistry:
         if previous_binding:
             self.logger.info(f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
         self._bindings_by_target[registered_binding.target] = registered_binding
-        if isinstance(registered_binding.raw_binding, FactoryBinding):
-            self._register_factory(registered_binding.raw_binding)
+        self._register_self_binding(registered_binding)
 
-    def _register_factory(self, binding: FactoryBinding) -> None:
-        if isinstance(binding.bound_factory, type) \
-            and issubclass(binding.bound_factory, Factory) \
-            and Target(binding.bound_factory, binding.annotation) not in self:
-            self.register(
-                RegisteredBinding(
-                    ClassBinding(binding.bound_factory, scope=binding.scope, annotation=binding.annotation)
-                )
-            )
+    def _register_self_binding(self, registered_binding: RegisteredBinding) -> None:
+        binding = registered_binding.raw_binding
+        self_binding = None
+        if isinstance(binding, FactoryBinding):
+            if isinstance(binding.bound_factory, type) \
+                and issubclass(binding.bound_factory, Factory) \
+                and Target(binding.bound_factory, binding.annotation) not in self:
+                self_binding = SelfBinding(binding.bound_factory, scope=binding.scope, annotation=binding.annotation)
+        elif isinstance(binding, ClassBinding):
+            self_binding = SelfBinding(binding.bound_type, binding.scope, binding.annotation)
+
+        if self_binding:
+            self.register(RegisteredBinding(self_binding, registered_binding.source_path))
 
     def get_bindings_by_target(self) -> Dict[Target[InjectedT], RegisteredBinding[InjectedT]]:
         return self._bindings_by_target
-
-    def update(self, binding_registry: "BindingRegistry") -> None:
-        for binding in binding_registry.get_bindings_by_target().values():
-            self.register(binding)
 
     def get_binding(self, target: Target[InjectedT]) -> Optional[RegisteredBinding]:
         if isinstance(target.type, str):

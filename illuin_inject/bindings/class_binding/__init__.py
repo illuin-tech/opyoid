@@ -1,3 +1,2 @@
 from .class_binding import ClassBinding
 from .class_binding_to_provider_adapter import ClassBindingToProviderAdapter
-from .from_class_provider import FromClassProvider
