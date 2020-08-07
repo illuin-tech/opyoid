@@ -1,14 +1,11 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from illuin_inject import ClassBinding, FactoryBinding, InstanceBinding, PerLookupScope, SelfBinding, SingletonScope, \
-    ThreadScope, \
-    annotated_arg
+from illuin_inject import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding, \
+    SingletonScope, ThreadScope, annotated_arg
 from illuin_inject.bindings import BindingRegistry, FromClassProvider, SelfBindingToProviderAdapter
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
-from illuin_inject.factory import Factory
 from illuin_inject.injection_state import InjectionState
-from illuin_inject.provider import Provider
 from illuin_inject.providers import ProviderCreator
 from illuin_inject.scopes.thread_scoped_provider import ThreadScopedProvider
 from illuin_inject.target import Target
@@ -36,7 +33,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
     def test_accept_non_class_binding_returns_false(self):
         self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType()), self.state))
         self.assertFalse(self.adapter.accept(ClassBinding(MyType, MyType), self.state))
-        self.assertFalse(self.adapter.accept(FactoryBinding(MyType, create_autospec(Factory)), self.state))
+        self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.state))
 
     def test_create_provider_without_args(self):
         self.state.provider_creator.get_provider.return_value = self.mock_scope_provider

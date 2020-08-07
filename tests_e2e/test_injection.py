@@ -3,7 +3,7 @@ from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar
 
 import attr
 
-from illuin_inject import ClassBinding, Factory, FactoryBinding, ImmediateScope, Injector, InstanceBinding, \
+from illuin_inject import ClassBinding, Provider, ProviderBinding, ImmediateScope, Injector, InstanceBinding, \
     ItemBinding, \
     Module, MultiBinding, PerLookupScope, annotated_arg
 from illuin_inject.bindings.private_module import PrivateModule
@@ -386,63 +386,63 @@ class TestInjector(unittest.TestCase):
 
         self.assertEqual(["ok"], called)
 
-    def test_factory_injection(self):
+    def test_provider_injection(self):
         class MyParent:
             def __init__(self, my_arg: MyClass, my_str: str):
                 self.my_arg = my_arg
                 self.my_str = my_str
 
-        class MyParentFactory(Factory[MyParent]):
+        class MyParentProvider(Provider[MyParent]):
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
-            def create(self) -> MyParent:
+            def get(self) -> MyParent:
                 return MyParent(self.my_arg, "hello")
 
         injector = Injector(bindings=[
             ClassBinding(MyClass),
-            FactoryBinding(MyParent, MyParentFactory),
+            ProviderBinding(MyParent, MyParentProvider),
         ])
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
         self.assertEqual("hello", my_parent.my_str)
 
-    def test_factory_injection_with_factory_binding(self):
+    def test_provider_injection_with_provider_binding(self):
         class MyParent:
             def __init__(self, my_arg: MyClass, my_str: str):
                 self.my_arg = my_arg
                 self.my_str = my_str
 
-        class MyParentFactory(Factory[MyParent]):
+        class MyParentProvider(Provider[MyParent]):
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
-            def create(self) -> MyParent:
+            def get(self) -> MyParent:
                 return MyParent(self.my_arg, "hello")
 
         injector = Injector(bindings=[
-            InstanceBinding(MyParentFactory, MyParentFactory(MyClass())),
-            FactoryBinding(MyParent, MyParentFactory),
+            InstanceBinding(MyParentProvider, MyParentProvider(MyClass())),
+            ProviderBinding(MyParent, MyParentProvider),
         ])
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
         self.assertEqual("hello", my_parent.my_str)
 
-    def test_factory_instance_injection(self):
+    def test_provider_instance_injection(self):
         class MyParent:
             def __init__(self, my_arg: MyClass, my_str: str):
                 self.my_arg = my_arg
                 self.my_str = my_str
 
-        class MyParentFactory(Factory[MyParent]):
+        class MyParentProvider(Provider[MyParent]):
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
-            def create(self) -> MyParent:
+            def get(self) -> MyParent:
                 return MyParent(self.my_arg, "hello")
 
         injector = Injector(bindings=[
-            FactoryBinding(MyParent, MyParentFactory(MyClass())),
+            ProviderBinding(MyParent, MyParentProvider(MyClass())),
         ])
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
