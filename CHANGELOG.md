@@ -28,6 +28,9 @@ classes, the same instance will be injected for each class.
 - Added `PrivateBindingSpec`
 - Added `options: InjectorOptions` argument to the `Injector` constructor, it has an `auto_bindings: bool = False`
 argument that can be used to implicitly bind all classes to themselves in a SingletonScope.
+- Added `Provider` injection, you can now inject `Provider[MyClass]` and it will return a provider that can be used for
+delayed instantiation. If a `ProviderBinding` exists with the right type it will be used instead of creating a new
+provider. 
 
 ### Fixes
 - You can now bind any binding to a Provider class, by default a ClassBinding with the provider class will be created

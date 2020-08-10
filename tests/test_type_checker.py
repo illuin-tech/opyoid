@@ -1,6 +1,7 @@
 import unittest
 from typing import List, Optional, Type, Set, Tuple, Union
 
+from illuin_inject import Provider
 from illuin_inject.annotated import Annotated
 from illuin_inject.type_checker import TypeChecker
 
@@ -88,6 +89,23 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_tuple(Set[TestClass]))
         self.assertTrue(self.type_checker.is_tuple(Tuple[TestClass]))
         self.assertFalse(self.type_checker.is_tuple(Annotated[TestClass]))
+
+    def test_is_provider(self):
+        self.assertFalse(self.type_checker.is_provider(str))
+        self.assertFalse(self.type_checker.is_provider(TestClass))
+        self.assertFalse(self.type_checker.is_provider(List[str]))
+        self.assertFalse(self.type_checker.is_provider(List[TestClass]))
+        self.assertFalse(self.type_checker.is_provider(Optional[str]))
+        self.assertFalse(self.type_checker.is_provider(Optional[TestClass]))
+        self.assertFalse(self.type_checker.is_provider(Type[str]))
+        self.assertFalse(self.type_checker.is_provider(Type[TestClass]))
+        self.assertFalse(self.type_checker.is_provider(Optional[List[Type[TestClass]]]))
+        self.assertFalse(self.type_checker.is_provider(Tuple[Type[TestClass]]))
+        self.assertFalse(self.type_checker.is_provider(Set[TestClass]))
+        self.assertFalse(self.type_checker.is_provider(Tuple[TestClass]))
+        self.assertFalse(self.type_checker.is_provider(Annotated[TestClass]))
+        self.assertTrue(self.type_checker.is_provider(Provider[str]))
+        self.assertTrue(self.type_checker.is_provider(Provider[TestClass]))
 
     def test_is_annotated(self):
         class MyAnnotatedType(Annotated):
