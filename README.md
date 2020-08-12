@@ -1,4 +1,4 @@
-illuin-inject
+opyoid
 =============
 
 Dependency injection library using typings, to easily manage large applications.
@@ -8,7 +8,7 @@ This project is inspired from [Guice](https://github.com/google/guice).
 # Usage
 ### Simple Injection
 ```python
-from illuin_inject import Module, Injector
+from opyoid import Module, Injector
 
 
 class MyClass:
@@ -38,7 +38,7 @@ If they are multiple bindings for the same class, the latest will be used.
 The module is used to group bindings related to a feature.
 You can include a module in another with `install`:
 ```python
-from illuin_inject import Module, Injector
+from opyoid import Module, Injector
 
 
 class MyClass:
@@ -70,7 +70,7 @@ assert isinstance(my_instance.my_param, MyClass)
 
 ### Binding Subclasses
 ```python
-from illuin_inject import Module, Injector
+from opyoid import Module, Injector
 
 
 class MyClass:
@@ -93,7 +93,7 @@ assert isinstance(my_instance, MySubClass)
 
 ### Binding Instances
 ```python
-from illuin_inject import Module, Injector
+from opyoid import Module, Injector
 
 
 class MyClass:
@@ -124,7 +124,7 @@ By default, all classes are instantiated in a Singleton scope.
 This means that only one instance of each class will be created, and it will be shared between all classes requiring it.
 
 ```python
-from illuin_inject import Module, Injector, SingletonScope
+from opyoid import Module, Injector, SingletonScope
 
 
 class MyClass:
@@ -153,7 +153,7 @@ assert instance_1 is parent_instance.my_param
 #### PerLookup Scope
 If you use the per lookup scope, a new instance will be created every time each class is injected.
 ```python
-from illuin_inject import Module, Injector, PerLookupScope
+from opyoid import Module, Injector, PerLookupScope
 
 
 class MyClass:
@@ -187,7 +187,7 @@ different objects.
 ```python
 from threading import Thread
 
-from illuin_inject import Module, Injector, ThreadScope
+from opyoid import Module, Injector, ThreadScope
 
 
 class MyClass:
@@ -216,7 +216,7 @@ assert instance_1 is instance_2
 If you prefer, you can add bindings to your injector without creating a Module class (or using both).
 
 ```python
-from illuin_inject import Module, ClassBinding, Injector
+from opyoid import Module, ClassBinding, Injector
 
 
 class MyClass:
@@ -241,7 +241,7 @@ assert isinstance(my_instance.my_param, MyClass)
 
 The same options of Module.bind are available when using bindings:
 ```python
-from illuin_inject import ClassBinding, InstanceBinding, PerLookupScope
+from opyoid import ClassBinding, InstanceBinding, PerLookupScope
 
 
 class MyClass:
@@ -267,7 +267,7 @@ If no explicit binding is defined, the last class binding will be used to inject
 ```python
 from typing import Type
 
-from illuin_inject import Module, Injector
+from opyoid import Module, Injector
 
 class MyClass:
     pass
@@ -297,7 +297,7 @@ assert my_instance.my_param is SubClass
 
 
 ## Dataclasses
-`illuin_inject` can inject classes and parameters defined with the `attrs` library and python data classes.
+`opyoid` can inject classes and parameters defined with the `attrs` library and python data classes.
 
 
 ##  Notes about Generics

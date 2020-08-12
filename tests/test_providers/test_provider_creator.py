@@ -2,16 +2,16 @@ import unittest
 from typing import List, Optional, Set, Tuple, Type
 from unittest.mock import ANY
 
-from illuin_inject import Provider
-from illuin_inject.bindings import BindingRegistry, ClassBinding, FromClassProvider, FromInstanceProvider, \
+from opyoid import Provider
+from opyoid.bindings import BindingRegistry, ClassBinding, FromClassProvider, FromInstanceProvider, \
     InstanceBinding, ListProvider, MultiBinding, ProviderBinding
-from illuin_inject.bindings.multi_binding import ItemBinding
-from illuin_inject.bindings.registered_binding import RegisteredBinding
-from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
-from illuin_inject.injection_state import InjectionState
-from illuin_inject.providers import ProviderCreator
-from illuin_inject.scopes import SingletonScope
-from illuin_inject.target import Target
+from opyoid.bindings.multi_binding import ItemBinding
+from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
+from opyoid.injection_state import InjectionState
+from opyoid.providers import ProviderCreator
+from opyoid.scopes import SingletonScope
+from opyoid.target import Target
 
 
 class MyType:

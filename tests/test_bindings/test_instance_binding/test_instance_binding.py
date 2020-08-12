@@ -1,6 +1,6 @@
 import unittest
 
-from illuin_inject import InstanceBinding
+from opyoid import InstanceBinding
 
 
 class MyType:

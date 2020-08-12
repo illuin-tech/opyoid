@@ -4,7 +4,7 @@ Annotations
 You can use annotations to inject different objects for the same type.
 
 ```python
-from illuin_inject import annotated_arg, Module, Injector
+from opyoid import annotated_arg, Module, Injector
 
 
 class MyClass1:

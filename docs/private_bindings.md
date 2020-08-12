@@ -16,7 +16,7 @@ You can expose some of them with `self.expose(self.bind(...))`, they become avai
 them (or globally if you use them in the injector constructor).
 
 ```python
-from illuin_inject import Injector, PrivateModule
+from opyoid import Injector, PrivateModule
 
 
 class MyAbstractClass:

@@ -1,7 +1,7 @@
 import unittest
 
-from illuin_inject import SingletonScope
-from illuin_inject.bindings import ClassBinding
+from opyoid import SingletonScope
+from opyoid.bindings import ClassBinding
 
 
 class MyType:

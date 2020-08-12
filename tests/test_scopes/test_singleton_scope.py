@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import create_autospec
 
-from illuin_inject import SingletonScope
-from illuin_inject.provider import Provider
-from illuin_inject.scopes.singleton_scoped_provider import SingletonScopedProvider
+from opyoid import SingletonScope
+from opyoid.provider import Provider
+from opyoid.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
 class TestSingletonScope(unittest.TestCase):

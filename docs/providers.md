@@ -10,7 +10,7 @@ Sometimes you need to inject a class from an external library or some legacy cod
 If these classes are not typed, you can use a Provider to be able to inject them:
 
 ```python
-from illuin_inject import Module, Injector, Provider
+from opyoid import Module, Injector, Provider
 
 
 class MyUntypedClass:
@@ -42,7 +42,7 @@ assert injected_instance.my_param == "my_string"
 ```
 
 ```python
-from illuin_inject import Injector, InstanceBinding, Provider, ProviderBinding
+from opyoid import Injector, InstanceBinding, Provider, ProviderBinding
 
 
 class MyUntypedClass:
@@ -73,7 +73,7 @@ assert injected_instance.my_param == "my_string"
 Providers can also be injected. This is useful if you want to delay the instance creation until you really need it.
 
 ```python
-from illuin_inject import Module, Injector, Provider
+from opyoid import Module, Injector, Provider
 
 class MyClass:
     created_instances = 0

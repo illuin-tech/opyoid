@@ -1,12 +1,12 @@
 import unittest
 from typing import List
 
-from illuin_inject import AbstractModule, Module, PerLookupScope, Provider, SelfBinding, SingletonScope
-from illuin_inject.bindings import ClassBinding, InstanceBinding, MultiBinding, ProviderBinding
-from illuin_inject.bindings.multi_binding import ItemBinding
-from illuin_inject.bindings.registered_binding import RegisteredBinding
-from illuin_inject.exceptions import BindingError
-from illuin_inject.target import Target
+from opyoid import AbstractModule, Module, PerLookupScope, Provider, SelfBinding, SingletonScope
+from opyoid.bindings import ClassBinding, InstanceBinding, MultiBinding, ProviderBinding
+from opyoid.bindings.multi_binding import ItemBinding
+from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.exceptions import BindingError
+from opyoid.target import Target
 
 
 class MyType:

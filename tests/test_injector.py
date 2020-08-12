@@ -1,7 +1,7 @@
 import unittest
 
-from illuin_inject import Module, Injector
-from illuin_inject.bindings import InstanceBinding
+from opyoid import Module, Injector
+from opyoid.bindings import InstanceBinding
 
 
 class MyType:

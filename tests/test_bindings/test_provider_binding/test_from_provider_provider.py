@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import create_autospec
 
-from illuin_inject.bindings import FromProviderProvider
-from illuin_inject.provider import Provider
+from opyoid.bindings import FromProviderProvider
+from opyoid.provider import Provider
 
 
 class TestFromProviderProvider(unittest.TestCase):

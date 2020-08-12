@@ -1,9 +1,9 @@
 import setuptools
 
 setuptools.setup(
-    name="illuin_inject",
+    name="opyoid",
     version="DEV",
-    url="https://gitlab.illuin.tech/bot-factory/illuin-inject/",
+    url="https://gitlab.illuin.tech/bot-factory/opyoid/",
 
     author="Illuin Technology",
     author_email="contact@illuin.tech",
@@ -17,7 +17,7 @@ setuptools.setup(
         "attrs>=19.1.0,<20.0.0"
     ],
     python_requires=">=3.6,<4.0",
-    packages=setuptools.find_packages(include=["illuin_inject", "illuin_inject.*"]),
+    packages=setuptools.find_packages(include=["opyoid", "opyoid.*"]),
 
     classifiers=[
         "Development Status :: 4 - Beta",
