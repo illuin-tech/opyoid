@@ -73,7 +73,7 @@ deploy:
       EOF
     - sed -i "s#version=\"DEV\",#version=\"${CI_COMMIT_TAG}\",#g" setup.py
     - python setup.py sdist bdist_wheel
-    - twine upload -r nexus dist/illuin[-_]inject-${CI_COMMIT_TAG}*
+    - twine upload -r nexus dist/opyoid-${CI_COMMIT_TAG}*
   only:
     - tags
 

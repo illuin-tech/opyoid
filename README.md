@@ -1,9 +1,22 @@
-opyoid
-=============
+Opyoid
+======
+
+![CI](https://github.com/illuin-tech/opyoid/workflows/CI/badge.svg)
+[![codecov](https://codecov.io/gh/illuin-tech/opyoid/branch/master/graph/badge.svg)](https://codecov.io/gh/illuin-tech/opyoid)
 
 Dependency injection library using typings, to easily manage large applications.
 
 This project is inspired from [Guice](https://github.com/google/guice).
+
+# Installation
+
+Run `pip install opyoid` to install from PyPI.
+
+Run `pip install .` to install from sources.
+
+This project follows the (Semantic Versioning Specification)[https://semver.org/].
+All breaking changes are described in the [Changelog](CHANGELOG.md).
+
 
 # Usage
 ### Simple Injection
