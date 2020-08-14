@@ -11,7 +11,7 @@ class MyType:
 class TestPerLookupScope(unittest.TestCase):
     def setUp(self) -> None:
         self.scope = PerLookupScope()
-        self.class_provider = FromClassProvider(MyType, [], {})
+        self.class_provider = FromClassProvider(MyType, [], None, {})
 
     def test_get_scoped_provider_returns_unscoped_provider(self):
         scoped_provider = self.scope.get_scoped_provider(self.class_provider)

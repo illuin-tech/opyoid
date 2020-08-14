@@ -137,7 +137,7 @@ class TestAbstractModule(unittest.TestCase):
             self.module.binding_registry.get_bindings_by_target()
         )
 
-    def test_bind_factory_instance(self):
+    def test_bind_provider_instance(self):
         self.module.bind(MyType, to_provider=self.my_provider)
         self.assertEqual(
             {

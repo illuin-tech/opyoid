@@ -3,9 +3,8 @@ from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar
 
 import attr
 
-from illuin_inject import ClassBinding, Provider, ProviderBinding, ImmediateScope, Injector, InstanceBinding, \
-    ItemBinding, \
-    Module, MultiBinding, PerLookupScope, annotated_arg
+from illuin_inject import ClassBinding, ImmediateScope, Injector, InstanceBinding, ItemBinding, Module, MultiBinding, \
+    PerLookupScope, Provider, ProviderBinding, annotated_arg
 from illuin_inject.bindings.private_module import PrivateModule
 from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
 from illuin_inject.injector_options import InjectorOptions
@@ -620,3 +619,42 @@ class TestInjector(unittest.TestCase):
         self.assertIs(parent.my_param, provider)
         instance = parent.my_param.get()
         self.assertIsInstance(instance, MyClass)
+
+    def test_args_injection(self):
+        class MyParentClass:
+            def __init__(self, *my_param: MyClass):
+                self.my_param = my_param
+
+        parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIsInstance(parent.my_param, tuple)
+        self.assertIsInstance(parent.my_param[0], MyClass)
+
+    def test_args_injection_without_binding(self):
+        class MyParentClass:
+            def __init__(self, *my_param: MyClass):
+                self.my_param = my_param
+
+        parent = self.get_injector(MyParentClass).inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertEqual(tuple(), parent.my_param)
+
+    def test_args_injection_with_multi_binding(self):
+        class MyParentClass:
+            def __init__(self, *my_param: MyClass):
+                self.my_param = my_param
+
+        injector = Injector(bindings=[
+            ClassBinding(MyParentClass),
+            MultiBinding(
+                MyClass,
+                [
+
+                    ItemBinding(bound_instance=MyClass())
+                ]
+            )
+        ])
+        parent = injector.inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIsInstance(parent.my_param, tuple)
+        self.assertIsInstance(parent.my_param[0], MyClass)

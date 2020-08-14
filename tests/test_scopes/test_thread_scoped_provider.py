@@ -12,7 +12,7 @@ class MyType:
 
 class TestThreadScopedProvider(unittest.TestCase):
     def setUp(self) -> None:
-        self.class_provider = FromClassProvider(MyType, [], {})
+        self.class_provider = FromClassProvider(MyType, [], None, {})
         self.provider = ThreadScopedProvider(self.class_provider)
 
     def test_get_returns_instance(self):

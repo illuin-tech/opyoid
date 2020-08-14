@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING
 
 from illuin_inject.bindings.binding import Binding
 from illuin_inject.bindings.binding_to_provider_adapter import BindingToProviderAdapter
-from illuin_inject.bindings.provider_binding import ProviderBinding
 from illuin_inject.bindings.instance_binding import InstanceBinding
+from illuin_inject.bindings.provider_binding import ProviderBinding
 from illuin_inject.bindings.self_binding import SelfBinding
 from illuin_inject.exceptions import BindingError, NoBindingFound, NonInjectableTypeError
 from illuin_inject.injection_state import InjectionState

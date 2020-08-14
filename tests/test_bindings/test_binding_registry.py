@@ -2,8 +2,8 @@ import unittest
 from typing import List
 from unittest.mock import create_autospec, patch
 
-from illuin_inject import ItemBinding, PerLookupScope, Provider, SelfBinding
-from illuin_inject.bindings import Binding, BindingRegistry, InstanceBinding, MultiBinding, ProviderBinding
+from illuin_inject import PerLookupScope, Provider, SelfBinding
+from illuin_inject.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
 from illuin_inject.bindings.registered_binding import RegisteredBinding
 from illuin_inject.target import Target
 
@@ -125,7 +125,7 @@ class TestBindingRegistry(unittest.TestCase):
         mock_error.assert_called_once_with(
             "Could not find binding for 'MyNewType': multiple types with this name found")
 
-    def test_register_provider_binding_does_not_create_additional_binding(self):
+    def test_register_provider_binding_with_instance_does_not_create_additional_binding(self):
         class MyProvider(Provider[str]):
             def get(self) -> str:
                 return "hello"
@@ -141,7 +141,7 @@ class TestBindingRegistry(unittest.TestCase):
             self.binding_registry.get_bindings_by_target()
         )
 
-    def test_register_provider_binding_creates_self_binding(self):
+    def test_register_provider_binding_with_class_creates_self_binding(self):
         class MyProvider(Provider[str]):
             def get(self) -> str:
                 return "hello"
