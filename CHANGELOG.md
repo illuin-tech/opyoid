@@ -1,5 +1,7 @@
 # Changelog
 ## Unreleased
+
+## 0.5.0
 ### Breaking changes
 - Renamed library name to `opyoid`
 - Removed `scopes_by_type` argument from the `Injector` constructor, it is not needed anymore to inject custom scopes
