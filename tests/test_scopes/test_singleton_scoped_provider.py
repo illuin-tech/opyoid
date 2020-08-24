@@ -2,8 +2,8 @@ import unittest
 from queue import Queue
 from threading import Thread
 
-from illuin_inject.bindings import FromClassProvider
-from illuin_inject.scopes.singleton_scoped_provider import SingletonScopedProvider
+from opyoid.bindings import FromClassProvider
+from opyoid.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
 class MyType:

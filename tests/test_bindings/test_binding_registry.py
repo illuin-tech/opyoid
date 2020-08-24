@@ -2,10 +2,10 @@ import unittest
 from typing import List
 from unittest.mock import create_autospec, patch
 
-from illuin_inject import PerLookupScope, Provider, SelfBinding
-from illuin_inject.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
-from illuin_inject.bindings.registered_binding import RegisteredBinding
-from illuin_inject.target import Target
+from opyoid import PerLookupScope, Provider, SelfBinding
+from opyoid.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
+from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.target import Target
 
 
 class MyType:

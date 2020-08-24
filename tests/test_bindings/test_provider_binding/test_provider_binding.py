@@ -1,8 +1,8 @@
 import unittest
 
-from illuin_inject import PerLookupScope, Provider, SingletonScope
-from illuin_inject.bindings import ProviderBinding
-from illuin_inject.exceptions import BindingError
+from opyoid import PerLookupScope, Provider, SingletonScope
+from opyoid.bindings import ProviderBinding
+from opyoid.exceptions import BindingError
 
 
 class MyType:

@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import create_autospec
 
-from illuin_inject import ClassBinding, InstanceBinding, Provider, ProviderBinding
-from illuin_inject.bindings import BindingRegistry, InstanceBindingToProviderAdapter
-from illuin_inject.injection_state import InjectionState
-from illuin_inject.providers import ProviderCreator
+from opyoid import ClassBinding, InstanceBinding, Provider, ProviderBinding
+from opyoid.bindings import BindingRegistry, InstanceBindingToProviderAdapter
+from opyoid.injection_state import InjectionState
+from opyoid.providers import ProviderCreator
 
 
 class MyType:

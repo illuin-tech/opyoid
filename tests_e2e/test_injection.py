@@ -3,11 +3,11 @@ from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar
 
 import attr
 
-from illuin_inject import ClassBinding, ImmediateScope, Injector, InstanceBinding, ItemBinding, Module, MultiBinding, \
+from opyoid import ClassBinding, ImmediateScope, Injector, InstanceBinding, ItemBinding, Module, MultiBinding, \
     PerLookupScope, Provider, ProviderBinding, annotated_arg
-from illuin_inject.bindings.private_module import PrivateModule
-from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
-from illuin_inject.injector_options import InjectorOptions
+from opyoid.bindings.private_module import PrivateModule
+from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
+from opyoid.injector_options import InjectorOptions
 
 
 class MyClass:

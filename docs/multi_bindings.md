@@ -9,7 +9,7 @@ Items can be bound to classes, instances and factories.
 ```python
 from typing import List
 
-from illuin_inject import Module, Injector, Provider
+from opyoid import Module, Injector, Provider
 
 class MyClass:
     pass
@@ -55,7 +55,7 @@ assert isinstance(my_instance[4], MyClass)
 You can create MultiBindings and ItemBindings manually:
 
 ```python
-from illuin_inject import Injector, Provider, ItemBinding, MultiBinding
+from opyoid import Injector, Provider, ItemBinding, MultiBinding
 
 class MyClass:
     pass
@@ -89,7 +89,7 @@ If you are injecting sets or tuples with a SingletonScope, the item instances wi
 
 ```python
 from typing import Tuple
-from illuin_inject import Injector, ImmediateScope, ItemBinding, MultiBinding
+from opyoid import Injector, ImmediateScope, ItemBinding, MultiBinding
 
 class MyClass:
     pass
@@ -113,7 +113,7 @@ You can use the argument `override_bindings` (defaults to `True`) in the `MultiB
 
 ```python
 from typing import List
-from illuin_inject import Module, Injector
+from opyoid import Module, Injector
 
 class MyClass:
     pass

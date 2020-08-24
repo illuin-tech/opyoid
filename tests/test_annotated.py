@@ -1,8 +1,8 @@
 import unittest
 from inspect import signature
 
-from illuin_inject.annotated import Annotated, annotated_arg
-from illuin_inject.exceptions import AnnotationError
+from opyoid.annotated import Annotated, annotated_arg
+from opyoid.exceptions import AnnotationError
 
 
 class MyType:

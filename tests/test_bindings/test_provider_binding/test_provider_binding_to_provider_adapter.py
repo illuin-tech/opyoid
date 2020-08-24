@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from illuin_inject import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SingletonScope, \
+from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SingletonScope, \
     ThreadScope
-from illuin_inject.bindings import BindingRegistry, FromInstanceProvider, ProviderBindingToProviderAdapter
-from illuin_inject.exceptions import NoBindingFound, NonInjectableTypeError
-from illuin_inject.injection_state import InjectionState
-from illuin_inject.providers import ProviderCreator
-from illuin_inject.scopes.thread_scoped_provider import ThreadScopedProvider
-from illuin_inject.target import Target
+from opyoid.bindings import BindingRegistry, FromInstanceProvider, ProviderBindingToProviderAdapter
+from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
+from opyoid.injection_state import InjectionState
+from opyoid.providers import ProviderCreator
+from opyoid.scopes.thread_scoped_provider import ThreadScopedProvider
+from opyoid.target import Target
 
 
 class MyType:

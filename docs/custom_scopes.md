@@ -1,15 +1,15 @@
 Custom Scopes
 =============
 
-You can inject any custom scope that implements `illuin_inject.scopes.Scope`, or override an existing one.
+You can inject any custom scope that implements `opyoid.scopes.Scope`, or override an existing one.
 
 Here is an example of a custom scope implementation.
 
 Start by creating a new `Provider`
 
 ```python
-from illuin_inject import Provider
-from illuin_inject.typings import InjectedT
+from opyoid import Provider
+from opyoid.typings import InjectedT
 
 EMPTY = object()
 
@@ -43,9 +43,9 @@ Create your own scope:
 from types import TracebackType
 from typing import List, Optional, Type
 
-from illuin_inject import Provider
-from illuin_inject.scopes import Scope
-from illuin_inject.typings import InjectedT
+from opyoid import Provider
+from opyoid.scopes import Scope
+from opyoid.typings import InjectedT
 
 from .custom_scoped_provider import CustomScopedProvider
 
@@ -74,7 +74,7 @@ class CustomScope(Scope):
 To be able to use it you have to bind it:
 
 ```python
-from illuin_inject import Injector, ClassBinding
+from opyoid import Injector, ClassBinding
 
 from .custom_scope import CustomScope
 

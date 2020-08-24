@@ -1,6 +1,6 @@
 import unittest
 
-from illuin_inject import Module
+from opyoid import Module
 
 
 class TestModule(unittest.TestCase):

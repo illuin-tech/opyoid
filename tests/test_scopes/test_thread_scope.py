@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import create_autospec
 
-from illuin_inject import ThreadScope
-from illuin_inject.provider import Provider
-from illuin_inject.scopes.thread_scoped_provider import ThreadScopedProvider
+from opyoid import ThreadScope
+from opyoid.provider import Provider
+from opyoid.scopes.thread_scoped_provider import ThreadScopedProvider
 
 
 class TestThreadScope(unittest.TestCase):

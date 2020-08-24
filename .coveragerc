@@ -12,4 +12,4 @@ exclude_lines =
     def __repr__
 
 omit =
-    illuin_inject/type_checker/*.py
+    opyoid/type_checker/*.py

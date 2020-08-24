@@ -1,6 +1,6 @@
 import unittest
 
-from illuin_inject.bindings import FromInstanceProvider
+from opyoid.bindings import FromInstanceProvider
 
 
 class TestFromInstanceProvider(unittest.TestCase):

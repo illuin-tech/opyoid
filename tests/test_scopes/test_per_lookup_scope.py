@@ -1,7 +1,7 @@
 import unittest
 
-from illuin_inject import PerLookupScope
-from illuin_inject.bindings import FromClassProvider
+from opyoid import PerLookupScope
+from opyoid.bindings import FromClassProvider
 
 
 class MyType:

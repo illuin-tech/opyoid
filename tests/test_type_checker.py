@@ -1,9 +1,9 @@
 import unittest
 from typing import List, Optional, Type, Set, Tuple, Union
 
-from illuin_inject import Provider
-from illuin_inject.annotated import Annotated
-from illuin_inject.type_checker import TypeChecker
+from opyoid import Provider
+from opyoid.annotated import Annotated
+from opyoid.type_checker import TypeChecker
 
 
 class TestClass:

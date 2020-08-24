@@ -1,8 +1,8 @@
 import unittest
 
-from illuin_inject import ImmediateScope
-from illuin_inject.bindings import FromClassProvider
-from illuin_inject.scopes.singleton_scoped_provider import SingletonScopedProvider
+from opyoid import ImmediateScope
+from opyoid.bindings import FromClassProvider
+from opyoid.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
 class MyType:
