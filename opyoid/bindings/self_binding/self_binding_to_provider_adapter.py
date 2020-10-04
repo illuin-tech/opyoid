@@ -2,6 +2,8 @@ import logging
 from inspect import Parameter, signature
 from typing import Dict, List, Optional, Type
 
+import attr
+
 from opyoid.bindings.binding import Binding
 from opyoid.bindings.binding_to_provider_adapter import BindingToProviderAdapter
 from opyoid.bindings.instance_binding import FromInstanceProvider
@@ -35,11 +37,16 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
             if parameter.kind == Parameter.VAR_KEYWORD:
                 continue
 
+            parameter_state = attr.evolve(
+                state,
+                current_binding_has_fallback=parameter.default is not Parameter.empty
+            )
+
             if parameter.kind == Parameter.VAR_POSITIONAL:
                 # *args
-                args_provider = self._get_positional_parameter_provider(parameter, binding.target_type, state)
+                args_provider = self._get_positional_parameter_provider(parameter, binding.target_type, parameter_state)
                 continue
-            parameter_provider = self._get_parameter_provider(parameter, binding.target_type, state)
+            parameter_provider = self._get_parameter_provider(parameter, binding.target_type, parameter_state)
             if parameter.kind == Parameter.KEYWORD_ONLY:
                 # After *args
                 keyword_providers[parameter.name] = parameter_provider

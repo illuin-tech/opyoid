@@ -1,5 +1,9 @@
 # Changelog
 ## Unreleased
+## 0.6.0
+### Breaking changes
+- Using `auto_bindings=True` will only create a new instance for a parameter if there is no default value.
+
 
 ## 0.5.0
 ### Breaking changes
