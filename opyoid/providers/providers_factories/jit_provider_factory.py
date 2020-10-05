@@ -12,7 +12,7 @@ class JitProviderFactory(ProviderFactory):
         self.provider_factory = FromBindingProviderFactory()
 
     def accept(self, target: Target[InjectedT], state: InjectionState) -> bool:
-        return state.options.auto_bindings
+        return state.options.auto_bindings and not state.current_binding_has_fallback
 
     def create(self, target: Target[InjectedT], state: InjectionState) -> Provider[InjectedT]:
         return self.provider_factory.create_from_binding(SelfBinding(target.type, annotation=target.annotation), state)

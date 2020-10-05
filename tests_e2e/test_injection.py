@@ -38,6 +38,16 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(my_instance, ParentClass)
         self.assertIsInstance(my_instance.my_arg, MyClass)
 
+    def test_auto_injection_with_default(self):
+        class ParentClass:
+            def __init__(self, my_arg: MyClass = None):
+                self.my_arg = my_arg
+
+        injector = Injector(options=InjectorOptions(auto_bindings=True))
+        my_instance = injector.inject(ParentClass)
+        self.assertIsInstance(my_instance, ParentClass)
+        self.assertIsNone(my_instance.my_arg)
+
     def test_subtype_argument_injection(self):
         class MySubClass(MyClass):
             pass
