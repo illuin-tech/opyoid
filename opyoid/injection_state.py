@@ -19,4 +19,3 @@ class InjectionState:
     parent_state: Optional["InjectionState"] = None
     provider_registry: ProviderRegistry = attr.Factory(ProviderRegistry)
     state_by_module: Dict["AbstractModule", "InjectionState"] = attr.Factory(dict)
-    current_binding_has_fallback: bool = False

@@ -1,5 +1,10 @@
 # Changelog
 ## Unreleased
+## 0.6.1
+### Fixes
+- Fixed a bug preventing injection when using strings as type hints
+
+
 ## 0.6.0
 ### Breaking changes
 - Using `auto_bindings=True` will only create a new instance for a parameter if there is no default value.

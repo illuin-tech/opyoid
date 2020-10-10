@@ -2,8 +2,6 @@ import logging
 from inspect import Parameter, signature
 from typing import Dict, List, Optional, Type
 
-import attr
-
 from opyoid.bindings.binding import Binding
 from opyoid.bindings.binding_to_provider_adapter import BindingToProviderAdapter
 from opyoid.bindings.instance_binding import FromInstanceProvider
@@ -12,7 +10,7 @@ from opyoid.injection_state import InjectionState
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
-from opyoid.typings import InjectedT
+from opyoid.typings import EMPTY, InjectedT
 from .from_class_provider import FromClassProvider
 from .self_binding import SelfBinding
 
@@ -37,16 +35,11 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
             if parameter.kind == Parameter.VAR_KEYWORD:
                 continue
 
-            parameter_state = attr.evolve(
-                state,
-                current_binding_has_fallback=parameter.default is not Parameter.empty
-            )
-
             if parameter.kind == Parameter.VAR_POSITIONAL:
                 # *args
-                args_provider = self._get_positional_parameter_provider(parameter, binding.target_type, parameter_state)
+                args_provider = self._get_positional_parameter_provider(parameter, binding.target_type, state)
                 continue
-            parameter_provider = self._get_parameter_provider(parameter, binding.target_type, parameter_state)
+            parameter_provider = self._get_parameter_provider(parameter, binding.target_type, state)
             if parameter.kind == Parameter.KEYWORD_ONLY:
                 # After *args
                 keyword_providers[parameter.name] = parameter_provider
@@ -70,11 +63,12 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     def _get_parameter_provider(parameter: Parameter,
                                 current_class: Type,
                                 state: InjectionState) -> Provider:
+        default_value = parameter.default if parameter.default is not Parameter.empty else EMPTY
         if parameter.annotation is not Parameter.empty:
             if TypeChecker.is_annotated(parameter.annotation):
-                target = Target(parameter.annotation.original_type, parameter.annotation.annotation)
+                target = Target(parameter.annotation.original_type, parameter.annotation.annotation, default_value)
             else:
-                target = Target(parameter.annotation, None)
+                target = Target(parameter.annotation, None, default_value)
             try:
                 return state.provider_creator.get_provider(target, state)
             except NoBindingFound:
@@ -91,9 +85,9 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
         if parameter.annotation is Parameter.empty:
             return FromInstanceProvider([])
         if TypeChecker.is_annotated(parameter.annotation):
-            target = Target(List[parameter.annotation.original_type], parameter.annotation.annotation)
+            target = Target(List[parameter.annotation.original_type], parameter.annotation.annotation, [])
         else:
-            target = Target(List[parameter.annotation])
+            target = Target(List[parameter.annotation], default=[])
         try:
             return state.provider_creator.get_provider(target, state)
         except NoBindingFound:

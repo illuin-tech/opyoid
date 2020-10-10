@@ -31,7 +31,7 @@ class Injector:
         )
         # Prepare providers
         for target in root_module.binding_registry.get_bindings_by_target():
-            self._provider_creator.get_provider(target, self._root_state)
+            self._provider_creator.get_provider(Target(target.type, target.annotation), self._root_state)
 
     def inject(self, target_type: Type[InjectedT], annotation: Optional[str] = None) -> InjectedT:
         return self._provider_creator.get_provider(Target(target_type, annotation), self._root_state).get()

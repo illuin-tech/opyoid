@@ -1,6 +1,8 @@
 import logging
 from typing import Dict, Optional
 
+from opyoid.exceptions import NonInjectableTypeError
+from opyoid.frozen_target import FrozenTarget
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.typings import InjectedT
@@ -17,10 +19,10 @@ class BindingRegistry:
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        self._bindings_by_target: Dict[Target[InjectedT], RegisteredBinding[InjectedT]] = {}
+        self._bindings_by_target: Dict[FrozenTarget[InjectedT], RegisteredBinding[InjectedT]] = {}
 
     def __contains__(self, item: Target[InjectedT]) -> bool:
-        return item in self._bindings_by_target
+        return self.get_binding(item) is not None
 
     def register(self, registered_binding: RegisteredBinding) -> None:
         previous_binding = self._bindings_by_target.get(registered_binding.target)
@@ -50,7 +52,7 @@ class BindingRegistry:
         if self_binding:
             self.register(RegisteredBinding(self_binding, registered_binding.source_path))
 
-    def get_bindings_by_target(self) -> Dict[Target[InjectedT], RegisteredBinding[InjectedT]]:
+    def get_bindings_by_target(self) -> Dict[FrozenTarget[InjectedT], RegisteredBinding[InjectedT]]:
         return self._bindings_by_target
 
     def get_binding(self, target: Target[InjectedT]) -> Optional[RegisteredBinding]:
@@ -62,8 +64,9 @@ class BindingRegistry:
                 and available_target.type.__name__ == target.type
             ))
             if len(possible_target_types) == 1:
-                # noinspection PyTypeChecker
-                target = Target(possible_target_types[0], target.annotation)
+                target.type = possible_target_types[0]
             elif possible_target_types:
-                self.logger.error(f"Could not find binding for '{target.type}': multiple types with this name found")
-        return self._bindings_by_target.get(target)
+                raise NonInjectableTypeError(
+                    f"Could not find binding for '{target.type}': multiple types with this name found")
+        frozen_target = FrozenTarget(target.type, target.annotation)
+        return self._bindings_by_target.get(frozen_target)

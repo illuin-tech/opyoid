@@ -1,10 +1,12 @@
 import unittest
 from typing import List
-from unittest.mock import create_autospec, patch
+from unittest.mock import create_autospec
 
 from opyoid import PerLookupScope, Provider, SelfBinding
 from opyoid.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.exceptions import NonInjectableTypeError
+from opyoid.frozen_target import FrozenTarget
 from opyoid.target import Target
 
 
@@ -20,14 +22,14 @@ class TestBindingRegistry(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_registry = BindingRegistry()
         mock_binding = create_autospec(Binding, spec_set=True)
-        mock_binding.target = Target(MyType)
+        mock_binding.target = FrozenTarget(MyType)
         self.my_type_binding = RegisteredBinding(mock_binding)
         mock_annotated_binding = create_autospec(Binding, spec_set=True)
-        mock_annotated_binding.target = Target(MyType, "my_annotation")
+        mock_annotated_binding.target = FrozenTarget(MyType, "my_annotation")
         self.my_type_annotated_binding = RegisteredBinding(mock_annotated_binding)
         self.my_type_binding_2 = RegisteredBinding(InstanceBinding(MyType, MyType()))
         other_mock_binding = create_autospec(Binding, spec_set=True)
-        other_mock_binding.target = Target(OtherType)
+        other_mock_binding.target = FrozenTarget(OtherType)
         self.other_type_binding = RegisteredBinding(other_mock_binding)
 
     def test_register_saves_binding_to_new_type(self):
@@ -35,9 +37,9 @@ class TestBindingRegistry(unittest.TestCase):
         self.binding_registry.register(self.my_type_annotated_binding)
         self.binding_registry.register(self.other_type_binding)
         self.assertEqual({
-            Target(MyType): self.my_type_binding,
-            Target(MyType, "my_annotation"): self.my_type_annotated_binding,
-            Target(OtherType): self.other_type_binding,
+            FrozenTarget(MyType): self.my_type_binding,
+            FrozenTarget(MyType, "my_annotation"): self.my_type_annotated_binding,
+            FrozenTarget(OtherType): self.other_type_binding,
         }, self.binding_registry.get_bindings_by_target())
 
     def test_register_multi_binding_saves_binding_to_known_type_in_order(self):
@@ -102,28 +104,25 @@ class TestBindingRegistry(unittest.TestCase):
         binding = self.binding_registry.get_binding(Target("MyUnknownType"))
         self.assertIsNone(binding)
 
-    def test_get_binding_from_string_with_name_conflict(self):
+    def test_get_binding_from_string_with_name_conflict_raises_exception(self):
         class MyNewType:
             pass
 
         binding_1 = create_autospec(Binding, spec_set=True)
-        binding_1.target = Target(MyNewType)
+        binding_1.target = FrozenTarget(MyNewType)
 
         # pylint: disable=function-redefined
         class MyNewType:
             pass
 
         binding_2 = create_autospec(Binding, spec_set=True)
-        binding_2.target = Target(MyNewType)
+        binding_2.target = FrozenTarget(MyNewType)
 
         self.binding_registry.register(RegisteredBinding(binding_1))
         self.binding_registry.register(RegisteredBinding(binding_2))
 
-        with patch("logging.Logger.error") as mock_error:
-            binding = self.binding_registry.get_binding(Target("MyNewType"))
-        self.assertIsNone(binding)
-        mock_error.assert_called_once_with(
-            "Could not find binding for 'MyNewType': multiple types with this name found")
+        with self.assertRaises(NonInjectableTypeError):
+            self.binding_registry.get_binding(Target("MyNewType"))
 
     def test_register_provider_binding_with_instance_does_not_create_additional_binding(self):
         class MyProvider(Provider[str]):
@@ -136,7 +135,7 @@ class TestBindingRegistry(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(str, "my_annotation"): provider_binding,
+                FrozenTarget(str, "my_annotation"): provider_binding,
             },
             self.binding_registry.get_bindings_by_target()
         )

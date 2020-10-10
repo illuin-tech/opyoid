@@ -1,5 +1,7 @@
 from typing import Dict
 
+from .exceptions import NonInjectableTypeError
+from .frozen_target import FrozenTarget
 from .provider import Provider
 from .target import Target
 from .typings import InjectedT
@@ -9,13 +11,28 @@ class ProviderRegistry:
     """Stores Providers for each Target to create a cache."""
 
     def __init__(self):
-        self._provider_by_target: Dict[Target, Provider] = {}
+        self._provider_by_target: Dict[FrozenTarget, Provider] = {}
 
     def __contains__(self, item: Target[InjectedT]) -> bool:
-        return item in self._provider_by_target
+        return self.get_provider(item) is not None
 
     def set_provider(self, target: Target[InjectedT], provider: Provider[InjectedT]) -> None:
-        self._provider_by_target[target] = provider
+        frozen_target = FrozenTarget(target.type, target.annotation)
+        self._provider_by_target[frozen_target] = provider
 
     def get_provider(self, target: Target[InjectedT]) -> Provider[InjectedT]:
-        return self._provider_by_target.get(target, [])
+        frozen_target = FrozenTarget(target.type, target.annotation)
+        if isinstance(target.type, str):
+            possible_target_types = list(set(
+                available_target.type
+                for available_target in self._provider_by_target
+                if isinstance(available_target.type, type)
+                and available_target.type.__name__ == target.type
+            ))
+            if len(possible_target_types) == 1:
+                # noinspection PyTypeChecker
+                frozen_target = FrozenTarget(possible_target_types[0], target.annotation)
+            elif possible_target_types:
+                raise NonInjectableTypeError(
+                    f"Could not find provider for '{target.type}': multiple types with this name found")
+        return self._provider_by_target.get(frozen_target)
