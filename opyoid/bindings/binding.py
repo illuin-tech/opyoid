@@ -2,7 +2,7 @@ from typing import Generic, Optional, Type
 
 import attr
 
-from opyoid.target import Target
+from opyoid.frozen_target import FrozenTarget
 from opyoid.typings import InjectedT
 
 
@@ -19,5 +19,5 @@ class Binding(Generic[InjectedT]):
         raise NotImplementedError
 
     @property
-    def target(self) -> Target[InjectedT]:
-        return Target(self.target_type, self.annotation)
+    def target(self) -> FrozenTarget[InjectedT]:
+        return FrozenTarget(self.target_type, self.annotation)

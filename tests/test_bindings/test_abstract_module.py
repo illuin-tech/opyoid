@@ -6,7 +6,7 @@ from opyoid.bindings import ClassBinding, InstanceBinding, MultiBinding, Provide
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import BindingError
-from opyoid.target import Target
+from opyoid.frozen_target import FrozenTarget
 
 
 class MyType:
@@ -48,8 +48,8 @@ class TestAbstractModule(unittest.TestCase):
         self.module.install(module)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(SelfBinding(MyType)),
-                Target(OtherType, "my_annotation"): RegisteredBinding(
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
+                FrozenTarget(OtherType, "my_annotation"): RegisteredBinding(
                     SelfBinding(OtherType, annotation="my_annotation")),
             },
             self.module.binding_registry.get_bindings_by_target()
@@ -60,7 +60,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(SelfBinding(MyType)),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -70,8 +70,8 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
-                Target(OtherType): RegisteredBinding(SelfBinding(OtherType)),
+                FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
+                FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -82,7 +82,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
+                FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -93,8 +93,8 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
-                Target(OtherType): RegisteredBinding(SelfBinding(OtherType)),
+                FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
+                FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -103,7 +103,7 @@ class TestAbstractModule(unittest.TestCase):
         self.module.bind(MyType, scope=PerLookupScope)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(SelfBinding(MyType, PerLookupScope)),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType, PerLookupScope)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -117,9 +117,10 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
-                Target(MyType, "my_annotation"): RegisteredBinding(SelfBinding(MyType, annotation="my_annotation")),
-                Target(OtherType, "my_other_annotation"):
+                FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
+                FrozenTarget(MyType, "my_annotation"): RegisteredBinding(
+                    SelfBinding(MyType, annotation="my_annotation")),
+                FrozenTarget(OtherType, "my_other_annotation"):
                     RegisteredBinding(InstanceBinding(OtherType, my_other_instance, "my_other_annotation")),
             },
             self.module.binding_registry.get_bindings_by_target()
@@ -129,9 +130,9 @@ class TestAbstractModule(unittest.TestCase):
         self.module.bind(MyType, to_provider=MyProvider, scope=PerLookupScope, annotation="my_annotation")
         self.assertEqual(
             {
-                Target(MyType, "my_annotation"): RegisteredBinding(
+                FrozenTarget(MyType, "my_annotation"): RegisteredBinding(
                     ProviderBinding(MyType, MyProvider, PerLookupScope, "my_annotation")),
-                Target(MyProvider, "my_annotation"): RegisteredBinding(
+                FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
                     SelfBinding(MyProvider, scope=PerLookupScope, annotation="my_annotation")),
             },
             self.module.binding_registry.get_bindings_by_target()
@@ -141,7 +142,7 @@ class TestAbstractModule(unittest.TestCase):
         self.module.bind(MyType, to_provider=self.my_provider)
         self.assertEqual(
             {
-                Target(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider)),
+                FrozenTarget(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -169,7 +170,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(List[MyType], "my_annotation"): RegisteredBinding(
+                FrozenTarget(List[MyType], "my_annotation"): RegisteredBinding(
                     MultiBinding(
                         MyType,
                         [
@@ -195,7 +196,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                Target(List[MyType]): RegisteredBinding(
+                FrozenTarget(List[MyType]): RegisteredBinding(
                     MultiBinding(
                         MyType,
                         [
