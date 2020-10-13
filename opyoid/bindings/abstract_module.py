@@ -44,7 +44,7 @@ class AbstractModule:
         module.configure_once()
         for binding in module.binding_registry.get_bindings_by_target().values():
             if isinstance(module, PrivateModule):
-                if not module.is_exposed(binding):
+                if not module.is_exposed(binding.target):
                     continue
                 binding = RegisteredBinding(
                     binding.raw_binding,

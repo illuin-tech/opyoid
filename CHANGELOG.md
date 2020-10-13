@@ -1,5 +1,9 @@
 # Changelog
 ## Unreleased
+## 0.6.2
+### Fixes
+- Non hashable instance bindings can be exposed in private modules
+
 ## 0.6.1
 ### Fixes
 - Fixed a bug preventing injection when using strings as type hints
