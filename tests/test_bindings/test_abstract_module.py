@@ -5,6 +5,7 @@ from opyoid import AbstractModule, Module, PerLookupScope, Provider, SelfBinding
 from opyoid.bindings import ClassBinding, InstanceBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
 from opyoid.exceptions import BindingError
 from opyoid.frozen_target import FrozenTarget
 
@@ -157,11 +158,13 @@ class TestAbstractModule(unittest.TestCase):
 
     def test_multi_binding(self):
         instance = MyType()
+        provider = Provider
         self.module.multi_bind(
             MyType,
             [
                 self.module.bind_item(MyType),
                 self.module.bind_item(to_instance=instance),
+                self.module.bind_item(to_provider=provider),
             ],
             PerLookupScope,
             "my_annotation",
@@ -170,17 +173,29 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(List[MyType], "my_annotation"): RegisteredBinding(
+                FrozenTarget(List[MyType], "my_annotation"): RegisteredMultiBinding(
                     MultiBinding(
                         MyType,
                         [
                             ItemBinding(MyType),
                             ItemBinding(bound_instance=instance),
+                            ItemBinding(bound_provider=provider),
                         ],
                         PerLookupScope,
                         "my_annotation",
                         False,
-                    )
+                    ),
+                    item_bindings=[
+                        RegisteredBinding(
+                            SelfBinding(MyType, PerLookupScope, "my_annotation"),
+                        ),
+                        RegisteredBinding(
+                            InstanceBinding(MyType, instance, "my_annotation"),
+                        ),
+                        RegisteredBinding(
+                            ProviderBinding(MyType, provider, PerLookupScope, "my_annotation"),
+                        )
+                    ]
                 ),
             },
             self.module.binding_registry.get_bindings_by_target()
@@ -196,7 +211,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(List[MyType]): RegisteredBinding(
+                FrozenTarget(List[MyType]): RegisteredMultiBinding(
                     MultiBinding(
                         MyType,
                         [
@@ -205,8 +220,22 @@ class TestAbstractModule(unittest.TestCase):
                         SingletonScope,
                         None,
                         True,
-                    )
+                    ),
+                    item_bindings=[
+                        RegisteredBinding(
+                            SelfBinding(MyType),
+                        )
+                    ]
                 ),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
+
+    def test_multi_binding_with_empty_item_raises_exception(self):
+        with self.assertRaises(BindingError):
+            self.module.multi_bind(
+                MyType,
+                [
+                    self.module.bind_item(),
+                ],
+            )

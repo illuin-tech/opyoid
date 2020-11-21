@@ -11,6 +11,7 @@ from .instance_binding import InstanceBinding
 from .multi_binding import ItemBinding, MultiBinding
 from .provider_binding import ProviderBinding
 from .registered_binding import RegisteredBinding
+from .registered_multi_binding import RegisteredMultiBinding
 from .self_binding import SelfBinding
 
 
@@ -46,10 +47,22 @@ class AbstractModule:
             if isinstance(module, PrivateModule):
                 if not module.is_exposed(binding.target):
                     continue
-                binding = RegisteredBinding(
-                    binding.raw_binding,
-                    (module,) + binding.source_path,
-                )
+                if isinstance(binding, RegisteredMultiBinding):
+                    binding = RegisteredMultiBinding(
+                        binding.raw_binding,
+                        item_bindings=[
+                            RegisteredBinding(
+                                registered_item_binding.raw_binding,
+                                (module,) + binding.source_path,
+                            )
+                            for registered_item_binding in binding.item_bindings
+                        ],
+                    )
+                else:
+                    binding = RegisteredBinding(
+                        binding.raw_binding,
+                        (module,) + binding.source_path,
+                    )
             self._binding_registry.register(binding)
 
     # pylint: disable=too-many-arguments
@@ -86,9 +99,9 @@ class AbstractModule:
                    item_bindings: List[ItemBinding[InjectedT]],
                    scope: Type[Scope] = SingletonScope,
                    annotation: Optional[str] = None,
-                   override_bindings: bool = True) -> None:
+                   override_bindings: bool = True) -> RegisteredBinding:
 
-        self._register(
+        return self._register_multi_binding(
             MultiBinding(item_target_type, item_bindings, scope, annotation, override_bindings)
         )
 
@@ -114,6 +127,40 @@ class AbstractModule:
         return SelfBinding(target_type, scope, annotation)
 
     def _register(self, binding: Binding[InjectedT]) -> RegisteredBinding:
-        registered_binding = RegisteredBinding(binding)
+        if isinstance(binding, MultiBinding):
+            registered_binding = self._register_multi_binding(binding)
+        else:
+            registered_binding = RegisteredBinding(binding)
+            self._binding_registry.register(registered_binding)
+        return registered_binding
+
+    def _register_multi_binding(self, binding: MultiBinding[InjectedT]) -> RegisteredMultiBinding:
+        registered_binding = RegisteredMultiBinding(binding)
+        for item_binding in binding.item_bindings:
+            if item_binding.bound_type is not EMPTY:
+                item_binding = SelfBinding(
+                    item_binding.bound_type,
+                    binding.scope,
+                    binding.annotation,
+                )
+            elif item_binding.bound_instance is not EMPTY:
+                item_binding = InstanceBinding(
+                    binding.item_target_type,
+                    item_binding.bound_instance,
+                    binding.annotation,
+                )
+            elif item_binding.bound_provider is not EMPTY:
+                item_binding = ProviderBinding(
+                    binding.item_target_type,
+                    item_binding.bound_provider,
+                    binding.scope,
+                    binding.annotation,
+                )
+            else:
+                raise BindingError(
+                    f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
+
+            # pylint: disable=no-member
+            registered_binding.item_bindings.append(RegisteredBinding(item_binding))
         self._binding_registry.register(registered_binding)
         return registered_binding

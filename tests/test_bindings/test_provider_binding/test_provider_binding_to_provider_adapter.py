@@ -4,6 +4,7 @@ from unittest.mock import call, create_autospec
 from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SingletonScope, \
     ThreadScope
 from opyoid.bindings import BindingRegistry, FromInstanceProvider, ProviderBindingToProviderAdapter
+from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
@@ -45,7 +46,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(ProviderBinding(MyType, Provider), self.state)
+        provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.state)
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
@@ -60,7 +61,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(ProviderBinding(MyType, Provider), self.state)
+        provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.state)
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
@@ -76,7 +77,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         ]
 
         provider = self.adapter.create(
-            ProviderBinding(MyType, Provider, annotation="my_annotation"),
+            RegisteredBinding(ProviderBinding(MyType, Provider, annotation="my_annotation")),
             self.state,
         )
 
@@ -94,7 +95,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         ]
 
         provider = self.adapter.create(
-            ProviderBinding(MyType, Provider, scope=ThreadScope),
+            RegisteredBinding(ProviderBinding(MyType, Provider, scope=ThreadScope)),
             self.state,
         )
 
@@ -116,4 +117,4 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         ]
 
         with self.assertRaises(NonInjectableTypeError):
-            self.adapter.create(ProviderBinding(MyType, Provider), self.state)
+            self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.state)
