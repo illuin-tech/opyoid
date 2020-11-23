@@ -59,3 +59,61 @@ assert isinstance(parent_2, MyParentClass)
 assert isinstance(parent_1.my_param, MyImplementation1)
 assert isinstance(parent_2.my_param, MyImplementation2)
 ```
+
+### Using MultiBindings
+
+You can also expose MultiBindings the same way:
+
+```python
+from typing import List
+
+from opyoid import Injector, PrivateModule, SelfBinding
+
+
+class MyAbstractClass:
+    pass
+
+
+class MyImplementation1(MyAbstractClass):
+    pass
+
+
+class MyImplementation2(MyAbstractClass):
+    pass
+
+
+class MyParentClass:
+    def __init__(self, my_param: List[MyAbstractClass]):
+        self.my_param = my_param
+
+
+class MyPrivateModule1(PrivateModule):
+    def configure(self):
+        self.expose(
+            self.multi_bind(MyAbstractClass, [
+                self.bind_item(to_class=MyImplementation1)
+            ])
+        )
+
+class MyPrivateModule2(PrivateModule):
+    def configure(self):
+        self.expose(
+            self.multi_bind(
+                MyAbstractClass,
+                [
+                    self.bind_item(to_class=MyImplementation2)
+                ],
+                override_bindings=False  # Don't forget this or it will override the other item binding
+            )
+        )
+
+
+injector = Injector([MyPrivateModule1(), MyPrivateModule2()], [SelfBinding(MyParentClass)])
+parent = injector.inject(MyParentClass)
+assert len(parent.my_param) == 2
+assert isinstance(parent.my_param[0], MyImplementation1)
+assert isinstance(parent.my_param[1], MyImplementation2)
+
+```
+Each item dependencies will get resolved from their respective PrivateModule, this is useful is you want independent
+items.

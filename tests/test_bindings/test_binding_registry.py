@@ -163,3 +163,18 @@ class TestBindingRegistry(unittest.TestCase):
         self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
         self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
         self.assertEqual(PerLookupScope, provider_binding.raw_binding.scope)
+
+    def test_register_multi_binding_with_provider_binding_creates_self_binding(self):
+        class MyProvider(Provider[str]):
+            def get(self) -> str:
+                return "hello"
+
+        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider))
+        multi_binding = RegisteredMultiBinding(MultiBinding(str, [provider_binding.raw_binding]), item_bindings=[
+            provider_binding
+        ])
+        self.binding_registry.register(multi_binding)
+
+        provider_binding = self.binding_registry.get_binding(Target(MyProvider))
+        self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
+        self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)

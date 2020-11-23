@@ -39,6 +39,9 @@ class BindingRegistry:
         self._register_self_binding(registered_binding)
 
     def _register_self_binding(self, registered_binding: RegisteredBinding) -> None:
+        if registered_binding.source_path:
+            return
+
         binding = registered_binding.raw_binding
         self_binding = None
         if isinstance(binding, ProviderBinding):
@@ -48,6 +51,9 @@ class BindingRegistry:
                 self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, annotation=binding.annotation)
         elif isinstance(binding, ClassBinding):
             self_binding = SelfBinding(binding.bound_type, binding.scope, binding.annotation)
+        elif isinstance(registered_binding, RegisteredMultiBinding):
+            for item_binding in registered_binding.item_bindings:
+                self._register_self_binding(item_binding)
 
         if self_binding:
             self.register(RegisteredBinding(self_binding, registered_binding.source_path))

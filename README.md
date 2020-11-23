@@ -254,7 +254,7 @@ assert isinstance(my_instance.my_param, MyClass)
 
 The same options of Module.bind are available when using bindings:
 ```python
-from opyoid import ClassBinding, InstanceBinding, PerLookupScope
+from opyoid import ClassBinding, InstanceBinding, PerLookupScope, SelfBinding
 
 
 class MyClass:
@@ -266,11 +266,11 @@ class MySubClass(MyClass):
 
 my_instance = MyClass()
 
-ClassBinding(MyClass)  # binding a class to itself
+SelfBinding(MyClass)  # binding a class to itself
 ClassBinding(MyClass, MySubClass)  # binding a class to a subclass
-ClassBinding(MyClass, scope=PerLookupScope)  # specifying scope
+SelfBinding(MyClass, scope=PerLookupScope)  # specifying scope
 InstanceBinding(MyClass, my_instance)  # binding an instance
-ClassBinding(MyClass, annotation="my_annotation")  # binding a class to itself with an annotation
+SelfBinding(MyClass, annotation="my_annotation")  # binding a class to itself with an annotation
 InstanceBinding(MyClass, my_instance, annotation="my_annotation")  # binding an instance with an annotation
 ```
 
@@ -297,15 +297,15 @@ my_instance = MyClass()
 class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass)
-        self.bind(MyClass, SubClass)
         self.bind(MyClass, to_instance=my_instance)
+        self.bind(MyClass, SubClass)
         self.bind(MyParentClass)
 
 
 injector = Injector([MyModule()])
 parent_instance = injector.inject(MyParentClass)
-assert isinstance(my_instance, MyParentClass)
-assert my_instance.my_param is SubClass
+assert isinstance(parent_instance, MyParentClass)
+assert parent_instance.my_param is SubClass
 ```
 
 

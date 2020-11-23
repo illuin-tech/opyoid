@@ -158,7 +158,7 @@ class TestAbstractModule(unittest.TestCase):
 
     def test_multi_binding(self):
         instance = MyType()
-        provider = Provider
+        provider = MyProvider
         self.module.multi_bind(
             MyType,
             [
@@ -197,6 +197,9 @@ class TestAbstractModule(unittest.TestCase):
                         )
                     ]
                 ),
+                FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
+                    SelfBinding(MyProvider, PerLookupScope, "my_annotation")
+                )
             },
             self.module.binding_registry.get_bindings_by_target()
         )

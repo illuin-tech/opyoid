@@ -535,6 +535,20 @@ class TestInjector(unittest.TestCase):
         with self.assertRaises(NonInjectableTypeError):
             injector.inject(MyClass)
 
+    def test_private_module_does_not_expose_self_bindings(self):
+        class MySubClass(MyClass):
+            pass
+
+        class MyPrivateModule(PrivateModule):
+            def configure(self) -> None:
+                self.expose(
+                    self.bind(MyClass, MySubClass)
+                )
+
+        injector = Injector([MyPrivateModule()])
+        with self.assertRaises(NonInjectableTypeError):
+            injector.inject(MySubClass)
+
     def test_private_module_uses_exposed_bindings(self):
         instance_1 = MyClass()
 
