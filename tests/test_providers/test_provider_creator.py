@@ -2,11 +2,12 @@ import unittest
 from typing import List, Optional, Set, Tuple, Type
 from unittest.mock import ANY
 
-from opyoid import Provider
+from opyoid import Provider, SelfBinding
 from opyoid.bindings import BindingRegistry, ClassBinding, FromClassProvider, FromInstanceProvider, \
     InstanceBinding, ListProvider, MultiBinding, ProviderBinding
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
@@ -83,14 +84,18 @@ class TestProviderCreator(unittest.TestCase):
 
     def test_list_binding_with_multi_binding(self):
         self.binding_registry.register(
-            RegisteredBinding(
+            RegisteredMultiBinding(
                 MultiBinding(
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
                         ItemBinding(MyType),
                     ],
-                )
+                ),
+                item_bindings=[
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
+                    RegisteredBinding(SelfBinding(MyType)),
+                ]
             )
         )
 
@@ -101,24 +106,30 @@ class TestProviderCreator(unittest.TestCase):
 
     def test_list_binding_with_annotations(self):
         self.binding_registry.register(
-            RegisteredBinding(
+            RegisteredMultiBinding(
                 MultiBinding(
                     MyType,
                     [
                         ItemBinding(bound_instance=self.annotated_instance),
                     ],
                     annotation="my_annotation",
-                )
+                ),
+                item_bindings=[
+                    RegisteredBinding(InstanceBinding(MyType, self.annotated_instance, "my_annotation"))
+                ]
             )
         )
         self.binding_registry.register(
-            RegisteredBinding(
+            RegisteredMultiBinding(
                 MultiBinding(
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
                     ],
-                )
+                ),
+                item_bindings=[
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance))
+                ]
             )
         )
         self.binding_registry.register(RegisteredBinding(self.my_annotated_instance_binding))
@@ -130,14 +141,18 @@ class TestProviderCreator(unittest.TestCase):
 
     def test_set_binding_with_multi_binding(self):
         self.binding_registry.register(
-            RegisteredBinding(
+            RegisteredMultiBinding(
                 MultiBinding(
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
                         ItemBinding(MyType),
                     ],
-                )
+                ),
+                item_bindings=[
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
+                    RegisteredBinding(SelfBinding(MyType)),
+                ]
             )
         )
         provider = self.provider_creator.get_provider(Target(Set[MyType]), self.state)
@@ -148,14 +163,18 @@ class TestProviderCreator(unittest.TestCase):
 
     def test_tuple_binding_with_multi_binding(self):
         self.binding_registry.register(
-            RegisteredBinding(
+            RegisteredMultiBinding(
                 MultiBinding(
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
                         ItemBinding(MyType),
                     ],
-                )
+                ),
+                item_bindings=[
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
+                    RegisteredBinding(SelfBinding(MyType)),
+                ]
             )
         )
         provider = self.provider_creator.get_provider(Target(Tuple[MyType]), self.state)

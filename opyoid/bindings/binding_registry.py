@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, cast
 
 from opyoid.exceptions import NonInjectableTypeError
 from opyoid.frozen_target import FrozenTarget
@@ -7,9 +7,9 @@ from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.typings import InjectedT
 from .class_binding import ClassBinding
-from .multi_binding import MultiBinding
 from .provider_binding import ProviderBinding
 from .registered_binding import RegisteredBinding
+from .registered_multi_binding import RegisteredMultiBinding
 from .self_binding import SelfBinding
 
 
@@ -26,12 +26,12 @@ class BindingRegistry:
 
     def register(self, registered_binding: RegisteredBinding) -> None:
         previous_binding = self._bindings_by_target.get(registered_binding.target)
-        if isinstance(registered_binding.raw_binding, MultiBinding) \
+        if isinstance(registered_binding, RegisteredMultiBinding) \
             and previous_binding \
-            and isinstance(previous_binding.raw_binding, MultiBinding) \
-            and not registered_binding.raw_binding.override_bindings:
+            and isinstance(previous_binding, RegisteredMultiBinding) \
+            and not cast(RegisteredMultiBinding, registered_binding).raw_binding.override_bindings:
             self.logger.info(f"Adding {registered_binding.raw_binding} to {registered_binding.target}")
-            previous_binding.raw_binding.item_bindings.extend(registered_binding.raw_binding.item_bindings)
+            previous_binding.item_bindings.extend(registered_binding.item_bindings)
             return
         if previous_binding:
             self.logger.info(f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
@@ -39,6 +39,9 @@ class BindingRegistry:
         self._register_self_binding(registered_binding)
 
     def _register_self_binding(self, registered_binding: RegisteredBinding) -> None:
+        if registered_binding.source_path:
+            return
+
         binding = registered_binding.raw_binding
         self_binding = None
         if isinstance(binding, ProviderBinding):
@@ -48,6 +51,9 @@ class BindingRegistry:
                 self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, annotation=binding.annotation)
         elif isinstance(binding, ClassBinding):
             self_binding = SelfBinding(binding.bound_type, binding.scope, binding.annotation)
+        elif isinstance(registered_binding, RegisteredMultiBinding):
+            for item_binding in registered_binding.item_bindings:
+                self._register_self_binding(item_binding)
 
         if self_binding:
             self.register(RegisteredBinding(self_binding, registered_binding.source_path))

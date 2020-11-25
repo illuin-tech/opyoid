@@ -1,14 +1,16 @@
 import unittest
 from unittest.mock import create_autospec
 
-from opyoid import ImmediateScope, InstanceBinding, Provider, SingletonScope, ThreadScope
+from opyoid import ImmediateScope, InstanceBinding, Provider, ProviderBinding, SelfBinding, SingletonScope, ThreadScope
 from opyoid.bindings import BindingRegistry, MultiBinding, MultiBindingToProviderAdapter
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
-from opyoid.exceptions import BindingError, NonInjectableTypeError
+from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
+from opyoid.exceptions import NonInjectableTypeError
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
-from opyoid.providers.providers_factories import FromBindingProviderFactory
+from opyoid.providers.providers_factories.from_registered_binding_provider_factory import \
+    FromRegisteredBindingProviderFactory
 from opyoid.scopes import ThreadScopedProvider
 
 
@@ -22,7 +24,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
         self.binding_registry.register(RegisteredBinding(InstanceBinding(SingletonScope, SingletonScope())))
         self.binding_registry.register(RegisteredBinding(InstanceBinding(ThreadScope, ThreadScope())))
         self.adapter = MultiBindingToProviderAdapter(
-            FromBindingProviderFactory()
+            FromRegisteredBindingProviderFactory()
         )
         self.my_instance = MyType()
         self.state = InjectionState(
@@ -31,7 +33,12 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
         )
 
     def test_create_from_instance_binding(self):
-        binding = MultiBinding(MyType, [ItemBinding(bound_instance=self.my_instance)])
+        binding = RegisteredMultiBinding(
+            MultiBinding(MyType, [ItemBinding(bound_instance=self.my_instance)]),
+            item_bindings=[
+                RegisteredBinding(InstanceBinding(MyType, self.my_instance))
+            ]
+        )
 
         provider = self.adapter.create(binding, self.state)
 
@@ -39,7 +46,9 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
         self.assertEqual([self.my_instance], list_instance)
 
     def test_create_from_class_binding(self):
-        binding = MultiBinding(MyType, [ItemBinding(MyType)])
+        binding = RegisteredMultiBinding(MultiBinding(MyType, [ItemBinding(MyType)]), item_bindings=[
+            RegisteredBinding(SelfBinding(MyType))
+        ])
 
         provider = self.adapter.create(binding, self.state)
 
@@ -51,23 +60,22 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
         provider = create_autospec(Provider, spec_set=True)
         instance = MyType()
         provider.get.return_value = instance
-        binding = MultiBinding(MyType, [ItemBinding(bound_provider=provider)])
+        binding = RegisteredMultiBinding(MultiBinding(MyType, [ItemBinding(bound_provider=provider)]), item_bindings=[
+            RegisteredBinding(ProviderBinding(MyType, provider))
+        ])
 
         provider = self.adapter.create(binding, self.state)
 
         list_instance = provider.get()
         self.assertEqual([instance], list_instance)
 
-    def test_create_without_binding_raises_exception(self):
-        binding = MultiBinding(MyType, [ItemBinding()])
-
-        with self.assertRaises(BindingError):
-            self.adapter.create(binding, self.state)
-
     def test_create_scoped_provider(self):
-        provider = self.adapter.create(MultiBinding(MyType, [
-            ItemBinding(MyType)
-        ], scope=ThreadScope), self.state)
+        provider = self.adapter.create(RegisteredMultiBinding(
+            MultiBinding(MyType, [ItemBinding(MyType)], scope=ThreadScope),
+            item_bindings=[
+                RegisteredBinding(SelfBinding(MyType, scope=ThreadScope))
+            ]
+        ), self.state)
 
         self.assertIsInstance(provider, ThreadScopedProvider)
         instance = provider.get()
@@ -77,4 +85,4 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
 
     def test_non_injectable_scope_raises_exception(self):
         with self.assertRaises(NonInjectableTypeError):
-            self.adapter.create(MultiBinding(MyType, [], scope=ImmediateScope), self.state)
+            self.adapter.create(RegisteredMultiBinding(MultiBinding(MyType, [], scope=ImmediateScope)), self.state)

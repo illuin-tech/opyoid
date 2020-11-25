@@ -41,13 +41,13 @@ class MyModule(Module):
 
 injector = Injector([MyModule()])
 parent_instance = injector.inject(List[MyClass])
-assert isinstance(my_instance, list)
-assert len(my_instance) == 5
-assert isinstance(my_instance[0], SubClass)
-assert isinstance(my_instance[1], MyClass)
-assert my_instance[2] is my_instance
-assert isinstance(my_instance[3], SubClass)
-assert isinstance(my_instance[4], MyClass)
+assert isinstance(parent_instance, list)
+assert len(parent_instance) == 5
+assert isinstance(parent_instance[0], SubClass)
+assert isinstance(parent_instance[1], MyClass)
+assert parent_instance[2] is my_instance
+assert isinstance(parent_instance[3], MyClass)
+assert isinstance(parent_instance[4], MyClass)
 ```
 
 ### Manually creating bindings
@@ -89,7 +89,7 @@ If you are injecting sets or tuples with a SingletonScope, the item instances wi
 
 ```python
 from typing import Tuple
-from opyoid import Injector, ImmediateScope, ItemBinding, MultiBinding
+from opyoid import Injector, ItemBinding, MultiBinding, PerLookupScope
 
 class MyClass:
     pass
@@ -98,7 +98,7 @@ class MyClass:
 injector = Injector(bindings=[
     MultiBinding(MyClass, [
         ItemBinding(bound_type=MyClass),
-    ], scope=ImmediateScope)
+    ], scope=PerLookupScope)
 ])
 
 tuple_1 = injector.inject(Tuple[MyClass])

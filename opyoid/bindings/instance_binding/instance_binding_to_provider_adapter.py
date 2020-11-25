@@ -1,5 +1,6 @@
 from opyoid.bindings.binding import Binding
 from opyoid.bindings.binding_to_provider_adapter import BindingToProviderAdapter
+from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.injection_state import InjectionState
 from opyoid.provider import Provider
 from opyoid.typings import InjectedT
@@ -14,5 +15,6 @@ class InstanceBindingToProviderAdapter(BindingToProviderAdapter[InstanceBinding]
     def accept(self, binding: Binding[InjectedT], state: InjectionState) -> bool:
         return isinstance(binding, InstanceBinding)
 
-    def create(self, binding: InstanceBinding[InjectedT], state: InjectionState) -> Provider[InjectedT]:
-        return FromInstanceProvider(binding.bound_instance)
+    def create(self,
+               binding: RegisteredBinding[InstanceBinding[InjectedT]], state: InjectionState) -> Provider[InjectedT]:
+        return FromInstanceProvider(binding.raw_binding.bound_instance)

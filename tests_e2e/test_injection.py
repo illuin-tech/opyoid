@@ -535,6 +535,20 @@ class TestInjector(unittest.TestCase):
         with self.assertRaises(NonInjectableTypeError):
             injector.inject(MyClass)
 
+    def test_private_module_does_not_expose_self_bindings(self):
+        class MySubClass(MyClass):
+            pass
+
+        class MyPrivateModule(PrivateModule):
+            def configure(self) -> None:
+                self.expose(
+                    self.bind(MyClass, MySubClass)
+                )
+
+        injector = Injector([MyPrivateModule()])
+        with self.assertRaises(NonInjectableTypeError):
+            injector.inject(MySubClass)
+
     def test_private_module_uses_exposed_bindings(self):
         instance_1 = MyClass()
 
@@ -695,3 +709,42 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(other_parent, MyOtherParentClass)
         self.assertIsInstance(other_parent.my_param, MyClass)
         self.assertIs(parent.my_param, other_parent.my_param)
+
+    def test_private_module_multi_bind(self):
+        class DependencyClass:
+            pass
+
+        class MySubClass1(MyClass):
+            def __init__(self, arg: DependencyClass):
+                MyClass.__init__(self)
+                self.arg = arg
+
+        class MySubClass2(MyClass):
+            def __init__(self, arg: DependencyClass):
+                MyClass.__init__(self)
+                self.arg = arg
+
+        class MyModule1(PrivateModule):
+            def configure(self) -> None:
+                self.expose(
+                    self.multi_bind(MyClass, [
+                        self.bind_item(MySubClass1)
+                    ])
+                )
+                self.bind(DependencyClass)
+
+        class MyModule2(PrivateModule):
+            def configure(self) -> None:
+                self.expose(
+                    self.multi_bind(MyClass, [
+                        self.bind_item(MySubClass2)
+                    ], override_bindings=False)
+                )
+                self.bind(DependencyClass)
+
+        injector = Injector([MyModule1(), MyModule2()])
+        instances = injector.inject(List[MyClass])
+        self.assertEqual(2, len(instances))
+        self.assertIsInstance(instances[0], MySubClass1)
+        self.assertIsInstance(instances[1], MySubClass2)
+        self.assertIsNot(instances[0].arg, instances[1].arg)

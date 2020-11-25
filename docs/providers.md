@@ -92,7 +92,7 @@ class MyModule(Module):
         self.bind(MyParentClass)
 
 injector = Injector([MyModule()])
-injected_parent = injector.inject(Provider[MyParentClass])
+injected_parent = injector.inject(MyParentClass)
 assert isinstance(injected_parent, MyParentClass)
 assert isinstance(injected_parent.my_param, Provider)
 assert MyClass.created_instances == 0

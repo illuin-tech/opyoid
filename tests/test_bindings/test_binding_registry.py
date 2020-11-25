@@ -5,6 +5,7 @@ from unittest.mock import create_autospec
 from opyoid import PerLookupScope, Provider, SelfBinding
 from opyoid.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
 from opyoid.exceptions import NonInjectableTypeError
 from opyoid.frozen_target import FrozenTarget
 from opyoid.target import Target
@@ -44,20 +45,29 @@ class TestBindingRegistry(unittest.TestCase):
 
     def test_register_multi_binding_saves_binding_to_known_type_in_order(self):
         item_binding_1 = ItemBinding(MyType)
+        registered_item_binding_1 = RegisteredBinding(SelfBinding(MyType))
         item_binding_2 = ItemBinding(bound_instance=MyType())
-        binding_1 = RegisteredBinding(MultiBinding(MyType, [item_binding_1]))
-        binding_2 = RegisteredBinding(MultiBinding(MyType, [item_binding_2], override_bindings=False))
+        registered_item_binding_2 = RegisteredBinding(InstanceBinding(MyType, item_binding_2.bound_instance))
+        binding_1 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_1]), item_bindings=[
+            registered_item_binding_1,
+        ])
+        binding_2 = RegisteredMultiBinding(
+            MultiBinding(MyType, [item_binding_2], override_bindings=False), item_bindings=[
+                registered_item_binding_2,
+            ]
+        )
         self.binding_registry.register(binding_1)
         self.binding_registry.register(binding_2)
-        binding = self.binding_registry.get_binding(Target(List[MyType])).raw_binding
-        self.assertIsInstance(binding, MultiBinding)
-        self.assertEqual([item_binding_1, item_binding_2], binding.item_bindings)
+        registered_binding = self.binding_registry.get_binding(Target(List[MyType]))
+        self.assertIsInstance(registered_binding, RegisteredMultiBinding)
+        self.assertIsInstance(registered_binding.raw_binding, MultiBinding)
+        self.assertEqual([registered_item_binding_1, registered_item_binding_2], registered_binding.item_bindings)
 
     def test_register_multi_binding_with_override(self):
         item_binding_1 = ItemBinding(MyType)
         item_binding_2 = ItemBinding(bound_instance=MyType())
-        binding_1 = RegisteredBinding(MultiBinding(MyType, [item_binding_1]))
-        binding_2 = RegisteredBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True))
+        binding_1 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_1]))
+        binding_2 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True))
         self.binding_registry.register(binding_1)
         self.binding_registry.register(binding_2)
         binding = self.binding_registry.get_binding(Target(List[MyType])).raw_binding
@@ -153,3 +163,18 @@ class TestBindingRegistry(unittest.TestCase):
         self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
         self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
         self.assertEqual(PerLookupScope, provider_binding.raw_binding.scope)
+
+    def test_register_multi_binding_with_provider_binding_creates_self_binding(self):
+        class MyProvider(Provider[str]):
+            def get(self) -> str:
+                return "hello"
+
+        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider))
+        multi_binding = RegisteredMultiBinding(MultiBinding(str, [provider_binding.raw_binding]), item_bindings=[
+            provider_binding
+        ])
+        self.binding_registry.register(multi_binding)
+
+        provider_binding = self.binding_registry.get_binding(Target(MyProvider))
+        self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
+        self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)

@@ -1,5 +1,12 @@
 # Changelog
 ## Unreleased
+## 0.7.0
+### Features
+- MultiBindings can now be exposed by PrivateModules
+
+### Fixes
+- Binding Provider classes in ItemBindings now works as expected
+
 ## 0.6.2
 ### Fixes
 - Non hashable instance bindings can be exposed in private modules

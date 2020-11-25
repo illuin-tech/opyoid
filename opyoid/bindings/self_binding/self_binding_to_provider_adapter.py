@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Type
 from opyoid.bindings.binding import Binding
 from opyoid.bindings.binding_to_provider_adapter import BindingToProviderAdapter
 from opyoid.bindings.instance_binding import FromInstanceProvider
+from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
 from opyoid.injection_state import InjectionState
 from opyoid.provider import Provider
@@ -24,8 +25,8 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     def accept(self, binding: Binding[InjectedT], state: InjectionState) -> bool:
         return isinstance(binding, SelfBinding)
 
-    def create(self, binding: SelfBinding[InjectedT], state: InjectionState) -> Provider:
-        parameters = signature(binding.target_type.__init__).parameters
+    def create(self, binding: RegisteredBinding[SelfBinding[InjectedT]], state: InjectionState) -> Provider:
+        parameters = signature(binding.target.type.__init__).parameters
         positional_providers: List[Provider] = []
         args_provider: Optional[Provider[List]] = None
         keyword_providers: Dict[str, Provider] = {}
@@ -37,9 +38,9 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
 
             if parameter.kind == Parameter.VAR_POSITIONAL:
                 # *args
-                args_provider = self._get_positional_parameter_provider(parameter, binding.target_type, state)
+                args_provider = self._get_positional_parameter_provider(parameter, binding.target.type, state)
                 continue
-            parameter_provider = self._get_parameter_provider(parameter, binding.target_type, state)
+            parameter_provider = self._get_parameter_provider(parameter, binding.target.type, state)
             if parameter.kind == Parameter.KEYWORD_ONLY:
                 # After *args
                 keyword_providers[parameter.name] = parameter_provider
@@ -47,16 +48,16 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
                 # Before *args
                 positional_providers.append(parameter_provider)
         unscoped_provider = FromClassProvider(
-            binding.target_type,
+            binding.target.type,
             positional_providers,
             args_provider,
             keyword_providers,
         )
         try:
-            scope_provider = state.provider_creator.get_provider(Target(binding.scope), state)
+            scope_provider = state.provider_creator.get_provider(Target(binding.raw_binding.scope), state)
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
-                                         f" {binding.scope.__name__!r}")
+                                         f" {binding.raw_binding.scope.__name__!r}")
         return scope_provider.get().get_scoped_provider(unscoped_provider)
 
     @staticmethod
