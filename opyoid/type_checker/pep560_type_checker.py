@@ -7,7 +7,7 @@ from opyoid.provider import Provider
 
 
 # noinspection PyUnresolvedReferences
-class TypeChecker:
+class Pep560TypeChecker:
     """Various helpers to check type hints."""
 
     @staticmethod

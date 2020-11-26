@@ -1,9 +1,9 @@
 import unittest
-from typing import List, Optional, Type, Set, Tuple, Union
+from typing import List, Optional, Set, Tuple, Type, Union
 
 from opyoid import Provider
 from opyoid.annotated import Annotated
-from opyoid.type_checker import TypeChecker
+from opyoid.type_checker import PEP_585, TypeChecker
 
 
 class TestClass:
@@ -124,3 +124,24 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_annotated(Set[TestClass]))
         self.assertFalse(self.type_checker.is_annotated(Tuple[TestClass]))
         self.assertTrue(self.type_checker.is_annotated(MyAnnotatedType))
+
+    # pylint: disable=unsubscriptable-object
+    @unittest.skipIf(not PEP_585, "Python 3.9 required")
+    def test_pep85_style(self):
+        self.assertTrue(self.type_checker.is_list(list[str]))
+        self.assertFalse(self.type_checker.is_set(list[str]))
+        self.assertFalse(self.type_checker.is_tuple(list[str]))
+        self.assertFalse(self.type_checker.is_list(list))
+
+        self.assertFalse(self.type_checker.is_list(set[str]))
+        self.assertTrue(self.type_checker.is_set(set[str]))
+        self.assertFalse(self.type_checker.is_tuple(set[str]))
+        self.assertFalse(self.type_checker.is_set(set))
+
+        self.assertFalse(self.type_checker.is_list(tuple[str]))
+        self.assertFalse(self.type_checker.is_set(tuple[str]))
+        self.assertTrue(self.type_checker.is_tuple(tuple[str]))
+        self.assertFalse(self.type_checker.is_tuple(tuple))
+
+        self.assertTrue(self.type_checker.is_type(type[str]))
+        self.assertFalse(self.type_checker.is_type(type))

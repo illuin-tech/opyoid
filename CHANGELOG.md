@@ -1,5 +1,9 @@
 # Changelog
 ## Unreleased
+## 0.8.0
+### Features
+- Support for PEP585 style type hints (list[str], set[str], ...)
+
 ## 0.7.0
 ### Features
 - MultiBindings can now be exposed by PrivateModules
