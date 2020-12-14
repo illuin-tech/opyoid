@@ -7,6 +7,7 @@ from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.typings import InjectedT
 from .class_binding import ClassBinding
+from .instance_binding import InstanceBinding
 from .provider_binding import ProviderBinding
 from .registered_binding import RegisteredBinding
 from .registered_multi_binding import RegisteredMultiBinding
@@ -45,17 +46,19 @@ class BindingRegistry:
         binding = registered_binding.raw_binding
         self_binding = None
         if isinstance(binding, ProviderBinding):
-            if isinstance(binding.bound_provider, type) \
-                and issubclass(binding.bound_provider, Provider) \
-                and Target(binding.bound_provider, binding.annotation) not in self:
+            if isinstance(binding.bound_provider, Provider):
+                self_binding = InstanceBinding(type(binding.bound_provider), binding.bound_provider, binding.annotation)
+            else:
                 self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, annotation=binding.annotation)
         elif isinstance(binding, ClassBinding):
             self_binding = SelfBinding(binding.bound_type, binding.scope, binding.annotation)
+        elif isinstance(binding, InstanceBinding):
+            self_binding = InstanceBinding(type(binding.bound_instance), binding.bound_instance, binding.annotation)
         elif isinstance(registered_binding, RegisteredMultiBinding):
             for item_binding in registered_binding.item_bindings:
                 self._register_self_binding(item_binding)
 
-        if self_binding:
+        if self_binding and self_binding.target not in self:
             self.register(RegisteredBinding(self_binding, registered_binding.source_path))
 
     def get_bindings_by_target(self) -> Dict[FrozenTarget[InjectedT], RegisteredBinding[InjectedT]]:

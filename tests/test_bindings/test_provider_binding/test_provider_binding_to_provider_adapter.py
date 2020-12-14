@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SingletonScope, \
-    ThreadScope
+from opyoid import InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding, \
+    SingletonScope, ThreadScope
 from opyoid.bindings import BindingRegistry, FromInstanceProvider, ProviderBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
@@ -37,7 +37,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         self.assertTrue(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.state))
 
     def test_accept_non_provider_binding_returns_false(self):
-        self.assertFalse(self.adapter.accept(ClassBinding(MyType), self.state))
+        self.assertFalse(self.adapter.accept(SelfBinding(MyType), self.state))
         self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType()), self.state))
 
     def test_create_returns_provider(self):

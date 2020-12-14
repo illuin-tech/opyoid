@@ -33,8 +33,11 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.assertTrue(self.adapter.accept(SelfBinding(MyType), self.state))
 
     def test_accept_non_self_binding_returns_false(self):
+        class MySubType(MyType):
+            pass
+
         self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType()), self.state))
-        self.assertFalse(self.adapter.accept(ClassBinding(MyType, MyType), self.state))
+        self.assertFalse(self.adapter.accept(ClassBinding(MyType, MySubType), self.state))
         self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.state))
 
     def test_create_provider_without_args(self):

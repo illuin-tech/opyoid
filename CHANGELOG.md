@@ -1,8 +1,23 @@
 # Changelog
 ## Unreleased
+## 0.9.0
+### Breaking changes
+- ClassBindings cannot be used to bind a class to itself anymore, use a SelfBinding instead
+
+### Features
+- When binding to a target an instance of a subclass of the target type, another InstanceBinding is created with the
+same instance and its type as a target
+- When binding to a target an instance of a provider, another InstanceBinding is created with the same provider and its
+type as a target
+
+### Fixes
+- Fixed Bindings with a target being overriden by `ClassBindings` with the same target as a `bound_type`
+
+
 ## 0.8.0
 ### Features
 - Support for PEP585 style type hints (list[str], set[str], ...)
+
 
 ## 0.7.0
 ### Features
@@ -11,9 +26,11 @@
 ### Fixes
 - Binding Provider classes in ItemBindings now works as expected
 
+
 ## 0.6.2
 ### Fixes
 - Non hashable instance bindings can be exposed in private modules
+
 
 ## 0.6.1
 ### Fixes

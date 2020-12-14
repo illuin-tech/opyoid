@@ -76,8 +76,8 @@ class TestProviderCreator(unittest.TestCase):
             def __init__(self, my_param: MyType):
                 self.my_param = my_param
 
-        my_parent_class_binding = ClassBinding(MyParentClass)
-        self.binding_registry.register(RegisteredBinding(my_parent_class_binding))
+        my_parent_binding = SelfBinding(MyParentClass)
+        self.binding_registry.register(RegisteredBinding(my_parent_binding))
 
         with self.assertRaises(NonInjectableTypeError):
             self.provider_creator.get_provider(Target(MyParentClass), self.state)
@@ -133,7 +133,7 @@ class TestProviderCreator(unittest.TestCase):
             )
         )
         self.binding_registry.register(RegisteredBinding(self.my_annotated_instance_binding))
-        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType)))
+        self.binding_registry.register(RegisteredBinding(SelfBinding(MyType)))
 
         provider = self.provider_creator.get_provider(Target(List[MyType], "my_annotation"), self.state)
         list_instance = provider.get()
@@ -220,9 +220,9 @@ class TestProviderCreator(unittest.TestCase):
             def __init__(self, my_param: Type[MyType]):
                 self.my_param = my_param
 
-        parent_class_binding = ClassBinding(MyParentClass)
+        parent_binding = SelfBinding(MyParentClass)
         self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
-        self.binding_registry.register(RegisteredBinding(parent_class_binding))
+        self.binding_registry.register(RegisteredBinding(parent_binding))
 
         with self.assertRaises(NonInjectableTypeError):
             self.provider_creator.get_provider(Target(Type[MyType]), self.state)

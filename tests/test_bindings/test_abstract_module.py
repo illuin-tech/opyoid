@@ -144,6 +144,7 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 FrozenTarget(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider)),
+                FrozenTarget(MyProvider): RegisteredBinding(InstanceBinding(MyProvider, self.my_provider)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -199,6 +200,9 @@ class TestAbstractModule(unittest.TestCase):
                 ),
                 FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
                     SelfBinding(MyProvider, PerLookupScope, "my_annotation")
+                ),
+                FrozenTarget(MyType, "my_annotation"): RegisteredBinding(
+                    InstanceBinding(MyType, instance, "my_annotation")
                 )
             },
             self.module.binding_registry.get_bindings_by_target()
