@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import create_autospec
 
-from opyoid import ClassBinding, InstanceBinding, Provider, ProviderBinding
+from opyoid import InstanceBinding, Provider, ProviderBinding, SelfBinding
 from opyoid.bindings import BindingRegistry, InstanceBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.injection_state import InjectionState
@@ -27,7 +27,7 @@ class TestInstanceBindingToProviderAdapter(unittest.TestCase):
         self.assertTrue(self.adapter.accept(InstanceBinding(MyType, MyType()), self.state))
 
     def test_accept_non_instance_binding_returns_false(self):
-        self.assertFalse(self.adapter.accept(ClassBinding(MyType), self.state))
+        self.assertFalse(self.adapter.accept(SelfBinding(MyType), self.state))
         self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.state))
 
     def test_create_returns_provider(self):

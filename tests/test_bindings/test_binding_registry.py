@@ -2,7 +2,7 @@ import unittest
 from typing import List
 from unittest.mock import create_autospec
 
-from opyoid import PerLookupScope, Provider, SelfBinding
+from opyoid import ClassBinding, PerLookupScope, Provider, SelfBinding
 from opyoid.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
@@ -134,7 +134,7 @@ class TestBindingRegistry(unittest.TestCase):
         with self.assertRaises(NonInjectableTypeError):
             self.binding_registry.get_binding(Target("MyNewType"))
 
-    def test_register_provider_binding_with_instance_does_not_create_additional_binding(self):
+    def test_register_provider_binding_with_instance_creates_additional_binding(self):
         class MyProvider(Provider[str]):
             def get(self) -> str:
                 return "hello"
@@ -146,6 +146,8 @@ class TestBindingRegistry(unittest.TestCase):
         self.assertEqual(
             {
                 FrozenTarget(str, "my_annotation"): provider_binding,
+                FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
+                    InstanceBinding(MyProvider, provider_instance, "my_annotation")),
             },
             self.binding_registry.get_bindings_by_target()
         )
@@ -178,3 +180,26 @@ class TestBindingRegistry(unittest.TestCase):
         provider_binding = self.binding_registry.get_binding(Target(MyProvider))
         self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
         self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
+
+    def test_register_class_binding_creates_self_binding_if_target_does_not_exist(self):
+        class MySubType(MyType):
+            pass
+
+        class_binding = RegisteredBinding(ClassBinding(MyType, MySubType))
+        self.binding_registry.register(class_binding)
+        self.assertIs(class_binding, self.binding_registry.get_binding(Target(MyType)))
+        self_binding = self.binding_registry.get_binding(Target(MySubType))
+        self.assertIsInstance(self_binding.raw_binding, SelfBinding)
+        self.assertEqual(MySubType, self_binding.raw_binding.target_type)
+
+    def test_register_class_binding_does_not_create_self_binding_if_target_exists(self):
+        class MySubType(MyType):
+            pass
+
+        my_instance = MySubType()
+        class_binding = RegisteredBinding(ClassBinding(MyType, MySubType))
+        instance_binding = RegisteredBinding(InstanceBinding(MySubType, my_instance))
+        self.binding_registry.register(instance_binding)
+        self.binding_registry.register(class_binding)
+        self.assertIs(class_binding, self.binding_registry.get_binding(Target(MyType)))
+        self.assertIs(instance_binding, self.binding_registry.get_binding(Target(MySubType)))

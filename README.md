@@ -229,7 +229,7 @@ assert instance_1 is instance_2
 If you prefer, you can add bindings to your injector without creating a Module class (or using both).
 
 ```python
-from opyoid import Module, ClassBinding, Injector
+from opyoid import Module, Injector, SelfBinding
 
 
 class MyClass:
@@ -246,7 +246,7 @@ class MyModule(Module):
         self.bind(MyClass)
 
 
-injector = Injector([MyModule()], [ClassBinding(MyParentClass)])
+injector = Injector([MyModule()], [SelfBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)

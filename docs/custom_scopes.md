@@ -74,7 +74,7 @@ class CustomScope(Scope):
 To be able to use it you have to bind it:
 
 ```python
-from opyoid import Injector, ClassBinding
+from opyoid import Injector, SelfBinding
 
 from .custom_scope import CustomScope
 
@@ -83,8 +83,8 @@ class MyType:
 
 
 injector = Injector(bindings=[
-    ClassBinding(CustomScope),
-    ClassBinding(MyType, scope=CustomScope),
+    SelfBinding(CustomScope),
+    SelfBinding(MyType, scope=CustomScope),
 ])
 custom_scope = injector.inject(CustomScope)
 instance_1 = injector.inject(MyType)
