@@ -3,9 +3,8 @@ from threading import RLock
 from typing import List
 
 from opyoid.exceptions import NoBindingFound
-from opyoid.injection_state import InjectionState
+from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
-from opyoid.target import Target
 from opyoid.typings import InjectedT
 from .providers_factories import FromBindingProviderFactory, FromCacheProviderFactory, OptionalProviderFactory, \
     ProviderFactory, ProviderProviderFactory, SetProviderFactory, TupleProviderFactory, TypeProviderFactory
@@ -32,14 +31,14 @@ class ProviderCreator:
         ]
         self._lock = RLock()
 
-    def get_provider(self, target: Target[InjectedT], state: InjectionState) -> Provider[InjectedT]:
+    def get_provider(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         with self._lock:
-            provider = self._get_provider(target, state)
-            state.provider_registry.set_provider(target, provider)
+            provider = self._get_provider(context)
+            context.injection_state.provider_registry.set_provider(context.target, provider)
             return provider
 
-    def _get_provider(self, target: Target[InjectedT], state: InjectionState) -> Provider[InjectedT]:
+    def _get_provider(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         for provider_factory in self._provider_factories:
-            if provider_factory.accept(target, state):
-                return provider_factory.create(target, state)
-        raise NoBindingFound(f"Could not find any bindings for {target}")
+            if provider_factory.accept(context):
+                return provider_factory.create(context)
+        raise NoBindingFound(f"Could not find any bindings for {context.target}")

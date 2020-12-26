@@ -1,12 +1,15 @@
 import unittest
+from typing import List
 from unittest.mock import create_autospec
 
-from opyoid import ImmediateScope, InstanceBinding, Provider, ProviderBinding, SelfBinding, SingletonScope, ThreadScope
+from opyoid import ImmediateScope, InstanceBinding, Provider, ProviderBinding, SelfBinding, SingletonScope, Target, \
+    ThreadScope
 from opyoid.bindings import BindingRegistry, MultiBinding, MultiBindingToProviderAdapter
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
 from opyoid.exceptions import NonInjectableTypeError
+from opyoid.injection_context import InjectionContext
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
 from opyoid.providers.providers_factories.from_registered_binding_provider_factory import \
@@ -31,6 +34,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
             ProviderCreator(),
             self.binding_registry,
         )
+        self.context = InjectionContext(Target(List[MyType]), self.state)
 
     def test_create_from_instance_binding(self):
         binding = RegisteredMultiBinding(
@@ -39,8 +43,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
                 RegisteredBinding(InstanceBinding(MyType, self.my_instance))
             ]
         )
-
-        provider = self.adapter.create(binding, self.state)
+        provider = self.adapter.create(binding, self.context)
 
         list_instance = provider.get()
         self.assertEqual([self.my_instance], list_instance)
@@ -50,7 +53,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
             RegisteredBinding(SelfBinding(MyType))
         ])
 
-        provider = self.adapter.create(binding, self.state)
+        provider = self.adapter.create(binding, self.context)
 
         list_instance = provider.get()
         self.assertEqual(1, len(list_instance))
@@ -64,7 +67,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
             RegisteredBinding(ProviderBinding(MyType, provider))
         ])
 
-        provider = self.adapter.create(binding, self.state)
+        provider = self.adapter.create(binding, self.context)
 
         list_instance = provider.get()
         self.assertEqual([instance], list_instance)
@@ -75,7 +78,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
             item_bindings=[
                 RegisteredBinding(SelfBinding(MyType, scope=ThreadScope))
             ]
-        ), self.state)
+        ), self.context)
 
         self.assertIsInstance(provider, ThreadScopedProvider)
         instance = provider.get()
@@ -85,4 +88,4 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
 
     def test_non_injectable_scope_raises_exception(self):
         with self.assertRaises(NonInjectableTypeError):
-            self.adapter.create(RegisteredMultiBinding(MultiBinding(MyType, [], scope=ImmediateScope)), self.state)
+            self.adapter.create(RegisteredMultiBinding(MultiBinding(MyType, [], scope=ImmediateScope)), self.context)

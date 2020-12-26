@@ -8,4 +8,5 @@ from .module import Module
 from .multi_binding import ItemBinding, ListProvider, MultiBinding, MultiBindingToProviderAdapter
 from .private_module import PrivateModule
 from .provider_binding import FromProviderProvider, ProviderBinding, ProviderBindingToProviderAdapter
+from .registered_binding import RegisteredBinding
 from .self_binding import FromClassProvider, SelfBinding, SelfBindingToProviderAdapter

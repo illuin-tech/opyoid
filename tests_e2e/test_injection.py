@@ -6,7 +6,7 @@ import attr
 from opyoid import ClassBinding, ImmediateScope, Injector, InstanceBinding, ItemBinding, Module, MultiBinding, \
     PerLookupScope, Provider, ProviderBinding, SelfBinding, annotated_arg
 from opyoid.bindings.private_module import PrivateModule
-from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
+from opyoid.exceptions import CyclicDependencyError, NoBindingFound, NonInjectableTypeError
 from opyoid.injector_options import InjectorOptions
 
 
@@ -762,3 +762,40 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(instances[0], MySubClass1)
         self.assertIsInstance(instances[1], MySubClass2)
         self.assertIsNot(instances[0].arg, instances[1].arg)
+
+    def test_cyclic_dependencies_raise_exception(self):
+        class MyOtherClass:
+            def __init__(self, arg: MyClass):
+                self.arg = arg
+
+        class MyImpl(MyClass):
+            def __init__(self, arg: MyOtherClass):
+                MyClass.__init__(self)
+                self.arg = arg
+
+        with self.assertRaises(CyclicDependencyError):
+            Injector(bindings=[ClassBinding(MyClass, MyImpl), SelfBinding(MyOtherClass)])
+            Injector(bindings=[ClassBinding(MyClass, MyImpl)])
+
+    def test_cyclic_dependencies_with_private_module_are_handled(self):
+        class MyOtherClass:
+            def __init__(self, arg: MyClass):
+                self.arg = arg
+
+        class MyImpl(MyClass):
+            def __init__(self, arg: MyOtherClass):
+                MyClass.__init__(self)
+                self.arg = arg
+
+        class MyPrivateModule(PrivateModule):
+            def configure(self) -> None:
+                self.expose(
+                    self.bind(MyOtherClass)
+                )
+                self.bind(MyClass)
+
+        injector = Injector([MyPrivateModule()], [ClassBinding(MyClass, MyImpl)])
+        my_impl = injector.inject(MyClass)
+        self.assertIsInstance(my_impl, MyImpl)
+        self.assertIsInstance(my_impl.arg, MyOtherClass)
+        self.assertIsInstance(my_impl.arg.arg, MyClass)

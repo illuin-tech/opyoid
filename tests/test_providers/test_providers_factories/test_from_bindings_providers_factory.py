@@ -5,6 +5,7 @@ from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, Prov
 from opyoid.bindings import Binding, BindingRegistry
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import BindingError
+from opyoid.injection_context import InjectionContext
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
 from opyoid.providers.providers_factories import FromBindingProviderFactory
@@ -31,22 +32,24 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
             self.provider_creator,
             self.binding_registry,
         )
+        self.context = InjectionContext(Target(MyType), self.state)
+        self.str_context = InjectionContext(Target(str), self.state)
+        self.int_context = InjectionContext(Target(int), self.state)
 
     def test_unknown_binding_type_raises_binding_error(self):
         mock_binding = create_autospec(Binding, spec_set=True)
         self.binding_registry.get_binding.return_value = RegisteredBinding(mock_binding)
         self.binding_registry.__contains__.return_value = True
         with self.assertRaises(BindingError):
-            self.provider_factory.create(Target(str), self.state)
+            self.provider_factory.create(self.str_context)
 
     def test_accept(self):
         self.binding_registry.__contains__.side_effect = [
             True,
             False,
         ]
-
-        self.assertTrue(self.provider_factory.accept(Target(str), self.state))
-        self.assertFalse(self.provider_factory.accept(Target(int), self.state))
+        self.assertTrue(self.provider_factory.accept(self.str_context))
+        self.assertFalse(self.provider_factory.accept(self.int_context))
         self.assertEqual(
             [
                 call(Target(str)),
@@ -62,7 +65,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
             True,
         ]
 
-        self.assertTrue(self.provider_factory.accept(Target(str), self.state))
+        self.assertTrue(self.provider_factory.accept(self.str_context))
         self.assertEqual(
             [
                 call(Target(str)),
@@ -76,7 +79,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
 
-        provider = self.provider_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(self.context)
         instance = provider.get()
         self.assertIs(binding.bound_instance, instance)
 
@@ -88,7 +91,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
 
-        provider = self.provider_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(self.context)
         instance = provider.get()
         self.assertIsInstance(instance, OtherType)
 
@@ -98,7 +101,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
         self.binding_registry.__contains__.return_value = True
 
-        provider = self.provider_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
@@ -110,6 +113,6 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         self.binding_registry.__contains__.return_value = True
         self.provider_creator.get_provider.return_value = self.mock_scope_provider
 
-        provider = self.provider_factory.create(Target(MyType), self.state)
+        provider = self.provider_factory.create(self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)

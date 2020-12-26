@@ -3,6 +3,7 @@ from typing import List, Optional, Type
 from .bindings import Binding
 from .bindings.abstract_module import AbstractModule
 from .bindings.root_module import RootModule
+from .injection_context import InjectionContext
 from .injection_state import InjectionState
 from .injector_options import InjectorOptions
 from .providers import ProviderCreator
@@ -31,7 +32,9 @@ class Injector:
         )
         # Prepare providers
         for target in root_module.binding_registry.get_bindings_by_target():
-            self._provider_creator.get_provider(Target(target.type, target.annotation), self._root_state)
+            injection_context = InjectionContext(Target(target.type, target.annotation), self._root_state)
+            injection_context.get_provider()
 
     def inject(self, target_type: Type[InjectedT], annotation: Optional[str] = None) -> InjectedT:
-        return self._provider_creator.get_provider(Target(target_type, annotation), self._root_state).get()
+        injection_context = InjectionContext(Target(target_type, annotation), self._root_state)
+        return injection_context.get_provider().get()
