@@ -5,10 +5,10 @@ import attr
 from opyoid.bindings.binding import Binding
 from opyoid.bindings.multi_binding.item_binding import ItemBinding
 from opyoid.scopes import Scope, SingletonScope
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@attr.s(auto_attribs=True, frozen=True, repr=False)
 class MultiBinding(Binding[List[InjectedT]]):
     item_target_type: Type[InjectedT]
     item_bindings: List[ItemBinding[InjectedT]]
@@ -23,3 +23,8 @@ class MultiBinding(Binding[List[InjectedT]]):
     @property
     def annotation(self) -> Optional[str]:
         return self._annotation
+
+    def __repr__(self) -> str:
+        items_string = ", ".join(f"{item!r}" for item in self.item_bindings)
+        scope_string = f", scope={self.scope}" if self.scope != SingletonScope else ""
+        return f"{self.__class__.__name__}({self.target!r} -> [{items_string}]{scope_string})"

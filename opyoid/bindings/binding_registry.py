@@ -5,7 +5,7 @@ from opyoid.exceptions import NonInjectableTypeError
 from opyoid.frozen_target import FrozenTarget
 from opyoid.provider import Provider
 from opyoid.target import Target
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .class_binding import ClassBinding
 from .instance_binding import InstanceBinding
 from .provider_binding import ProviderBinding
@@ -19,30 +19,33 @@ class BindingRegistry:
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self):
+    def __init__(self, log_bindings: bool = False):
         self._bindings_by_target: Dict[FrozenTarget[InjectedT], RegisteredBinding[InjectedT]] = {}
+        self._log_bindings = log_bindings
 
     def __contains__(self, item: Target[InjectedT]) -> bool:
         return self.get_binding(item) is not None
 
-    def register(self, registered_binding: RegisteredBinding) -> None:
+    def register(self, registered_binding: RegisteredBinding, add_self_binding: bool = True) -> None:
         previous_binding = self._bindings_by_target.get(registered_binding.target)
         if isinstance(registered_binding, RegisteredMultiBinding) \
             and previous_binding \
             and isinstance(previous_binding, RegisteredMultiBinding) \
             and not cast(RegisteredMultiBinding, registered_binding).raw_binding.override_bindings:
-            self.logger.info(f"Adding {registered_binding.raw_binding} to {registered_binding.target}")
+            if self._log_bindings:
+                self.logger.info(f"Adding {registered_binding.raw_binding} to previous binding")
             previous_binding.item_bindings.extend(registered_binding.item_bindings)
             return
-        if previous_binding:
-            self.logger.info(f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
+        if self._log_bindings:
+            if previous_binding and previous_binding.raw_binding != registered_binding.raw_binding:
+                self.logger.info(f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
+            elif not previous_binding:
+                self.logger.debug(f"Registering {registered_binding.raw_binding!r}")
         self._bindings_by_target[registered_binding.target] = registered_binding
-        self._register_self_binding(registered_binding)
+        if add_self_binding:
+            self._register_self_binding(registered_binding)
 
     def _register_self_binding(self, registered_binding: RegisteredBinding) -> None:
-        if registered_binding.source_path:
-            return
-
         binding = registered_binding.raw_binding
         self_binding = None
         if isinstance(binding, ProviderBinding):

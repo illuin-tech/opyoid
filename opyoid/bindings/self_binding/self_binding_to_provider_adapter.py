@@ -11,7 +11,7 @@ from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
-from opyoid.typings import EMPTY, InjectedT
+from opyoid.utils import EMPTY, InjectedT
 from .from_class_provider import FromClassProvider
 from .self_binding import SelfBinding
 

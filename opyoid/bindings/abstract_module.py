@@ -3,7 +3,7 @@ from typing import List, Optional, Type, Union
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
 from opyoid.scopes import Scope, SingletonScope
-from opyoid.typings import EMPTY, InjectedT
+from opyoid.utils import EMPTY, InjectedT
 from .binding import Binding
 from .binding_registry import BindingRegistry
 from .class_binding import ClassBinding
@@ -18,9 +18,9 @@ from .self_binding import SelfBinding
 class AbstractModule:
     """Base class for Modules, should not be used outside of the library."""
 
-    def __init__(self):
+    def __init__(self, log_bindings: bool = False):
         self._is_configured = False
-        self._binding_registry = BindingRegistry()
+        self._binding_registry = BindingRegistry(log_bindings)
 
     @property
     def binding_registry(self) -> BindingRegistry:
@@ -63,7 +63,7 @@ class AbstractModule:
                         binding.raw_binding,
                         (module,) + binding.source_path,
                     )
-            self._binding_registry.register(binding)
+            self._binding_registry.register(binding, add_self_binding=False)
 
     # pylint: disable=too-many-arguments
     def bind(self,

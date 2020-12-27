@@ -3,7 +3,7 @@ from typing import Generic, Optional, Type
 import attr
 
 from opyoid.frozen_target import FrozenTarget
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 
 @attr.s(auto_attribs=True, frozen=True)

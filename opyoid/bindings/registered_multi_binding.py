@@ -2,7 +2,7 @@ from typing import List
 
 import attr
 
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .multi_binding import MultiBinding
 from .registered_binding import RegisteredBinding
 

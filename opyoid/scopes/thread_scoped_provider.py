@@ -1,7 +1,7 @@
 import threading
 
 from opyoid.provider import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 
 class ThreadScopedProvider(Provider[InjectedT]):

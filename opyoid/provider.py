@@ -1,6 +1,6 @@
 from typing import Generic
 
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 
 class Provider(Generic[InjectedT]):

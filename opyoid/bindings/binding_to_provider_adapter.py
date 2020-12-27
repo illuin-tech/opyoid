@@ -2,7 +2,7 @@ from typing import Generic, TypeVar
 
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .binding import Binding
 from .registered_binding import RegisteredBinding
 

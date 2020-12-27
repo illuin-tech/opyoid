@@ -2,7 +2,7 @@ from threading import Lock
 from typing import Union
 
 from opyoid.provider import Provider
-from opyoid.typings import EMPTY, InjectedT
+from opyoid.utils import EMPTY, InjectedT
 
 
 class SingletonScopedProvider(Provider[InjectedT]):

@@ -3,10 +3,10 @@ from typing import Optional, Type
 import attr
 
 from opyoid.bindings.binding import Binding
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@attr.s(auto_attribs=True, frozen=True, repr=False)
 class InstanceBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_instance: InjectedT
@@ -19,3 +19,6 @@ class InstanceBinding(Binding[InjectedT]):
     @property
     def annotation(self) -> Optional[str]:
         return self._annotation
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.target!r} -> {self.bound_instance!r})"

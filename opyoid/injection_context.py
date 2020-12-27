@@ -1,3 +1,4 @@
+import logging
 from typing import Generic, List, Optional, TYPE_CHECKING
 
 import attr
@@ -5,7 +6,7 @@ import attr
 from .exceptions import CyclicDependencyError
 from .provider import Provider
 from .target import Target
-from .typings import InjectedT
+from .utils import InjectedT
 
 if TYPE_CHECKING:
     from .bindings import RegisteredBinding
@@ -14,6 +15,8 @@ if TYPE_CHECKING:
 
 @attr.s(auto_attribs=True)
 class InjectionContext(Generic[InjectedT]):
+    logger = logging.getLogger(__name__)
+
     target: Target[InjectedT]
     injection_state: "InjectionState"
     parent_context: Optional["InjectionContext"] = attr.ib(default=None, eq=False)
@@ -23,9 +26,10 @@ class InjectionContext(Generic[InjectedT]):
         while context.parent_context:
             if self == context.parent_context:
                 dependency_chain = "\n".join(
-                    f"-> {target.type}{'#' + target.annotation if target.annotation else ''}"
+                    f"-> {target!r}"
                     for target in self._dependency_chain
                 )
+                self.logger.error(f"Cyclic dependency detected, injection graph: \n{dependency_chain}")
                 raise CyclicDependencyError(f"Cyclic dependency detected, injection graph: \n{dependency_chain}")
             context = context.parent_context
 

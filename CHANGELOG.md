@@ -2,6 +2,11 @@
 ## Unreleased
 ### Features
 - Cyclic dependencies now raise a `CyclicDependencyError` instead of a `RecursionError`
+- Cleaner and more verbose logs
+
+### Fixes
+- Removed duplicate logs about registering bindings
+
 
 ## 0.9.0
 ### Breaking changes

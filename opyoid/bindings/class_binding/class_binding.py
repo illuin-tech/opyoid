@@ -5,10 +5,10 @@ import attr
 from opyoid.bindings.binding import Binding
 from opyoid.exceptions import BindingError
 from opyoid.scopes import Scope, SingletonScope
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT, get_class_full_name
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@attr.s(auto_attribs=True, frozen=True, repr=False)
 class ClassBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_type: Type[InjectedT]
@@ -28,3 +28,7 @@ class ClassBinding(Binding[InjectedT]):
     @property
     def annotation(self) -> Optional[str]:
         return self._annotation
+
+    def __repr__(self) -> str:
+        scope_string = f", scope={self.scope}" if self.scope != SingletonScope else ""
+        return f"{self.__class__.__name__}({self.target!r} -> {get_class_full_name(self.bound_type)}{scope_string})"

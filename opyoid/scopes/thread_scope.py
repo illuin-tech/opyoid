@@ -1,5 +1,5 @@
 from opyoid.provider import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .scope import Scope
 from .thread_scoped_provider import ThreadScopedProvider
 

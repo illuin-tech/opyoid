@@ -8,7 +8,7 @@ from .injection_state import InjectionState
 from .injector_options import InjectorOptions
 from .providers import ProviderCreator
 from .target import Target
-from .typings import InjectedT
+from .utils import InjectedT
 
 
 class Injector:

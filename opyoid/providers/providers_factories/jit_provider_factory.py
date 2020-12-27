@@ -1,7 +1,7 @@
 from opyoid.bindings import RegisteredBinding, SelfBinding, SelfBindingToProviderAdapter
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
-from opyoid.typings import EMPTY, InjectedT
+from opyoid.utils import EMPTY, InjectedT
 from .provider_factory import ProviderFactory
 
 

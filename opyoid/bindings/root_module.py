@@ -14,7 +14,7 @@ class RootModule(Module):
                  injector: "Injector",
                  modules: Optional[List[AbstractModule]],
                  bindings: Optional[List[Binding]]) -> None:
-        Module.__init__(self)
+        Module.__init__(self, log_bindings=True)
         self._injector = injector
         self._modules = modules or []
         self._bindings = bindings or []
