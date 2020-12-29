@@ -25,9 +25,9 @@ class TestBindingRegistry(unittest.TestCase):
         mock_binding = create_autospec(Binding, spec_set=True)
         mock_binding.target = FrozenTarget(MyType)
         self.my_type_binding = RegisteredBinding(mock_binding)
-        mock_annotated_binding = create_autospec(Binding, spec_set=True)
-        mock_annotated_binding.target = FrozenTarget(MyType, "my_annotation")
-        self.my_type_annotated_binding = RegisteredBinding(mock_annotated_binding)
+        mock_named_binding = create_autospec(Binding, spec_set=True)
+        mock_named_binding.target = FrozenTarget(MyType, "my_name")
+        self.my_type_named_binding = RegisteredBinding(mock_named_binding)
         self.my_type_binding_2 = RegisteredBinding(InstanceBinding(MyType, MyType()))
         other_mock_binding = create_autospec(Binding, spec_set=True)
         other_mock_binding.target = FrozenTarget(OtherType)
@@ -35,11 +35,11 @@ class TestBindingRegistry(unittest.TestCase):
 
     def test_register_saves_binding_to_new_type(self):
         self.binding_registry.register(self.my_type_binding)
-        self.binding_registry.register(self.my_type_annotated_binding)
+        self.binding_registry.register(self.my_type_named_binding)
         self.binding_registry.register(self.other_type_binding)
         self.assertEqual({
             FrozenTarget(MyType): self.my_type_binding,
-            FrozenTarget(MyType, "my_annotation"): self.my_type_annotated_binding,
+            FrozenTarget(MyType, "my_name"): self.my_type_named_binding,
             FrozenTarget(OtherType): self.other_type_binding,
         }, self.binding_registry.get_bindings_by_target())
 
@@ -76,19 +76,19 @@ class TestBindingRegistry(unittest.TestCase):
 
     def test_get_binding_returns_binding(self):
         self.binding_registry.register(self.my_type_binding)
-        self.binding_registry.register(self.my_type_annotated_binding)
+        self.binding_registry.register(self.my_type_named_binding)
         self.binding_registry.register(self.my_type_binding_2)
         binding = self.binding_registry.get_binding(Target(MyType))
 
         self.assertEqual(self.my_type_binding_2, binding)
 
-    def test_get_binding_returns_annotated_binding(self):
+    def test_get_binding_returns_named_binding(self):
         self.binding_registry.register(self.my_type_binding)
-        self.binding_registry.register(self.my_type_annotated_binding)
+        self.binding_registry.register(self.my_type_named_binding)
         self.binding_registry.register(self.my_type_binding_2)
-        binding = self.binding_registry.get_binding(Target(MyType, "my_annotation"))
+        binding = self.binding_registry.get_binding(Target(MyType, "my_name"))
 
-        self.assertEqual(self.my_type_annotated_binding, binding)
+        self.assertEqual(self.my_type_named_binding, binding)
 
     def test_get_binding_for_unknown_type_returns_none(self):
         binding = self.binding_registry.get_binding(Target(MyType))
@@ -102,13 +102,13 @@ class TestBindingRegistry(unittest.TestCase):
 
         self.assertEqual(self.my_type_binding, binding)
 
-    def test_get_annotated_binding_from_string(self):
+    def test_get_named_binding_from_string(self):
         self.binding_registry.register(self.my_type_binding)
-        self.binding_registry.register(self.my_type_annotated_binding)
+        self.binding_registry.register(self.my_type_named_binding)
         self.binding_registry.register(self.other_type_binding)
-        binding = self.binding_registry.get_binding(Target("MyType", "my_annotation"))
+        binding = self.binding_registry.get_binding(Target("MyType", "my_name"))
 
-        self.assertEqual(self.my_type_annotated_binding, binding)
+        self.assertEqual(self.my_type_named_binding, binding)
 
     def test_get_binding_from_unknown_string(self):
         binding = self.binding_registry.get_binding(Target("MyUnknownType"))
@@ -140,14 +140,14 @@ class TestBindingRegistry(unittest.TestCase):
                 return "hello"
 
         provider_instance = MyProvider()
-        provider_binding = RegisteredBinding(ProviderBinding(str, provider_instance, annotation="my_annotation"))
+        provider_binding = RegisteredBinding(ProviderBinding(str, provider_instance, named="my_name"))
         self.binding_registry.register(provider_binding)
 
         self.assertEqual(
             {
-                FrozenTarget(str, "my_annotation"): provider_binding,
-                FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
-                    InstanceBinding(MyProvider, provider_instance, "my_annotation")),
+                FrozenTarget(str, "my_name"): provider_binding,
+                FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
+                    InstanceBinding(MyProvider, provider_instance, "my_name")),
             },
             self.binding_registry.get_bindings_by_target()
         )
@@ -157,11 +157,11 @@ class TestBindingRegistry(unittest.TestCase):
             def get(self) -> str:
                 return "hello"
 
-        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider, PerLookupScope, "my_annotation"))
+        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider, PerLookupScope, "my_name"))
         self.binding_registry.register(provider_binding)
 
-        self.assertEqual(provider_binding, self.binding_registry.get_binding(Target(str, "my_annotation")))
-        provider_binding = self.binding_registry.get_binding(Target(MyProvider, "my_annotation"))
+        self.assertEqual(provider_binding, self.binding_registry.get_binding(Target(str, "my_name")))
+        provider_binding = self.binding_registry.get_binding(Target(MyProvider, "my_name"))
         self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
         self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
         self.assertEqual(PerLookupScope, provider_binding.raw_binding.scope)

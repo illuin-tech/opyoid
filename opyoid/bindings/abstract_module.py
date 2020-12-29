@@ -72,7 +72,7 @@ class AbstractModule:
              to_instance: InjectedT = EMPTY,
              to_provider: Union[Provider, Type[Provider]] = EMPTY,
              scope: Type[Scope] = SingletonScope,
-             annotation: Optional[str] = None) -> RegisteredBinding:
+             named: Optional[str] = None) -> RegisteredBinding:
         try:
             binding = self._create_binding(
                 target_type,
@@ -80,7 +80,7 @@ class AbstractModule:
                 to_instance,
                 to_provider,
                 scope,
-                annotation,
+                named,
             )
         except BindingError as error:
             raise BindingError(f"Error in {self!r} when binding to {target_type!r}: {error}") from None
@@ -98,11 +98,11 @@ class AbstractModule:
                    item_target_type: Type[InjectedT],
                    item_bindings: List[ItemBinding[InjectedT]],
                    scope: Type[Scope] = SingletonScope,
-                   annotation: Optional[str] = None,
+                   named: Optional[str] = None,
                    override_bindings: bool = True) -> RegisteredBinding:
 
         return self._register_multi_binding(
-            MultiBinding(item_target_type, item_bindings, scope, annotation, override_bindings)
+            MultiBinding(item_target_type, item_bindings, scope, named, override_bindings)
         )
 
     @staticmethod
@@ -117,14 +117,14 @@ class AbstractModule:
                         bound_instance: InjectedT,
                         bound_provider: Union[Provider, Type[Provider]],
                         scope: Type[Scope],
-                        annotation: Optional[str]) -> Binding:
+                        named: Optional[str]) -> Binding:
         if bound_instance is not EMPTY:
-            return InstanceBinding(target_type, bound_instance, annotation)
+            return InstanceBinding(target_type, bound_instance, named)
         if bound_provider is not EMPTY:
-            return ProviderBinding(target_type, bound_provider, scope, annotation)
+            return ProviderBinding(target_type, bound_provider, scope, named)
         if bound_type is not EMPTY and bound_type != target_type:
-            return ClassBinding(target_type, bound_type, scope, annotation)
-        return SelfBinding(target_type, scope, annotation)
+            return ClassBinding(target_type, bound_type, scope, named)
+        return SelfBinding(target_type, scope, named)
 
     def _register(self, binding: Binding[InjectedT]) -> RegisteredBinding:
         if isinstance(binding, MultiBinding):
@@ -141,20 +141,20 @@ class AbstractModule:
                 item_binding = SelfBinding(
                     item_binding.bound_type,
                     binding.scope,
-                    binding.annotation,
+                    binding.named,
                 )
             elif item_binding.bound_instance is not EMPTY:
                 item_binding = InstanceBinding(
                     binding.item_target_type,
                     item_binding.bound_instance,
-                    binding.annotation,
+                    binding.named,
                 )
             elif item_binding.bound_provider is not EMPTY:
                 item_binding = ProviderBinding(
                     binding.item_target_type,
                     item_binding.bound_provider,
                     binding.scope,
-                    binding.annotation,
+                    binding.named,
                 )
             else:
                 raise BindingError(

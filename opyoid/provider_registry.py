@@ -17,11 +17,11 @@ class ProviderRegistry:
         return self.get_provider(item) is not None
 
     def set_provider(self, target: Target[InjectedT], provider: Provider[InjectedT]) -> None:
-        frozen_target = FrozenTarget(target.type, target.annotation)
+        frozen_target = FrozenTarget(target.type, target.named)
         self._provider_by_target[frozen_target] = provider
 
     def get_provider(self, target: Target[InjectedT]) -> Provider[InjectedT]:
-        frozen_target = FrozenTarget(target.type, target.annotation)
+        frozen_target = FrozenTarget(target.type, target.named)
         if isinstance(target.type, str):
             possible_target_types = list(set(
                 available_target.type
@@ -31,7 +31,7 @@ class ProviderRegistry:
             ))
             if len(possible_target_types) == 1:
                 # noinspection PyTypeChecker
-                frozen_target = FrozenTarget(possible_target_types[0], target.annotation)
+                frozen_target = FrozenTarget(possible_target_types[0], target.named)
             elif possible_target_types:
                 raise NonInjectableTypeError(
                     f"Could not find provider for '{target.type}': multiple types with this name found")

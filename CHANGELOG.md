@@ -1,5 +1,19 @@
 # Changelog
 ## Unreleased
+## 0.10.0
+### Breaking changes
+- Replaced `@annotated_arg` with `@named_arg`
+- Renamed the `annotation` parameter to `named` in:
+    - all Binding subclasses
+    - the `AbstractModule.bind` method
+    - the `Injector.inject` method
+- Changed the way annotated/named arguments work:
+    - When injecting a parameter in a constructor, opyoid will first try to find a binding with the same type and the
+    same name as the argument. If none is found, it will then try to find a binding with the same type and no name (this
+     part did not change).
+    - If the `@named_arg` decorator is used, opyoid will only try to find a binding with this name, if none is found, no
+    unnamed binding will be used (this did not change).
+
 ### Features
 - Cyclic dependencies now raise a `CyclicDependencyError` instead of a `RecursionError`
 - Cleaner and more verbose logs

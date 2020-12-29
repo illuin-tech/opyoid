@@ -31,7 +31,7 @@ class MultiBindingToProviderAdapter(BindingToProviderAdapter[MultiBinding]):
                context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         item_providers = []
         for sub_binding in binding.item_bindings:
-            new_context = context.get_child_context(Target(sub_binding.target.type, sub_binding.target.annotation))
+            new_context = context.get_child_context(Target(sub_binding.target.type, sub_binding.target.named))
             item_providers.append(self._item_provider_factory.create(sub_binding, new_context, cache_provider=False))
 
         unscoped_provider = ListProvider(item_providers)

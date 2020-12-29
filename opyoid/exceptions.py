@@ -18,8 +18,8 @@ class BindingError(InjectException):
     pass
 
 
-class AnnotationError(InjectException):
-    """Raised when annotated_arg is used with an unexpected argument."""
+class NamedError(InjectException):
+    """Raised when named_arg is used with an unexpected argument."""
     pass
 
 

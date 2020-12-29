@@ -43,15 +43,15 @@ class TestAbstractModule(unittest.TestCase):
         class OtherModule(Module):
             def configure(self) -> None:
                 self.bind(MyType)
-                self.bind(OtherType, annotation="my_annotation")
+                self.bind(OtherType, named="my_name")
 
         module = OtherModule()
         self.module.install(module)
         self.assertEqual(
             {
                 FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
-                FrozenTarget(OtherType, "my_annotation"): RegisteredBinding(
-                    SelfBinding(OtherType, annotation="my_annotation")),
+                FrozenTarget(OtherType, "my_name"): RegisteredBinding(
+                    SelfBinding(OtherType, named="my_name")),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -109,32 +109,32 @@ class TestAbstractModule(unittest.TestCase):
             self.module.binding_registry.get_bindings_by_target()
         )
 
-    def test_bind_with_annotation(self):
+    def test_bind_with_name(self):
         my_instance = MyType()
         self.module.bind(MyType, to_instance=my_instance)
-        self.module.bind(MyType, annotation="my_annotation")
+        self.module.bind(MyType, named="my_name")
         my_other_instance = OtherType()
-        self.module.bind(OtherType, to_instance=my_other_instance, annotation="my_other_annotation")
+        self.module.bind(OtherType, to_instance=my_other_instance, named="my_other_name")
 
         self.assertEqual(
             {
                 FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
-                FrozenTarget(MyType, "my_annotation"): RegisteredBinding(
-                    SelfBinding(MyType, annotation="my_annotation")),
-                FrozenTarget(OtherType, "my_other_annotation"):
-                    RegisteredBinding(InstanceBinding(OtherType, my_other_instance, "my_other_annotation")),
+                FrozenTarget(MyType, "my_name"): RegisteredBinding(
+                    SelfBinding(MyType, named="my_name")),
+                FrozenTarget(OtherType, "my_other_name"):
+                    RegisteredBinding(InstanceBinding(OtherType, my_other_instance, "my_other_name")),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
 
     def test_bind_provider_class(self):
-        self.module.bind(MyType, to_provider=MyProvider, scope=PerLookupScope, annotation="my_annotation")
+        self.module.bind(MyType, to_provider=MyProvider, scope=PerLookupScope, named="my_name")
         self.assertEqual(
             {
-                FrozenTarget(MyType, "my_annotation"): RegisteredBinding(
-                    ProviderBinding(MyType, MyProvider, PerLookupScope, "my_annotation")),
-                FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
-                    SelfBinding(MyProvider, scope=PerLookupScope, annotation="my_annotation")),
+                FrozenTarget(MyType, "my_name"): RegisteredBinding(
+                    ProviderBinding(MyType, MyProvider, PerLookupScope, "my_name")),
+                FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
+                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -168,13 +168,13 @@ class TestAbstractModule(unittest.TestCase):
                 self.module.bind_item(to_provider=provider),
             ],
             PerLookupScope,
-            "my_annotation",
+            "my_name",
             False,
         )
 
         self.assertEqual(
             {
-                FrozenTarget(List[MyType], "my_annotation"): RegisteredMultiBinding(
+                FrozenTarget(List[MyType], "my_name"): RegisteredMultiBinding(
                     MultiBinding(
                         MyType,
                         [
@@ -183,26 +183,26 @@ class TestAbstractModule(unittest.TestCase):
                             ItemBinding(bound_provider=provider),
                         ],
                         PerLookupScope,
-                        "my_annotation",
+                        "my_name",
                         False,
                     ),
                     item_bindings=[
                         RegisteredBinding(
-                            SelfBinding(MyType, PerLookupScope, "my_annotation"),
+                            SelfBinding(MyType, PerLookupScope, "my_name"),
                         ),
                         RegisteredBinding(
-                            InstanceBinding(MyType, instance, "my_annotation"),
+                            InstanceBinding(MyType, instance, "my_name"),
                         ),
                         RegisteredBinding(
-                            ProviderBinding(MyType, provider, PerLookupScope, "my_annotation"),
+                            ProviderBinding(MyType, provider, PerLookupScope, "my_name"),
                         )
                     ]
                 ),
-                FrozenTarget(MyProvider, "my_annotation"): RegisteredBinding(
-                    SelfBinding(MyProvider, PerLookupScope, "my_annotation")
+                FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
+                    SelfBinding(MyProvider, PerLookupScope, "my_name")
                 ),
-                FrozenTarget(MyType, "my_annotation"): RegisteredBinding(
-                    InstanceBinding(MyType, instance, "my_annotation")
+                FrozenTarget(MyType, "my_name"): RegisteredBinding(
+                    InstanceBinding(MyType, instance, "my_name")
                 )
             },
             self.module.binding_registry.get_bindings_by_target()

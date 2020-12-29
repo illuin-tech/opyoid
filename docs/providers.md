@@ -31,8 +31,8 @@ class MyModule(Module):
         self.bind(MyUntypedClass, to_provider=MyUntypedClassProvider)
         # You can also bind to a provider instance
         # self.bind(MyUntypedClass, to_provider=MyUntypedClassProvider())
-        # You can use a scope and an annotation
-        # self.bind(MyUntypedClass, to_provider=MyUntypedClassProvider, scope=SingletonScope, annotation="my_annotation")
+        # You can use a scope and specify an argument name
+        # self.bind(MyUntypedClass, to_provider=MyUntypedClassProvider, scope=SingletonScope, named="my_name")
 
 
 injector = Injector([MyModule()])
@@ -60,8 +60,8 @@ class MyUntypedClassProvider(Provider[MyUntypedClass]):
 injector = Injector(bindings=[
     InstanceBinding(str, "my_string"),
     ProviderBinding(MyUntypedClass, MyUntypedClassProvider),
-    # You can also bind to a provider instance, use a scope and an annotation
-    # ProviderBinding(MyUntypedClass, MyUntypedClassProvider(), scope=SingletonScope, annotation="my_annotation"),
+    # You can also bind to a provider instance, use a scope and an argument name
+    # ProviderBinding(MyUntypedClass, MyUntypedClassProvider(), scope=SingletonScope, named="my_name"),
 ])
 injected_instance = injector.inject(MyUntypedClass)
 assert isinstance(injected_instance, MyUntypedClass)

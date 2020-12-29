@@ -4,7 +4,7 @@ from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar
 import attr
 
 from opyoid import ClassBinding, ImmediateScope, Injector, InstanceBinding, ItemBinding, Module, MultiBinding, \
-    PerLookupScope, Provider, ProviderBinding, SelfBinding, annotated_arg
+    PerLookupScope, Provider, ProviderBinding, SelfBinding, named_arg
 from opyoid.bindings.private_module import PrivateModule
 from opyoid.exceptions import CyclicDependencyError, NoBindingFound, NonInjectableTypeError
 from opyoid.injector_options import InjectorOptions
@@ -337,31 +337,39 @@ class TestInjector(unittest.TestCase):
         my_instance_1 = injector.inject(MyClass1)
         self.assertIsInstance(my_instance_1, MyClass1)
 
-    def test_annotated_arg(self):
+    def test_named_arg(self):
         class Class1:
-            @annotated_arg("my_param", "type_1")
-            @annotated_arg("my_other_param", "type_2")
-            def __init__(self, my_param: str, my_other_param: str, my_default_param: str):
-                self.my_param = my_param
-                self.my_other_param = my_other_param
-                self.my_default_param = my_default_param
+            @named_arg("my_param_1", "new_param_1")
+            @named_arg("my_param_2", "new_param_2")
+            def __init__(self,
+                         my_param_1: str,
+                         my_param_2: str,
+                         my_param_3: str,
+                         my_param_4: str):
+                self.my_param_1 = my_param_1
+                self.my_param_2 = my_param_2
+                self.my_param_3 = my_param_3
+                self.my_param_4 = my_param_4
 
         injector = Injector(bindings=[
-            InstanceBinding(str, "my_type_1", "type_1"),
-            InstanceBinding(str, "my_type_2", "type_2"),
-            InstanceBinding(str, "my_default"),
+            InstanceBinding(str, "param_1", "new_param_1"),
+            InstanceBinding(str, "unused_param_1", "param_1"),
+            InstanceBinding(str, "param_2", "new_param_2"),
+            InstanceBinding(str, "param_3", "my_param_3"),
+            InstanceBinding(str, "param_4"),
             SelfBinding(Class1),
         ])
         instance = injector.inject(Class1)
         self.assertIsInstance(instance, Class1)
-        self.assertEqual("my_type_1", instance.my_param)
-        self.assertEqual("my_type_2", instance.my_other_param)
-        self.assertEqual("my_default", instance.my_default_param)
+        self.assertEqual("param_1", instance.my_param_1)
+        self.assertEqual("param_2", instance.my_param_2)
+        self.assertEqual("param_3", instance.my_param_3)
+        self.assertEqual("param_4", instance.my_param_4)
 
-    def test_annotated_list(self):
+    def test_named_list(self):
         class Class1:
-            @annotated_arg("my_param", "type_1")
-            @annotated_arg("my_other_param", "type_2")
+            @named_arg("my_param", "type_1")
+            @named_arg("my_other_param", "type_2")
             def __init__(self, my_param: List[str], my_other_param: List[str], my_default_param: List[str]):
                 self.my_param = my_param
                 self.my_other_param = my_other_param
@@ -374,14 +382,14 @@ class TestInjector(unittest.TestCase):
                 [
                     ItemBinding(bound_instance="my_type_1"),
                 ],
-                annotation="type_1"
+                named="type_1"
             ),
             MultiBinding(
                 str,
                 [
                     ItemBinding(bound_instance="my_type_2"),
                 ],
-                annotation="type_2"
+                named="type_2"
             ),
             MultiBinding(
                 str,
@@ -490,20 +498,20 @@ class TestInjector(unittest.TestCase):
 
         self.assertIs(my_parent_a.my_arg, my_parent_b.my_arg)
 
-    def test_annotated_singleton(self):
+    def test_named_singleton(self):
         class MyParentA:
-            @annotated_arg("my_arg", "annotation_1")
+            @named_arg("my_arg", "name_1")
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
         class MyParentB:
-            @annotated_arg("my_arg", "annotation_2")
+            @named_arg("my_arg", "name_2")
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
         injector = Injector(bindings=[
-            SelfBinding(MyClass, annotation="annotation_1"),
-            SelfBinding(MyClass, annotation="annotation_2"),
+            SelfBinding(MyClass, named="name_1"),
+            SelfBinding(MyClass, named="name_2"),
             SelfBinding(MyParentA),
             SelfBinding(MyParentB),
         ])

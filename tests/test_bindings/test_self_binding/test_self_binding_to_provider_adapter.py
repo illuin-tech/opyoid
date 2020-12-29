@@ -3,7 +3,7 @@ from typing import List
 from unittest.mock import call, create_autospec
 
 from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding, \
-    SingletonScope, ThreadScope, annotated_arg
+    SingletonScope, ThreadScope, named_arg
 from opyoid.bindings import BindingRegistry, FromClassProvider, SelfBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
@@ -114,14 +114,14 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.assertEqual(["my_arg_1", 2, 1.2, 3.4], instance.args)
         self.assertEqual({"arg_3": True}, instance.kwargs)
         self.assertEqual([
-            call(self.context.get_child_context(Target(str))),
-            call(self.context.get_child_context(Target(int))),
-            call(self.context.get_child_context(Target(List[float]))),
-            call(self.context.get_child_context(Target(bool))),
+            call(self.context.get_child_context(Target(str, "arg_1"))),
+            call(self.context.get_child_context(Target(int, "arg_2"))),
+            call(self.context.get_child_context(Target(List[float], "args"))),
+            call(self.context.get_child_context(Target(bool, "arg_3"))),
             call(self.context.get_child_context(Target(SingletonScope))),
         ], self.state.provider_creator.get_provider.call_args_list)
 
-    def test_create_provider_from_annotated_binding(self):
+    def test_create_provider_from_named_binding(self):
         class MyOtherType:
             def __init__(self, arg: str):
                 self.arg = arg
@@ -130,23 +130,25 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         mock_provider_1.get.return_value = "my_arg_1"
 
         self.state.provider_creator.get_provider.side_effect = [
+            NoBindingFound,
             mock_provider_1,
             self.mock_scope_provider,
         ]
 
         provider = self.adapter.create(
-            RegisteredBinding(SelfBinding(MyOtherType, annotation="my_annotation")), self.context)
+            RegisteredBinding(SelfBinding(MyOtherType, named="my_name")), self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
         self.assertEqual([
+            call(self.context.get_child_context(Target(str, "arg"))),
             call(self.context.get_child_context(Target(str))),
             call(self.context.get_child_context(Target(SingletonScope))),
         ], self.state.provider_creator.get_provider.call_args_list)
 
-    def test_create_provider_with_annotated_positional_argument(self):
+    def test_create_provider_with_named_positional_argument(self):
         class MyOtherType:
-            @annotated_arg("arg", "my_annotation")
+            @named_arg("arg", "my_name")
             def __init__(self, arg: str):
                 self.arg = arg
 
@@ -163,13 +165,13 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
         self.assertEqual([
-            call(self.context.get_child_context(Target(str, "my_annotation"))),
+            call(self.context.get_child_context(Target(str, "my_name"))),
             call(self.context.get_child_context(Target(SingletonScope))),
         ], self.state.provider_creator.get_provider.call_args_list)
 
-    def test_create_provider_with_annotated_args(self):
+    def test_create_provider_with_named_args(self):
         class MyOtherType:
-            @annotated_arg("arg", "my_annotation")
+            @named_arg("arg", "my_name")
             def __init__(self, *arg: str):
                 self.arg = arg
 
@@ -186,7 +188,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(("my_arg_1",), instance.arg)
         self.assertEqual([
-            call(self.context.get_child_context(Target(List[str], "my_annotation"))),
+            call(self.context.get_child_context(Target(List[str], "my_name"))),
             call(self.context.get_child_context(Target(SingletonScope))),
         ], self.state.provider_creator.get_provider.call_args_list)
 
@@ -206,6 +208,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
                 self.arg = arg
 
         self.state.provider_creator.get_provider.side_effect = [
+            NoBindingFound,
             NoBindingFound,
             self.mock_scope_provider,
         ]

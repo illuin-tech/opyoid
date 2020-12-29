@@ -17,7 +17,7 @@ class TestProviderRegistry(unittest.TestCase):
     def setUp(self):
         self.registry = ProviderRegistry()
         self.target = Target(MyType)
-        self.annotated_target = Target(MyType, "my_annotation")
+        self.named_target = Target(MyType, "my_name")
         self.other_target = Target(MyOtherType)
         self.provider_1 = create_autospec(Provider, spec_set=True)
         self.provider_2 = create_autospec(Provider, spec_set=True)
@@ -25,10 +25,10 @@ class TestProviderRegistry(unittest.TestCase):
 
     def test_register_saves_provider_to_new_type(self):
         self.registry.set_provider(self.target, self.provider_1)
-        self.registry.set_provider(self.annotated_target, self.provider_2)
+        self.registry.set_provider(self.named_target, self.provider_2)
         self.registry.set_provider(self.other_target, self.provider_3)
         self.assertEqual(self.provider_1, self.registry.get_provider(self.target))
-        self.assertEqual(self.provider_2, self.registry.get_provider(self.annotated_target))
+        self.assertEqual(self.provider_2, self.registry.get_provider(self.named_target))
         self.assertEqual(self.provider_3, self.registry.get_provider(self.other_target))
 
     def test_get_provider_for_unknown_type_returns_none(self):
@@ -37,15 +37,15 @@ class TestProviderRegistry(unittest.TestCase):
 
     def test_get_provider_from_string_type(self):
         self.registry.set_provider(self.target, self.provider_1)
-        self.registry.set_provider(self.annotated_target, self.provider_2)
+        self.registry.set_provider(self.named_target, self.provider_2)
         provider = self.registry.get_provider(Target("MyType"))
 
         self.assertEqual(self.provider_1, provider)
 
-    def test_get_annotated_provider_from_string(self):
+    def test_get_named_provider_from_string(self):
         self.registry.set_provider(self.target, self.provider_1)
-        self.registry.set_provider(self.annotated_target, self.provider_2)
-        provider = self.registry.get_provider(Target("MyType", "my_annotation"))
+        self.registry.set_provider(self.named_target, self.provider_2)
+        provider = self.registry.get_provider(Target("MyType", "my_name"))
 
         self.assertEqual(self.provider_2, provider)
 

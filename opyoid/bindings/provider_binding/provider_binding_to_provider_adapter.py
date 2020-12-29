@@ -22,7 +22,7 @@ class ProviderBindingToProviderAdapter(BindingToProviderAdapter[ProviderBinding]
                context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         if isinstance(binding.raw_binding.bound_provider, Provider):
             return binding.raw_binding.bound_provider
-        provider_target = Target(binding.raw_binding.bound_provider, binding.raw_binding.annotation)
+        provider_target = Target(binding.raw_binding.bound_provider, binding.raw_binding.named)
         provider_context = context.get_child_context(provider_target)
         provider_provider = provider_context.get_provider()
         unscoped_provider = FromProviderProvider(

@@ -50,13 +50,13 @@ class BindingRegistry:
         self_binding = None
         if isinstance(binding, ProviderBinding):
             if isinstance(binding.bound_provider, Provider):
-                self_binding = InstanceBinding(type(binding.bound_provider), binding.bound_provider, binding.annotation)
+                self_binding = InstanceBinding(type(binding.bound_provider), binding.bound_provider, binding.named)
             else:
-                self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, annotation=binding.annotation)
+                self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, named=binding.named)
         elif isinstance(binding, ClassBinding):
-            self_binding = SelfBinding(binding.bound_type, binding.scope, binding.annotation)
+            self_binding = SelfBinding(binding.bound_type, binding.scope, binding.named)
         elif isinstance(binding, InstanceBinding):
-            self_binding = InstanceBinding(type(binding.bound_instance), binding.bound_instance, binding.annotation)
+            self_binding = InstanceBinding(type(binding.bound_instance), binding.bound_instance, binding.named)
         elif isinstance(registered_binding, RegisteredMultiBinding):
             for item_binding in registered_binding.item_bindings:
                 self._register_self_binding(item_binding)
@@ -80,5 +80,5 @@ class BindingRegistry:
             elif possible_target_types:
                 raise NonInjectableTypeError(
                     f"Could not find binding for '{target.type}': multiple types with this name found")
-        frozen_target = FrozenTarget(target.type, target.annotation)
+        frozen_target = FrozenTarget(target.type, target.named)
         return self._bindings_by_target.get(frozen_target)

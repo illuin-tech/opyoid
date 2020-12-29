@@ -4,12 +4,12 @@ Private bindings
 ### The problem
 Sometimes you need to inject several instances of the same class with different dependencies.
 
-Using annotations only cannot solve this, this problem is also called the robot legs problem.
+Using named arguments only cannot solve this, this problem is also called the robot legs problem.
 
 
 ### The solution
 
-Using a PrivateModule allows you to bind multiple classes to the same type and annotation.
+Using a PrivateModule allows you to bind multiple classes to the same type and name.
 
 By default bindings are only available to other classes bound in the same private module.
 You can expose some of them with `self.expose(self.bind(...))`, they become available in the module installing
@@ -40,14 +40,14 @@ class MyPrivateModule1(PrivateModule):
     def configure(self):
         self.bind(MyAbstractClass, MyImplementation1)
         self.expose(
-            self.bind(MyParentClass, annotation="impl1")
+            self.bind(MyParentClass, named="impl1")
         )
 
 class MyPrivateModule2(PrivateModule):
     def configure(self):
         self.bind(MyAbstractClass, MyImplementation2)
         self.expose(
-            self.bind(MyParentClass, annotation="impl2")
+            self.bind(MyParentClass, named="impl2")
         )
 
 

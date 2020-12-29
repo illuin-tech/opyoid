@@ -16,4 +16,4 @@ class JitProviderFactory(ProviderFactory):
 
     def create(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         return self._provider_factory.create(
-            RegisteredBinding(SelfBinding(context.target.type, annotation=context.target.annotation)), context)
+            RegisteredBinding(SelfBinding(context.target.type, named=context.target.named)), context)

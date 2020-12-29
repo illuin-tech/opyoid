@@ -10,7 +10,7 @@ class FrozenTarget(Generic[InjectedT]):
     """Identifies a class being injected, can be used as an index as it is read only."""
 
     type: Type[InjectedT]
-    annotation: Optional[str] = None
+    named: Optional[str] = None
 
     def __repr__(self) -> str:
-        return f"{get_class_full_name(self.type)}" + (f"#{self.annotation}" if self.annotation else "")
+        return f"{get_class_full_name(self.type)}" + (f"#{self.named}" if self.named else "")

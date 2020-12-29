@@ -14,4 +14,4 @@ class TestInstanceBinding(unittest.TestCase):
 
         self.assertEqual(MyType, binding.target_type)
         self.assertIs(instance, binding.bound_instance)
-        self.assertIsNone(binding.annotation)
+        self.assertIsNone(binding.named)

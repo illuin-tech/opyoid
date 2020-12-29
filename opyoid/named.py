@@ -1,31 +1,31 @@
 from inspect import Parameter, Signature, signature
 from typing import Callable, Generic, Mapping, Type, TypeVar, cast
 
-from opyoid.exceptions import AnnotationError
+from opyoid.exceptions import NamedError
 
 WrappedT = TypeVar("WrappedT")
 
 
-class Annotated(Generic[WrappedT]):
-    annotation: str = None
+class Named(Generic[WrappedT]):
+    name: str = None
     original_type: Type[WrappedT]
 
     @classmethod
-    def get_annotated_class(cls, original_type: str, annotation: str) -> Type["Annotated"]:
+    def get_named_class(cls, original_type: str, name: str) -> Type["Named"]:
         return cast(
-            Type[Annotated],
+            Type[Named],
             type(
                 cls.__name__,
                 (cls,), {
-                    "annotation": annotation,
+                    "name": name,
                     "original_type": original_type,
                 },
             ),
         )
 
 
-def annotated_arg(arg_name: str, annotation: str) -> Callable[[Callable], Callable]:
-    """Decorator used to annotate constructor arguments.
+def named_arg(arg_name: str, name: str) -> Callable[[Callable], Callable]:
+    """Decorator used to name constructor arguments.
 
     Use it to specify multiple bindings for the same type.
     """
@@ -34,11 +34,11 @@ def annotated_arg(arg_name: str, annotation: str) -> Callable[[Callable], Callab
         init_signature = signature(init)
         parameters: Mapping[str, Parameter] = init_signature.parameters
         if arg_name not in parameters:
-            raise AnnotationError(f"Cannot add annotation on unknown parameter '{arg_name}'")
+            raise NamedError(f"Cannot add name on unknown parameter '{arg_name}'")
         parameter = parameters[arg_name]
         if parameter.annotation is Parameter.empty:
-            raise AnnotationError(f"Cannot add annotation on untyped parameter '{arg_name}'")
-        new_parameter = parameter.replace(annotation=Annotated.get_annotated_class(parameter.annotation, annotation))
+            raise NamedError(f"Cannot add name on untyped parameter '{arg_name}'")
+        new_parameter = parameter.replace(annotation=Named.get_named_class(parameter.annotation, name))
         init.__signature__ = Signature([
             new_parameter if parameter.name == arg_name else parameter
             for parameter in parameters.values()

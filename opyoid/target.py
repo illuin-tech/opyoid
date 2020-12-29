@@ -10,8 +10,8 @@ class Target(Generic[InjectedT]):
     """Identifies a class being injected."""
 
     type: Union[Type[InjectedT], str]
-    annotation: Optional[str] = None
+    named: Optional[str] = None
     default: Any = attr.ib(default=EMPTY, eq=False)
 
     def __repr__(self) -> str:
-        return f"{get_class_full_name(self.type)}" + (f"#{self.annotation}" if self.annotation else "")
+        return f"{get_class_full_name(self.type)}" + (f"#{self.named}" if self.named else "")

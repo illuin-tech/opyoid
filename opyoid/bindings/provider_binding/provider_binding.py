@@ -14,7 +14,7 @@ class ProviderBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_provider: Union[Type[Provider[InjectedT]], Provider[InjectedT]]
     scope: Type[Scope] = SingletonScope
-    _annotation: Optional[str] = None
+    _named: Optional[str] = None
 
     def __attrs_post_init__(self) -> None:
         if isinstance(self.bound_provider, Provider) and self.scope is not SingletonScope:
@@ -29,8 +29,8 @@ class ProviderBinding(Binding[InjectedT]):
         return self._target_type
 
     @property
-    def annotation(self) -> Optional[str]:
-        return self._annotation
+    def named(self) -> Optional[str]:
+        return self._named
 
     def __repr__(self) -> str:
         provider_string = repr(self.bound_provider) \

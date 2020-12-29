@@ -10,15 +10,15 @@ from opyoid.utils import InjectedT
 class InstanceBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_instance: InjectedT
-    _annotation: Optional[str] = None
+    _named: Optional[str] = None
 
     @property
     def target_type(self) -> Type[InjectedT]:
         return self._target_type
 
     @property
-    def annotation(self) -> Optional[str]:
-        return self._annotation
+    def named(self) -> Optional[str]:
+        return self._named
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.target!r} -> {self.bound_instance!r})"

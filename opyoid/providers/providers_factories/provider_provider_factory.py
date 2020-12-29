@@ -14,6 +14,6 @@ class ProviderProviderFactory(ProviderFactory):
         return TypeChecker.is_provider(context.target.type)
 
     def create(self, context: InjectionContext[Provider[InjectedT]]) -> Provider[Provider[InjectedT]]:
-        new_target = Target(context.target.type.__args__[0], context.target.annotation)
+        new_target = Target(context.target.type.__args__[0], context.target.named)
         new_context = context.get_child_context(new_target)
         return FromInstanceProvider(new_context.get_provider())
