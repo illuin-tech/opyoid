@@ -9,7 +9,7 @@ Start by creating a new `Provider`
 
 ```python
 from opyoid import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 EMPTY = object()
 
@@ -45,7 +45,7 @@ from typing import List, Optional, Type
 
 from opyoid import Provider
 from opyoid.scopes import Scope
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 from .custom_scoped_provider import CustomScopedProvider
 

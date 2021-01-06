@@ -3,7 +3,7 @@ from typing import Generic, TYPE_CHECKING, Tuple, TypeVar
 import attr
 
 from opyoid.frozen_target import FrozenTarget
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .binding import Binding
 
 if TYPE_CHECKING:

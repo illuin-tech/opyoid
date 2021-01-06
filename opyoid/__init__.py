@@ -7,4 +7,4 @@ from .injector_options import InjectorOptions
 from .provider import Provider
 from .scopes import ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
 from .target import Target
-from .typings import InjectedT
+from .utils import InjectedT

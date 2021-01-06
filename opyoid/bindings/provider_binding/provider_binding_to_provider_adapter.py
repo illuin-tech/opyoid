@@ -5,7 +5,7 @@ from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .from_provider_provider import FromProviderProvider
 from .provider_binding import ProviderBinding
 

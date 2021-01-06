@@ -6,7 +6,7 @@ from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .provider_factory import ProviderFactory
 
 
@@ -21,7 +21,7 @@ class TypeProviderFactory(ProviderFactory):
         new_context = context.get_child_context(new_target)
         binding = new_context.get_binding()
         if not binding or not isinstance(binding.raw_binding, (ClassBinding, SelfBinding)):
-            raise NoBindingFound(f"Could not find any binding for {context.target}")
+            raise NoBindingFound(f"Could not find any binding for {context.target!r}")
         if isinstance(binding.raw_binding, ClassBinding):
             return FromInstanceProvider(binding.raw_binding.bound_type)
         return FromInstanceProvider(binding.raw_binding.target_type)

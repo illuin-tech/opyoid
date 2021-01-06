@@ -1,14 +1,14 @@
 from typing import Set
 
 from opyoid.frozen_target import FrozenTarget
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .abstract_module import AbstractModule
 from .registered_binding import RegisteredBinding
 
 
 class PrivateModule(AbstractModule):
     def __init__(self):
-        AbstractModule.__init__(self)
+        AbstractModule.__init__(self, log_bindings=True)
         self._exposed_bindings: Set[FrozenTarget] = set()
 
     def configure(self) -> None:

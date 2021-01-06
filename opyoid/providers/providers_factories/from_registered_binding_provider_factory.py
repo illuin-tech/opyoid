@@ -9,7 +9,7 @@ from opyoid.exceptions import BindingError
 from opyoid.injection_context import InjectionContext
 from opyoid.injection_state import InjectionState
 from opyoid.provider import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 
 
 class FromRegisteredBindingProviderFactory:

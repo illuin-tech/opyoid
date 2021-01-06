@@ -3,7 +3,7 @@ from opyoid.bindings.binding_to_provider_adapter import BindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .from_instance_provider import FromInstanceProvider
 from .instance_binding import InstanceBinding
 

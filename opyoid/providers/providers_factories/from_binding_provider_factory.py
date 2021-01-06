@@ -2,7 +2,7 @@ import logging
 
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .from_registered_binding_provider_factory import FromRegisteredBindingProviderFactory
 from .provider_factory import ProviderFactory
 

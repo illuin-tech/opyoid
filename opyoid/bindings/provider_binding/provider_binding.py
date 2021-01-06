@@ -6,10 +6,10 @@ from opyoid.bindings.binding import Binding
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
 from opyoid.scopes import Scope, SingletonScope
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT, get_class_full_name
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@attr.s(auto_attribs=True, frozen=True, repr=False)
 class ProviderBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_provider: Union[Type[Provider[InjectedT]], Provider[InjectedT]]
@@ -31,3 +31,9 @@ class ProviderBinding(Binding[InjectedT]):
     @property
     def annotation(self) -> Optional[str]:
         return self._annotation
+
+    def __repr__(self) -> str:
+        provider_string = repr(self.bound_provider) \
+            if isinstance(self.bound_provider, Provider) else get_class_full_name(self.bound_provider)
+        scope_string = f", scope={self.scope}" if self.scope != SingletonScope else ""
+        return f"{self.__class__.__name__}({self.target!r} -> {provider_string}{scope_string})"

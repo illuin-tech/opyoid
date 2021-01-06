@@ -4,7 +4,7 @@ from .exceptions import NonInjectableTypeError
 from .frozen_target import FrozenTarget
 from .provider import Provider
 from .target import Target
-from .typings import InjectedT
+from .utils import InjectedT
 
 
 class ProviderRegistry:

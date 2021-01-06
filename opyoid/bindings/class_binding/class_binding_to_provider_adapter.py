@@ -4,7 +4,7 @@ from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
-from opyoid.typings import InjectedT
+from opyoid.utils import InjectedT
 from .class_binding import ClassBinding
 
 
