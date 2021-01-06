@@ -21,7 +21,7 @@ setuptools.setup(
     platforms="any",
 
     install_requires=[
-        "attrs>=19.1.0,<21.0.0"
+        "attrs>=19.1.0,<22.0.0"
     ],
     python_requires=">=3.6,<4.0",
     packages=setuptools.find_packages(include=["opyoid", "opyoid.*"]),

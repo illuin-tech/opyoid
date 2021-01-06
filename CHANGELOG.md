@@ -1,5 +1,8 @@
 # Changelog
 ## Unreleased
+### Features
+- Cyclic dependencies now raise a `CyclicDependencyError` instead of a `RecursionError`
+
 ## 0.9.0
 ### Breaking changes
 - ClassBindings cannot be used to bind a class to itself anymore, use a SelfBinding instead

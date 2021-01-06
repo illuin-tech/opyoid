@@ -21,3 +21,8 @@ class BindingError(InjectException):
 class AnnotationError(InjectException):
     """Raised when annotated_arg is used with an unexpected argument."""
     pass
+
+
+class CyclicDependencyError(InjectException):
+    """Raised when a cyclic dependency is detected."""
+    pass

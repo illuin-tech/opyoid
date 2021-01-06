@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from opyoid.injection_state import InjectionState
+from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.typings import InjectedT
 from .binding import Binding
@@ -12,10 +12,10 @@ BindingT = TypeVar("BindingT", bound=Binding)
 class BindingToProviderAdapter(Generic[BindingT]):
     """Creates a provider from a binding."""
 
-    def accept(self, binding: Binding[InjectedT], state: InjectionState) -> bool:
+    def accept(self, binding: Binding[InjectedT], context: InjectionContext[InjectedT]) -> bool:
         """Return True if this adapter can handle this binding."""
         raise NotImplementedError
 
-    def create(self, binding: RegisteredBinding[BindingT], state: InjectionState) -> Provider[InjectedT]:
+    def create(self, binding: RegisteredBinding[BindingT], context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         """Returns a provider corresponding to this binding."""
         raise NotImplementedError

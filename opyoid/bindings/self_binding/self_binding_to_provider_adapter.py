@@ -7,7 +7,7 @@ from opyoid.bindings.binding_to_provider_adapter import BindingToProviderAdapter
 from opyoid.bindings.instance_binding import FromInstanceProvider
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
-from opyoid.injection_state import InjectionState
+from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
@@ -22,10 +22,12 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
 
     logger = logging.getLogger(__name__)
 
-    def accept(self, binding: Binding[InjectedT], state: InjectionState) -> bool:
+    def accept(self, binding: Binding[InjectedT], context: InjectionContext) -> bool:
         return isinstance(binding, SelfBinding)
 
-    def create(self, binding: RegisteredBinding[SelfBinding[InjectedT]], state: InjectionState) -> Provider:
+    def create(self,
+               binding: RegisteredBinding[SelfBinding[InjectedT]],
+               context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         parameters = signature(binding.target.type.__init__).parameters
         positional_providers: List[Provider] = []
         args_provider: Optional[Provider[List]] = None
@@ -38,9 +40,9 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
 
             if parameter.kind == Parameter.VAR_POSITIONAL:
                 # *args
-                args_provider = self._get_positional_parameter_provider(parameter, binding.target.type, state)
+                args_provider = self._get_positional_parameter_provider(parameter, binding.target.type, context)
                 continue
-            parameter_provider = self._get_parameter_provider(parameter, binding.target.type, state)
+            parameter_provider = self._get_parameter_provider(parameter, binding.target.type, context)
             if parameter.kind == Parameter.KEYWORD_ONLY:
                 # After *args
                 keyword_providers[parameter.name] = parameter_provider
@@ -53,8 +55,9 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
             args_provider,
             keyword_providers,
         )
+        scope_context = context.get_child_context(Target(binding.raw_binding.scope))
         try:
-            scope_provider = state.provider_creator.get_provider(Target(binding.raw_binding.scope), state)
+            scope_provider = scope_context.get_provider()
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
                                          f" {binding.raw_binding.scope.__name__!r}")
@@ -63,15 +66,16 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     @staticmethod
     def _get_parameter_provider(parameter: Parameter,
                                 current_class: Type,
-                                state: InjectionState) -> Provider:
+                                context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         default_value = parameter.default if parameter.default is not Parameter.empty else EMPTY
         if parameter.annotation is not Parameter.empty:
             if TypeChecker.is_annotated(parameter.annotation):
                 target = Target(parameter.annotation.original_type, parameter.annotation.annotation, default_value)
             else:
                 target = Target(parameter.annotation, None, default_value)
+            parameter_context = context.get_child_context(target)
             try:
-                return state.provider_creator.get_provider(target, state)
+                return parameter_context.get_provider()
             except NoBindingFound:
                 pass
         if parameter.default is not Parameter.empty:
@@ -82,15 +86,16 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     def _get_positional_parameter_provider(self,
                                            parameter: Parameter,
                                            current_class: Type,
-                                           state: InjectionState) -> Provider[List]:
+                                           context: InjectionContext[InjectedT]) -> Provider[List[InjectedT]]:
         if parameter.annotation is Parameter.empty:
             return FromInstanceProvider([])
         if TypeChecker.is_annotated(parameter.annotation):
             target = Target(List[parameter.annotation.original_type], parameter.annotation.annotation, [])
         else:
             target = Target(List[parameter.annotation], default=[])
+        parameter_context = context.get_child_context(target)
         try:
-            return state.provider_creator.get_provider(target, state)
+            return parameter_context.get_provider()
         except NoBindingFound:
             self.logger.debug(f"Could not find a binding for *{parameter.name}: {parameter.annotation} required by "
                               f"{current_class}, will inject nothing")

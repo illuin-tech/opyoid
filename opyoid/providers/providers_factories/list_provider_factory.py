@@ -1,7 +1,7 @@
 from typing import List
 
 from opyoid.bindings import ListProvider
-from opyoid.injection_state import InjectionState
+from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
@@ -12,11 +12,10 @@ from .provider_factory import ProviderFactory
 class ListProviderFactory(ProviderFactory):
     """Creates a Provider that groups the target set items providers."""
 
-    def accept(self, target: Target[InjectedT], state: InjectionState) -> bool:
-        return TypeChecker.is_list(target.type)
+    def accept(self, context: InjectionContext[InjectedT]) -> bool:
+        return TypeChecker.is_list(context.target.type)
 
-    def create(self,
-               target: Target[List[InjectedT]],
-               state: InjectionState) -> Provider[List[InjectedT]]:
-        new_target = Target(target.type.__args__[0], target.annotation)
-        return ListProvider([state.provider_creator.get_provider(new_target, state)])
+    def create(self, context: InjectionContext[List[InjectedT]]) -> Provider[List[InjectedT]]:
+        new_target = Target(context.target.type.__args__[0], context.target.annotation)
+        new_context = context.get_child_context(new_target)
+        return ListProvider([new_context.get_provider()])
