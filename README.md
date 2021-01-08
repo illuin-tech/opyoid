@@ -270,8 +270,8 @@ SelfBinding(MyClass)  # binding a class to itself
 ClassBinding(MyClass, MySubClass)  # binding a class to a subclass
 SelfBinding(MyClass, scope=PerLookupScope)  # specifying scope
 InstanceBinding(MyClass, my_instance)  # binding an instance
-SelfBinding(MyClass, annotation="my_annotation")  # binding a class to itself with an annotation
-InstanceBinding(MyClass, my_instance, annotation="my_annotation")  # binding an instance with an annotation
+SelfBinding(MyClass, named="my_name")  # binding a class to itself with a specific name
+InstanceBinding(MyClass, my_instance, named="my_name")  # binding an instance with a specific name
 ```
 
 ### Injecting Type

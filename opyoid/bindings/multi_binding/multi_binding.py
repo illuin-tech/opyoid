@@ -13,7 +13,7 @@ class MultiBinding(Binding[List[InjectedT]]):
     item_target_type: Type[InjectedT]
     item_bindings: List[ItemBinding[InjectedT]]
     scope: Type[Scope] = SingletonScope
-    _annotation: Optional[str] = None
+    _named: Optional[str] = None
     override_bindings: bool = True
 
     @property
@@ -21,8 +21,8 @@ class MultiBinding(Binding[List[InjectedT]]):
         return List[self.item_target_type]
 
     @property
-    def annotation(self) -> Optional[str]:
-        return self._annotation
+    def named(self) -> Optional[str]:
+        return self._named
 
     def __repr__(self) -> str:
         items_string = ", ".join(f"{item!r}" for item in self.item_bindings)

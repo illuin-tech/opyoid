@@ -2,7 +2,7 @@
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from typing import Type, Union, _GenericAlias
 
-from opyoid.annotated import Annotated
+from opyoid.named import Named
 from opyoid.provider import Provider
 
 
@@ -31,9 +31,9 @@ class Pep560TypeChecker:
         return isinstance(target_type, _GenericAlias) and target_type.__origin__ == Provider
 
     @staticmethod
-    def is_annotated(target_type: Type) -> bool:
-        """Returns True if target_type is Annotated[<Any>]"""
-        return isinstance(target_type, type) and issubclass(target_type, Annotated)
+    def is_named(target_type: Type) -> bool:
+        """Returns True if target_type is Named[<Any>]"""
+        return isinstance(target_type, type) and issubclass(target_type, Named)
 
     @staticmethod
     def is_optional(target_type: Type) -> bool:

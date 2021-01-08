@@ -72,22 +72,22 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
             call(self.context.get_child_context(Target(SingletonScope))),
         ], self.state.provider_creator.get_provider.call_args_list)
 
-    def test_create_annotated_provider(self):
+    def test_create_named_provider(self):
         self.state.provider_creator.get_provider.side_effect = [
             self.provider_provider,
             self.mock_scope_provider,
         ]
 
-        context = InjectionContext(Target(MyType, "my_annotation"), self.state)
+        context = InjectionContext(Target(MyType, "my_name"), self.state)
         provider = self.adapter.create(
-            RegisteredBinding(ProviderBinding(MyType, Provider, annotation="my_annotation")),
+            RegisteredBinding(ProviderBinding(MyType, Provider, named="my_name")),
             context,
         )
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
         self.assertEqual([
-            call(context.get_child_context(Target(Provider, "my_annotation"))),
+            call(context.get_child_context(Target(Provider, "my_name"))),
             call(context.get_child_context(Target(SingletonScope))),
         ], self.state.provider_creator.get_provider.call_args_list)
 

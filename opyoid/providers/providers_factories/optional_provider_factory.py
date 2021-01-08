@@ -15,6 +15,6 @@ class OptionalProviderFactory(ProviderFactory):
         return TypeChecker.is_optional(context.target.type)
 
     def create(self, context: InjectionContext[Optional[InjectedT]]) -> Provider[InjectedT]:
-        new_target = Target(context.target.type.__args__[0], context.target.annotation)
+        new_target = Target(context.target.type.__args__[0], context.target.named)
         new_context = context.get_child_context(new_target)
         return new_context.get_provider()

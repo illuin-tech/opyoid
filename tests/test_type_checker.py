@@ -2,7 +2,7 @@ import unittest
 from typing import List, Optional, Set, Tuple, Type, Union
 
 from opyoid import Provider
-from opyoid.annotated import Annotated
+from opyoid.named import Named
 from opyoid.type_checker import PEP_585, TypeChecker
 
 
@@ -27,7 +27,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertTrue(self.type_checker.is_list(List[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_list(Set[TestClass]))
         self.assertFalse(self.type_checker.is_list(Tuple[TestClass]))
-        self.assertFalse(self.type_checker.is_list(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_list(Named[TestClass]))
 
     def test_is_optional(self):
         self.assertFalse(self.type_checker.is_optional(str))
@@ -42,7 +42,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_optional(List[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_list(Set[TestClass]))
         self.assertFalse(self.type_checker.is_list(Tuple[TestClass]))
-        self.assertFalse(self.type_checker.is_list(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_list(Named[TestClass]))
         self.assertFalse(self.type_checker.is_optional(Union[List[str], Tuple[str]]))
 
     def test_is_type(self):
@@ -58,7 +58,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_type(List[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_list(Set[TestClass]))
         self.assertFalse(self.type_checker.is_list(Tuple[TestClass]))
-        self.assertFalse(self.type_checker.is_list(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_list(Named[TestClass]))
 
     def test_is_set(self):
         self.assertFalse(self.type_checker.is_set(str))
@@ -73,7 +73,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertTrue(self.type_checker.is_set(Set[Type[TestClass]]))
         self.assertTrue(self.type_checker.is_set(Set[TestClass]))
         self.assertFalse(self.type_checker.is_set(Tuple[TestClass]))
-        self.assertFalse(self.type_checker.is_set(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_set(Named[TestClass]))
 
     def test_is_tuple(self):
         self.assertFalse(self.type_checker.is_tuple(str))
@@ -88,7 +88,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertTrue(self.type_checker.is_tuple(Tuple[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_tuple(Set[TestClass]))
         self.assertTrue(self.type_checker.is_tuple(Tuple[TestClass]))
-        self.assertFalse(self.type_checker.is_tuple(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_tuple(Named[TestClass]))
 
     def test_is_provider(self):
         self.assertFalse(self.type_checker.is_provider(str))
@@ -103,27 +103,27 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_provider(Tuple[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_provider(Set[TestClass]))
         self.assertFalse(self.type_checker.is_provider(Tuple[TestClass]))
-        self.assertFalse(self.type_checker.is_provider(Annotated[TestClass]))
+        self.assertFalse(self.type_checker.is_provider(Named[TestClass]))
         self.assertTrue(self.type_checker.is_provider(Provider[str]))
         self.assertTrue(self.type_checker.is_provider(Provider[TestClass]))
 
-    def test_is_annotated(self):
-        class MyAnnotatedType(Annotated):
+    def test_is_named(self):
+        class MyNamedType(Named):
             original_type = str
-            annotation = "my_annotation"
+            name = "my_name"
 
-        self.assertFalse(self.type_checker.is_annotated(str))
-        self.assertFalse(self.type_checker.is_annotated(TestClass))
-        self.assertFalse(self.type_checker.is_annotated(List[str]))
-        self.assertFalse(self.type_checker.is_annotated(List[TestClass]))
-        self.assertFalse(self.type_checker.is_annotated(Optional[str]))
-        self.assertFalse(self.type_checker.is_annotated(Optional[TestClass]))
-        self.assertFalse(self.type_checker.is_annotated(Type[str]))
-        self.assertFalse(self.type_checker.is_annotated(Type[TestClass]))
-        self.assertFalse(self.type_checker.is_annotated(Optional[List[Type[TestClass]]]))
-        self.assertFalse(self.type_checker.is_annotated(Set[TestClass]))
-        self.assertFalse(self.type_checker.is_annotated(Tuple[TestClass]))
-        self.assertTrue(self.type_checker.is_annotated(MyAnnotatedType))
+        self.assertFalse(self.type_checker.is_named(str))
+        self.assertFalse(self.type_checker.is_named(TestClass))
+        self.assertFalse(self.type_checker.is_named(List[str]))
+        self.assertFalse(self.type_checker.is_named(List[TestClass]))
+        self.assertFalse(self.type_checker.is_named(Optional[str]))
+        self.assertFalse(self.type_checker.is_named(Optional[TestClass]))
+        self.assertFalse(self.type_checker.is_named(Type[str]))
+        self.assertFalse(self.type_checker.is_named(Type[TestClass]))
+        self.assertFalse(self.type_checker.is_named(Optional[List[Type[TestClass]]]))
+        self.assertFalse(self.type_checker.is_named(Set[TestClass]))
+        self.assertFalse(self.type_checker.is_named(Tuple[TestClass]))
+        self.assertTrue(self.type_checker.is_named(MyNamedType))
 
     # pylint: disable=unsubscriptable-object
     @unittest.skipIf(not PEP_585, "Python 3.9 required")

@@ -21,7 +21,7 @@ class TestProviderBinding(unittest.TestCase):
         self.assertEqual(MyType, binding.target_type)
         self.assertEqual(MyProvider, binding.bound_provider)
         self.assertEqual(SingletonScope, binding.scope)
-        self.assertIsNone(binding.annotation)
+        self.assertIsNone(binding.named)
 
     def test_bind_provider_instance_with_scope_raises_exception(self):
         with self.assertRaises(BindingError):

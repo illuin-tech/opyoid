@@ -35,11 +35,11 @@ class TestProviderCreator(unittest.TestCase):
         )
         self.context = InjectionContext(Target(MyType), self.state)
         self.other_context = InjectionContext(Target(MyOtherType), self.state)
-        self.annotated_context = InjectionContext(Target(MyType, "my_annotation"), self.state)
+        self.named_context = InjectionContext(Target(MyType, "my_name"), self.state)
         self.my_instance = MyType()
         self.my_instance_binding = InstanceBinding(MyType, self.my_instance)
-        self.annotated_instance = MyType()
-        self.my_annotated_instance_binding = InstanceBinding(MyType, self.annotated_instance, "my_annotation")
+        self.named_instance = MyType()
+        self.my_named_instance_binding = InstanceBinding(MyType, self.named_instance, "my_name")
         self.my_other_instance = MyOtherType()
         self.my_other_instance_binding = InstanceBinding(MyOtherType, self.my_other_instance)
 
@@ -64,16 +64,16 @@ class TestProviderCreator(unittest.TestCase):
         provider_2 = self.provider_creator.get_provider(self.context)
         self.assertIs(provider_1, provider_2)
 
-    def test_get_provider_with_annotated_bindings(self):
-        self.binding_registry.register(RegisteredBinding(self.my_annotated_instance_binding))
+    def test_get_provider_with_named_bindings(self):
+        self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding))
 
         with self.assertRaises(NoBindingFound):
             self.provider_creator.get_provider(self.context)
 
-        provider = self.provider_creator.get_provider(self.annotated_context)
+        provider = self.provider_creator.get_provider(self.named_context)
         self.assertIsInstance(provider, FromInstanceProvider)
         instance = provider.get()
-        self.assertIs(self.annotated_instance, instance)
+        self.assertIs(self.named_instance, instance)
 
     def test_missing_binding_raises_exception(self):
         class MyParentClass:
@@ -109,18 +109,18 @@ class TestProviderCreator(unittest.TestCase):
         self.assertEqual([self.my_instance, ANY], list_instance)
         self.assertIsInstance(list_instance[1], MyType)
 
-    def test_list_binding_with_annotations(self):
+    def test_list_binding_with_named_arguments(self):
         self.binding_registry.register(
             RegisteredMultiBinding(
                 MultiBinding(
                     MyType,
                     [
-                        ItemBinding(bound_instance=self.annotated_instance),
+                        ItemBinding(bound_instance=self.named_instance),
                     ],
-                    annotation="my_annotation",
+                    named="my_name",
                 ),
                 item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.annotated_instance, "my_annotation"))
+                    RegisteredBinding(InstanceBinding(MyType, self.named_instance, "my_name"))
                 ]
             )
         )
@@ -137,13 +137,13 @@ class TestProviderCreator(unittest.TestCase):
                 ]
             )
         )
-        self.binding_registry.register(RegisteredBinding(self.my_annotated_instance_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding))
         self.binding_registry.register(RegisteredBinding(SelfBinding(MyType)))
 
-        context = InjectionContext(Target(List[MyType], "my_annotation"), self.state)
+        context = InjectionContext(Target(List[MyType], "my_name"), self.state)
         provider = self.provider_creator.get_provider(context)
         list_instance = provider.get()
-        self.assertEqual([self.annotated_instance], list_instance)
+        self.assertEqual([self.named_instance], list_instance)
 
     def test_set_binding_with_multi_binding(self):
         self.binding_registry.register(

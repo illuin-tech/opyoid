@@ -63,21 +63,22 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
                                          f" {binding.raw_binding.scope.__name__!r}")
         return scope_provider.get().get_scoped_provider(unscoped_provider)
 
-    @staticmethod
-    def _get_parameter_provider(parameter: Parameter,
+    def _get_parameter_provider(self,
+                                parameter: Parameter,
                                 current_class: Type,
                                 context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         default_value = parameter.default if parameter.default is not Parameter.empty else EMPTY
         if parameter.annotation is not Parameter.empty:
-            if TypeChecker.is_annotated(parameter.annotation):
-                target = Target(parameter.annotation.original_type, parameter.annotation.annotation, default_value)
+            if TypeChecker.is_named(parameter.annotation):
+                provider = self._get_provider([
+                    Target(parameter.annotation.original_type, parameter.annotation.name, default_value)], context)
             else:
-                target = Target(parameter.annotation, None, default_value)
-            parameter_context = context.get_child_context(target)
-            try:
-                return parameter_context.get_provider()
-            except NoBindingFound:
-                pass
+                provider = self._get_provider([
+                    Target(parameter.annotation, parameter.name, default_value),
+                    Target(parameter.annotation, None, default_value),
+                ], context)
+            if provider:
+                return provider
         if parameter.default is not Parameter.empty:
             return FromInstanceProvider(parameter.default)
         raise NonInjectableTypeError(f"Could not find a binding or a default value for {parameter.name}: "
@@ -89,14 +90,28 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
                                            context: InjectionContext[InjectedT]) -> Provider[List[InjectedT]]:
         if parameter.annotation is Parameter.empty:
             return FromInstanceProvider([])
-        if TypeChecker.is_annotated(parameter.annotation):
-            target = Target(List[parameter.annotation.original_type], parameter.annotation.annotation, [])
+        if TypeChecker.is_named(parameter.annotation):
+            provider = self._get_provider([
+                Target(List[parameter.annotation.original_type], parameter.annotation.name, default=[])
+            ], context)
         else:
-            target = Target(List[parameter.annotation], default=[])
-        parameter_context = context.get_child_context(target)
-        try:
-            return parameter_context.get_provider()
-        except NoBindingFound:
-            self.logger.debug(f"Could not find a binding for *{parameter.name}: {parameter.annotation} required by "
-                              f"{current_class}, will inject nothing")
-            return FromInstanceProvider([])
+            provider = self._get_provider([
+                Target(List[parameter.annotation], parameter.name, default=[]),
+                Target(List[parameter.annotation], default=[]),
+            ], context)
+        if provider:
+            return provider
+        self.logger.debug(f"Could not find a binding for *{parameter.name}: {parameter.annotation} required by "
+                          f"{current_class}, will inject nothing")
+        return FromInstanceProvider([])
+
+    @staticmethod
+    def _get_provider(targets: List[Target[InjectedT]],
+                      parent_context: InjectionContext) -> Optional[Provider[InjectedT]]:
+        for target in targets:
+            context = parent_context.get_child_context(target)
+            try:
+                return context.get_provider()
+            except NoBindingFound:
+                pass
+        return None

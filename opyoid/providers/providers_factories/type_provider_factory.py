@@ -17,7 +17,7 @@ class TypeProviderFactory(ProviderFactory):
         return TypeChecker.is_type(context.target.type)
 
     def create(self, context: InjectionContext[Type[InjectedT]]) -> Provider[Type[InjectedT]]:
-        new_target = Target(context.target.type.__args__[0], context.target.annotation)
+        new_target = Target(context.target.type.__args__[0], context.target.named)
         new_context = context.get_child_context(new_target)
         binding = new_context.get_binding()
         if not binding or not isinstance(binding.raw_binding, (ClassBinding, SelfBinding)):

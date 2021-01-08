@@ -15,9 +15,9 @@ class Binding(Generic[InjectedT]):
         raise NotImplementedError
 
     @property
-    def annotation(self) -> Optional[str]:
+    def named(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     def target(self) -> FrozenTarget[InjectedT]:
-        return FrozenTarget(self.target_type, self.annotation)
+        return FrozenTarget(self.target_type, self.named)
