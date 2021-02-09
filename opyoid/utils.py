@@ -9,6 +9,8 @@ def get_class_full_name(klass):
         module = klass.__module__
     except AttributeError:
         module = None
+    if module == Any.__module__:
+        return repr(klass)
     try:
         name = klass.__name__
     except AttributeError:
