@@ -1,5 +1,10 @@
 # Changelog
 ## Unreleased
+## 0.10.1
+### Fixes
+- Improved repr of generic types, the full name is now used
+
+
 ## 0.10.0
 ### Breaking changes
 - Replaced `@annotated_arg` with `@named_arg`
