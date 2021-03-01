@@ -1,5 +1,8 @@
 # Changelog
 ## Unreleased
+## 0.10.2
+- Improved repr of named types, the original type is now used
+
 ## 0.10.1
 ### Fixes
 - Improved repr of generic types, the full name is now used
