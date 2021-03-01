@@ -1,5 +1,5 @@
 from inspect import Parameter, Signature, signature
-from typing import Callable, Generic, Mapping, Type, TypeVar, cast
+from typing import Callable, Generic, Mapping, Type, TypeVar, Union, cast
 
 from opyoid.exceptions import NamedError
 
@@ -11,7 +11,7 @@ class Named(Generic[WrappedT]):
     original_type: Type[WrappedT]
 
     @classmethod
-    def get_named_class(cls, original_type: str, name: str) -> Type["Named"]:
+    def get_named_class(cls, original_type: Union[Type[WrappedT], str], name: str) -> Type["Named"]:
         return cast(
             Type[Named],
             type(
