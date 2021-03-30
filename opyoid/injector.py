@@ -35,6 +35,6 @@ class Injector:
             injection_context = InjectionContext(Target(target.type, target.named), self._root_state)
             injection_context.get_provider()
 
-    def inject(self, target_type: Type[InjectedT], named: Optional[str] = None) -> InjectedT:
+    def inject(self, target_type: Type[InjectedT], *, named: Optional[str] = None) -> InjectedT:
         injection_context = InjectionContext(Target(target_type, named), self._root_state)
         return injection_context.get_provider().get()

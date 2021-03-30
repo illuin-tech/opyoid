@@ -10,7 +10,7 @@ from opyoid.utils import InjectedT
 class InstanceBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_instance: InjectedT
-    _named: Optional[str] = None
+    _named: Optional[str] = attr.ib(default=None, kw_only=True)
 
     @property
     def target_type(self) -> Type[InjectedT]:

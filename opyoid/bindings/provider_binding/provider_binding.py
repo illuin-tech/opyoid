@@ -13,8 +13,8 @@ from opyoid.utils import InjectedT, get_class_full_name
 class ProviderBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
     bound_provider: Union[Type[Provider[InjectedT]], Provider[InjectedT]]
-    scope: Type[Scope] = SingletonScope
-    _named: Optional[str] = None
+    scope: Type[Scope] = attr.ib(default=SingletonScope, kw_only=True)
+    _named: Optional[str] = attr.ib(default=None, kw_only=True)
 
     def __attrs_post_init__(self) -> None:
         if isinstance(self.bound_provider, Provider) and self.scope is not SingletonScope:

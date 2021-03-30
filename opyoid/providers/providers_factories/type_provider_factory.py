@@ -23,5 +23,5 @@ class TypeProviderFactory(ProviderFactory):
         if not binding or not isinstance(binding.raw_binding, (ClassBinding, SelfBinding)):
             raise NoBindingFound(f"Could not find any binding for {context.target!r}")
         if isinstance(binding.raw_binding, ClassBinding):
-            return FromInstanceProvider(binding.raw_binding.bound_type)
+            return FromInstanceProvider(binding.raw_binding.bound_class)
         return FromInstanceProvider(binding.raw_binding.target_type)

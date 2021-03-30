@@ -6,7 +6,7 @@ If no bindings with the same name are found, a binding without a name will be us
 You can use this to inject different objects for the same type.
 
 ```python
-from opyoid import named_arg, Module, Injector
+from opyoid import Module, Injector
 
 
 class MyClass1:
@@ -51,6 +51,7 @@ class MyClass1:
     @named_arg("other_param", "class_1_other_param")
     def __init__(self, my_param: str, other_param: str = "fallback_value"):
         self.my_param = my_param
+        self.other_param = other_param
 
 class MyClass2:
     @named_arg("my_param", "class_2_param")

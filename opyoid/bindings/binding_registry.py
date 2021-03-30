@@ -50,13 +50,17 @@ class BindingRegistry:
         self_binding = None
         if isinstance(binding, ProviderBinding):
             if isinstance(binding.bound_provider, Provider):
-                self_binding = InstanceBinding(type(binding.bound_provider), binding.bound_provider, binding.named)
+                self_binding = InstanceBinding(
+                    type(binding.bound_provider),
+                    binding.bound_provider,
+                    named=binding.named,
+                )
             else:
                 self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, named=binding.named)
         elif isinstance(binding, ClassBinding):
-            self_binding = SelfBinding(binding.bound_type, binding.scope, binding.named)
+            self_binding = SelfBinding(binding.bound_class, scope=binding.scope, named=binding.named)
         elif isinstance(binding, InstanceBinding):
-            self_binding = InstanceBinding(type(binding.bound_instance), binding.bound_instance, binding.named)
+            self_binding = InstanceBinding(type(binding.bound_instance), binding.bound_instance, named=binding.named)
         elif isinstance(registered_binding, RegisteredMultiBinding):
             for item_binding in registered_binding.item_bindings:
                 self._register_self_binding(item_binding)

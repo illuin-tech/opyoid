@@ -10,8 +10,8 @@ from opyoid.utils import InjectedT
 @attr.s(auto_attribs=True, frozen=True, repr=False)
 class SelfBinding(Binding[InjectedT]):
     _target_type: Type[InjectedT]
-    scope: Type[Scope] = SingletonScope
-    _named: Optional[str] = None
+    scope: Type[Scope] = attr.ib(default=SingletonScope, kw_only=True)
+    _named: Optional[str] = attr.ib(default=None, kw_only=True)
 
     @property
     def target_type(self) -> Type[InjectedT]:

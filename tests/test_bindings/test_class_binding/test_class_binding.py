@@ -21,6 +21,6 @@ class TestClassBinding(unittest.TestCase):
         binding = ClassBinding(MyType, MySubType)
 
         self.assertEqual(MyType, binding.target_type)
-        self.assertEqual(MySubType, binding.bound_type)
+        self.assertEqual(MySubType, binding.bound_class)
         self.assertEqual(SingletonScope, binding.scope)
         self.assertIsNone(binding.named)

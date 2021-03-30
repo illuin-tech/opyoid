@@ -72,7 +72,7 @@ my_provider = MyProvider()
 
 injector = Injector(bindings=[
     MultiBinding(MyClass, [
-        ItemBinding(bound_type=SubClass),
+        ItemBinding(bound_class=SubClass),
         ItemBinding(bound_instance=my_instance),
         ItemBinding(bound_provider=my_provider),
     ])
@@ -97,7 +97,7 @@ class MyClass:
 
 injector = Injector(bindings=[
     MultiBinding(MyClass, [
-        ItemBinding(bound_type=MyClass),
+        ItemBinding(bound_class=MyClass),
     ], scope=PerLookupScope)
 ])
 
