@@ -8,7 +8,6 @@ from opyoid.utils import InjectedT
 from .class_binding import ClassBinding
 
 
-# pylint: disable=no-self-use, unused-argument
 class ClassBindingToProviderAdapter(BindingToProviderAdapter[ClassBinding]):
     """Creates a Provider from an ClassBinding."""
 

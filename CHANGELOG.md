@@ -1,7 +1,14 @@
 # Changelog
 ## Unreleased
+## 0.10.3
+### Fixes
+- Improved error message when missing a named binding, the underlying type and name is used
+
+
 ## 0.10.2
+### Fixes
 - Improved repr of named types, the original type is now used
+
 
 ## 0.10.1
 ### Fixes

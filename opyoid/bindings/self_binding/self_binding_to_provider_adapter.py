@@ -11,12 +11,11 @@ from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
-from opyoid.utils import EMPTY, InjectedT
+from opyoid.utils import EMPTY, InjectedT, get_class_full_name
 from .from_class_provider import FromClassProvider
 from .self_binding import SelfBinding
 
 
-# pylint: disable=no-self-use, unused-argument
 class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     """Creates a Provider from a SelfBinding."""
 
@@ -60,7 +59,7 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
             scope_provider = scope_context.get_provider()
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
-                                         f" {binding.raw_binding.scope.__name__!r}")
+                                         f" {binding.raw_binding.scope.__name__!r}") from None
         return scope_provider.get().get_scoped_provider(unscoped_provider)
 
     def _get_parameter_provider(self,
@@ -82,7 +81,7 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
         if parameter.default is not Parameter.empty:
             return FromInstanceProvider(parameter.default)
         raise NonInjectableTypeError(f"Could not find a binding or a default value for {parameter.name}: "
-                                     f"{parameter.annotation} required by {current_class}")
+                                     f"{get_class_full_name(parameter.annotation)} required by {current_class}")
 
     def _get_positional_parameter_provider(self,
                                            parameter: Parameter,

@@ -30,7 +30,7 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(get_class_full_name(MyGenericClass[int]).endswith("test_utils.MyGenericClass[int]"))
 
     def test_get_named_class_full_name(self):
-        self.assertEqual("int", get_class_full_name(Named.get_named_class(int, "my_name")))
+        self.assertEqual("int#my_name", get_class_full_name(Named.get_named_class(int, "my_name")))
 
     def test_str_get_class_full_name(self):
         self.assertEqual("MyClass", get_class_full_name("MyClass"))
