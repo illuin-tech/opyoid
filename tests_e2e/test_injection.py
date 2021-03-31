@@ -11,8 +11,7 @@ from opyoid.injector_options import InjectorOptions
 
 
 class MyClass:
-    def __init__(self):
-        pass
+    pass
 
 
 class TestInjector(unittest.TestCase):
@@ -309,15 +308,15 @@ class TestInjector(unittest.TestCase):
 
         class MyClass1:
             def __init__(self, my_param: MyGeneric):
-                pass
+                self.my_param = my_param
 
         class MyClass2:
             def __init__(self, my_param: MyGeneric[str]):
-                pass
+                self.my_param = my_param
 
         class MyClass3:
             def __init__(self, my_param: MyGeneric[MyTypeVar]):
-                pass
+                self.my_param = my_param
 
         with self.assertRaises(NonInjectableTypeError):
             Injector(bindings=[

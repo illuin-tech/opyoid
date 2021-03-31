@@ -21,7 +21,8 @@ class TestNamed(unittest.TestCase):
         class MyClass:
             @named_arg("my_param", "my_name")
             def __init__(self, my_param: MyType, my_other_param: MyOtherType):
-                pass
+                self.my_param = my_param
+                self.my_other_param = my_other_param
 
         parameters = signature(MyClass.__init__).parameters
         my_param = parameters["my_param"]
@@ -34,7 +35,7 @@ class TestNamed(unittest.TestCase):
         class MyClass:
             @named_arg("my_param", "my_name")
             def __init__(self, my_param: int = 3):
-                pass
+                self.my_param = my_param
 
         parameters = signature(MyClass.__init__).parameters
         my_param = parameters["my_param"]
@@ -49,7 +50,7 @@ class TestNamed(unittest.TestCase):
             class MyClass:
                 @named_arg("my_unknown_arg", "my_name")
                 def __init__(self, my_param: MyType):
-                    pass
+                    self.my_param = my_param
 
     def test_adding_name_on_untyped_parameter_raises_exception(self):
         # pylint: disable=unused-variable
@@ -57,4 +58,4 @@ class TestNamed(unittest.TestCase):
             class MyClass:
                 @named_arg("my_param", "my_name")
                 def __init__(self, my_param):
-                    pass
+                    self.my_param = my_param
