@@ -15,8 +15,7 @@ from opyoid.target import Target
 
 
 class MyType:
-    def __init__(self):
-        pass
+    pass
 
 
 class TestSelfBindingToProviderAdapter(unittest.TestCase):

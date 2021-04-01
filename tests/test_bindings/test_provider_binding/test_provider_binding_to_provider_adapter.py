@@ -14,8 +14,7 @@ from opyoid.target import Target
 
 
 class MyType:
-    def __init__(self):
-        pass
+    pass
 
 
 class TestProviderBindingToProviderAdapter(unittest.TestCase):
@@ -36,26 +35,20 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         self.context = InjectionContext(Target(MyType), self.state)
 
     def test_accept_provider_binding_returns_true(self):
-        self.assertTrue(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.context))
+        self.assertTrue(self.adapter.accept(
+            ProviderBinding(MyType, create_autospec(Provider, spec_set=True)), self.context))
 
     def test_accept_non_provider_binding_returns_false(self):
         self.assertFalse(self.adapter.accept(SelfBinding(MyType), self.context))
         self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType()), self.context))
 
-    def test_create_returns_provider(self):
-        self.state.provider_creator.get_provider.side_effect = [
-            self.provider_provider,
-            self.mock_scope_provider,
-        ]
-
-        provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.context)
+    def test_create_returns_provider_from_provider_instance_binding(self):
+        provider = self.adapter.create(RegisteredBinding(
+            ProviderBinding(MyType, self.provider)), self.context)
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
-        self.assertEqual([
-            call(self.context.get_child_context(Target(Provider))),
-            call(self.context.get_child_context(Target(SingletonScope))),
-        ], self.state.provider_creator.get_provider.call_args_list)
+        self.assertEqual([], self.state.provider_creator.get_provider.call_args_list)
 
     def test_create_provider_from_provider_class_binding(self):
         self.state.provider_creator.get_provider.side_effect = [
