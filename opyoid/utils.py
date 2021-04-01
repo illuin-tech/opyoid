@@ -10,7 +10,7 @@ def get_class_full_name(klass: Union[Type, str]) -> str:
     if isinstance(klass, str):
         return klass
     if isinstance(klass, type) and issubclass(klass, Named):
-        return get_class_full_name(cast(Type[Named], klass).original_type)
+        return get_class_full_name(cast(Type[Named], klass).original_type) + f"#{klass.name}"
     if hasattr(klass, "__origin__"):
         return repr(klass)
     try:

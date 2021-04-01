@@ -2,11 +2,12 @@
 -e .
 
 # Linting
-pylint==2.4.4
-pylint-quotes==0.2.1
+pylint==2.7.4
 
 # Publish
-twine==1.15.0
+twine==3.3.0
+setuptools==54.2.0
+wheel==0.36.2
 
 # Coverage
 pytest-cov==2.10.1

@@ -8,7 +8,6 @@ from .from_instance_provider import FromInstanceProvider
 from .instance_binding import InstanceBinding
 
 
-# pylint: disable=no-self-use, unused-argument
 class InstanceBindingToProviderAdapter(BindingToProviderAdapter[InstanceBinding]):
     """Creates a Provider from an InstanceBinding."""
 

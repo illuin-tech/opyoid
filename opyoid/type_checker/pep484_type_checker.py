@@ -38,6 +38,7 @@ class Pep484TypeChecker:
     @staticmethod
     def is_optional(target_type: Type) -> bool:
         """Returns True if target_type is Optional[<Any>]"""
+        # pylint: disable=comparison-with-callable
         return \
             isinstance(target_type, _Union) \
             and target_type.__origin__ == Union \

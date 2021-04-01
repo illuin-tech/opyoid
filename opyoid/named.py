@@ -7,7 +7,7 @@ WrappedT = TypeVar("WrappedT")
 
 
 class Named(Generic[WrappedT]):
-    name: str = None
+    name: str
     original_type: Type[WrappedT]
 
     @classmethod

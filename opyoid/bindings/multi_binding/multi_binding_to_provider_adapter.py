@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
 
 
-# pylint: disable=no-self-use, unused-argument
 class MultiBindingToProviderAdapter(BindingToProviderAdapter[MultiBinding]):
     """Creates a Provider from an MultiBinding."""
 
@@ -41,5 +40,5 @@ class MultiBindingToProviderAdapter(BindingToProviderAdapter[MultiBinding]):
             scope_provider = scope_context.get_provider()
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
-                                         f" {binding.raw_binding.scope.__name__!r}")
+                                         f" {binding.raw_binding.scope.__name__!r}") from None
         return scope_provider.get().get_scoped_provider(unscoped_provider)

@@ -10,7 +10,6 @@ from .from_provider_provider import FromProviderProvider
 from .provider_binding import ProviderBinding
 
 
-# pylint: disable=no-self-use, unused-argument
 class ProviderBindingToProviderAdapter(BindingToProviderAdapter[ProviderBinding]):
     """Creates a Provider from a ProviderBinding."""
 
@@ -33,5 +32,5 @@ class ProviderBindingToProviderAdapter(BindingToProviderAdapter[ProviderBinding]
             scope_provider = scope_context.get_provider()
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding}: they are no bindings for"
-                                         f"the scope {binding.raw_binding.scope}")
+                                         f"the scope {binding.raw_binding.scope}") from None
         return scope_provider.get().get_scoped_provider(unscoped_provider)
