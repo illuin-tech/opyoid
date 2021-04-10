@@ -96,7 +96,7 @@ class MySubClass(MyClass):
 
 class MyModule(Module):
     def configure(self) -> None:
-        self.bind(MyClass, MySubClass)
+        self.bind(MyClass, to_class=MySubClass)
 
 injector = Injector([MyModule()])
 my_instance = injector.inject(MyClass)
@@ -298,7 +298,7 @@ class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass)
         self.bind(MyClass, to_instance=my_instance)
-        self.bind(MyClass, SubClass)
+        self.bind(MyClass, to_class=SubClass)
         self.bind(MyParentClass)
 
 

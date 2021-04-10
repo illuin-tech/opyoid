@@ -38,22 +38,22 @@ class MyParentClass:
 
 class MyPrivateModule1(PrivateModule):
     def configure(self):
-        self.bind(MyAbstractClass, MyImplementation1)
+        self.bind(MyAbstractClass, to_class=MyImplementation1)
         self.expose(
             self.bind(MyParentClass, named="impl1")
         )
 
 class MyPrivateModule2(PrivateModule):
     def configure(self):
-        self.bind(MyAbstractClass, MyImplementation2)
+        self.bind(MyAbstractClass, to_class=MyImplementation2)
         self.expose(
             self.bind(MyParentClass, named="impl2")
         )
 
 
 injector = Injector([MyPrivateModule1(), MyPrivateModule2()])
-parent_1 = injector.inject(MyParentClass, "impl1")
-parent_2 = injector.inject(MyParentClass, "impl2")
+parent_1 = injector.inject(MyParentClass, named="impl1")
+parent_2 = injector.inject(MyParentClass, named="impl2")
 assert isinstance(parent_1, MyParentClass)
 assert isinstance(parent_2, MyParentClass)
 assert isinstance(parent_1.my_param, MyImplementation1)

@@ -25,4 +25,4 @@ class TestProviderBinding(unittest.TestCase):
 
     def test_bind_provider_instance_with_scope_raises_exception(self):
         with self.assertRaises(BindingError):
-            ProviderBinding(MyType, MyProvider(), PerLookupScope)
+            ProviderBinding(MyType, MyProvider(), scope=PerLookupScope)

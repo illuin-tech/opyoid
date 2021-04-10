@@ -49,7 +49,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
         self.assertEqual([self.my_instance], list_instance)
 
     def test_create_from_class_binding(self):
-        binding = RegisteredMultiBinding(MultiBinding(MyType, [ItemBinding(MyType)]), item_bindings=[
+        binding = RegisteredMultiBinding(MultiBinding(MyType, [ItemBinding(bound_class=MyType)]), item_bindings=[
             RegisteredBinding(SelfBinding(MyType))
         ])
 
@@ -74,7 +74,7 @@ class TestMultiBindingToProviderAdapter(unittest.TestCase):
 
     def test_create_scoped_provider(self):
         provider = self.adapter.create(RegisteredMultiBinding(
-            MultiBinding(MyType, [ItemBinding(MyType)], scope=ThreadScope),
+            MultiBinding(MyType, [ItemBinding(bound_class=MyType)], scope=ThreadScope),
             item_bindings=[
                 RegisteredBinding(SelfBinding(MyType, scope=ThreadScope))
             ]

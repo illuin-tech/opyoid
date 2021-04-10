@@ -44,7 +44,7 @@ class TestBindingRegistry(unittest.TestCase):
         }, self.binding_registry.get_bindings_by_target())
 
     def test_register_multi_binding_saves_binding_to_known_type_in_order(self):
-        item_binding_1 = ItemBinding(MyType)
+        item_binding_1 = ItemBinding(bound_class=MyType)
         registered_item_binding_1 = RegisteredBinding(SelfBinding(MyType))
         item_binding_2 = ItemBinding(bound_instance=MyType())
         registered_item_binding_2 = RegisteredBinding(InstanceBinding(MyType, item_binding_2.bound_instance))
@@ -64,7 +64,7 @@ class TestBindingRegistry(unittest.TestCase):
         self.assertEqual([registered_item_binding_1, registered_item_binding_2], registered_binding.item_bindings)
 
     def test_register_multi_binding_with_override(self):
-        item_binding_1 = ItemBinding(MyType)
+        item_binding_1 = ItemBinding(bound_class=MyType)
         item_binding_2 = ItemBinding(bound_instance=MyType())
         binding_1 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_1]))
         binding_2 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True))
@@ -147,7 +147,7 @@ class TestBindingRegistry(unittest.TestCase):
             {
                 FrozenTarget(str, "my_name"): provider_binding,
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
-                    InstanceBinding(MyProvider, provider_instance, "my_name")),
+                    InstanceBinding(MyProvider, provider_instance, named="my_name")),
             },
             self.binding_registry.get_bindings_by_target()
         )
@@ -157,7 +157,7 @@ class TestBindingRegistry(unittest.TestCase):
             def get(self) -> str:
                 return "hello"
 
-        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider, PerLookupScope, "my_name"))
+        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider, scope=PerLookupScope, named="my_name"))
         self.binding_registry.register(provider_binding)
 
         self.assertEqual(provider_binding, self.binding_registry.get_binding(Target(str, "my_name")))

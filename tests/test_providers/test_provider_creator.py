@@ -39,7 +39,7 @@ class TestProviderCreator(unittest.TestCase):
         self.my_instance = MyType()
         self.my_instance_binding = InstanceBinding(MyType, self.my_instance)
         self.named_instance = MyType()
-        self.my_named_instance_binding = InstanceBinding(MyType, self.named_instance, "my_name")
+        self.my_named_instance_binding = InstanceBinding(MyType, self.named_instance, named="my_name")
         self.my_other_instance = MyOtherType()
         self.my_other_instance_binding = InstanceBinding(MyOtherType, self.my_other_instance)
 
@@ -94,7 +94,7 @@ class TestProviderCreator(unittest.TestCase):
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
-                        ItemBinding(MyType),
+                        ItemBinding(bound_class=MyType),
                     ],
                 ),
                 item_bindings=[
@@ -120,7 +120,7 @@ class TestProviderCreator(unittest.TestCase):
                     named="my_name",
                 ),
                 item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.named_instance, "my_name"))
+                    RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"))
                 ]
             )
         )
@@ -152,7 +152,7 @@ class TestProviderCreator(unittest.TestCase):
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
-                        ItemBinding(MyType),
+                        ItemBinding(bound_class=MyType),
                     ],
                 ),
                 item_bindings=[
@@ -175,7 +175,7 @@ class TestProviderCreator(unittest.TestCase):
                     MyType,
                     [
                         ItemBinding(bound_instance=self.my_instance),
-                        ItemBinding(MyType),
+                        ItemBinding(bound_class=MyType),
                     ],
                 ),
                 item_bindings=[

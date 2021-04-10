@@ -1,5 +1,27 @@
 # Changelog
+
+Opyoid follows [semver guidelines](https://semver.org) for versioning.
+
 ## Unreleased
+## 1.0.0
+### Breaking changes
+- Renamed `bound_type` argument in `ClassBinding` and `ItemBinding` constructors into `bound_class`
+- Several method signatures now have keyword-only arguments:
+  - `named` in `Injector.inject`
+  - `to_class`, `to_instance`, `to_provider`, `scope` and `named` in `AbstractModule.bind`
+  - `scope`, `named` and `override_bindings` in `AbstractModule.multi_bind`
+  - `to_class`, `to_instance` and `to_provider` in `AbstractModule.bind_item`
+  - `scope` and `named` in `ClassBinding.__init__`
+  - `bound_class`, `bound_instance`, `bound_provider` in `ItemBinding.__init__`
+  - `named` in `InstanceBinding.__init__`
+  - `scope`, `named` and `override_bindings` in `MultiBinding.__init__`
+  - `scope` and `named` in `ProviderBinding.__init__`
+  - `scope` and `named` in `SelfBinding.__init__`
+  - `auto_bindings` in `InjectorOptions.__init__`
+
+### Features
+- Opyoid is now considered stable
+
 ## 0.10.3
 ### Fixes
 - Improved error message when missing a named binding, the underlying type and name is used

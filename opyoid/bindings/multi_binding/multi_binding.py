@@ -12,9 +12,9 @@ from opyoid.utils import InjectedT
 class MultiBinding(Binding[List[InjectedT]]):
     item_target_type: Type[InjectedT]
     item_bindings: List[ItemBinding[InjectedT]]
-    scope: Type[Scope] = SingletonScope
-    _named: Optional[str] = None
-    override_bindings: bool = True
+    scope: Type[Scope] = attr.ib(default=SingletonScope, kw_only=True)
+    _named: Optional[str] = attr.ib(default=None, kw_only=True)
+    override_bindings: bool = attr.ib(default=True, kw_only=True)
 
     @property
     def target_type(self) -> Type[List[InjectedT]]:
