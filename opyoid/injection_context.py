@@ -27,7 +27,7 @@ class InjectionContext(Generic[InjectedT]):
             if self == context.parent_context:
                 dependency_chain = "\n".join(
                     f"-> {target!r}"
-                    for target in self._dependency_chain
+                    for target in reversed(self._dependency_chain)
                 )
                 self.logger.error(f"Cyclic dependency detected, injection graph: \n{dependency_chain}")
                 raise CyclicDependencyError(f"Cyclic dependency detected, injection graph: \n{dependency_chain}")

@@ -3,6 +3,11 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+### Fixes
+- The error message in cyclic dependency errors is now displaying the dependencies in a more logical order
+  (from the parent class to the dependencies)
+
+
 ## 1.0.0
 ### Breaking changes
 - Renamed `bound_type` argument in `ClassBinding` and `ItemBinding` constructors into `bound_class`
