@@ -47,6 +47,32 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(my_instance, ParentClass)
         self.assertIsNone(my_instance.my_arg)
 
+    def test_auto_injection_with_named_binding(self):
+        class ParentClass:
+            @named_arg("my_arg", "my_name")
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        injector = Injector(options=InjectorOptions(auto_bindings=True))
+        my_instance = injector.inject(ParentClass)
+        self.assertIsInstance(my_instance, ParentClass)
+        self.assertIsInstance(my_instance.my_arg, MyClass)
+
+    def test_auto_injection_with_binding_override(self):
+        class ParentClass:
+            def __init__(self, my_arg: MyClass):
+                self.my_arg = my_arg
+
+        class MySubClass(MyClass):
+            pass
+
+        injector = Injector(bindings=[
+            ClassBinding(MyClass, MySubClass)
+        ], options=InjectorOptions(auto_bindings=True))
+        my_instance = injector.inject(ParentClass)
+        self.assertIsInstance(my_instance, ParentClass)
+        self.assertIsInstance(my_instance.my_arg, MySubClass)
+
     def test_subtype_argument_injection(self):
         class MySubClass(MyClass):
             pass
@@ -785,7 +811,6 @@ class TestInjector(unittest.TestCase):
 
         with self.assertRaises(CyclicDependencyError):
             Injector(bindings=[ClassBinding(MyClass, MyImpl), SelfBinding(MyOtherClass)])
-            Injector(bindings=[ClassBinding(MyClass, MyImpl)])
 
     def test_cyclic_dependencies_with_private_module_are_handled(self):
         class MyOtherClass:

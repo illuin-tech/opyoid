@@ -20,6 +20,7 @@ class InjectionContext(Generic[InjectedT]):
     target: Target[InjectedT]
     injection_state: "InjectionState"
     parent_context: Optional["InjectionContext"] = attr.ib(default=None, eq=False)
+    allow_jit_provider: bool = True
 
     def __attrs_post_init__(self):
         context = self
@@ -42,11 +43,13 @@ class InjectionContext(Generic[InjectedT]):
             chain.append(context.target)
         return chain
 
-    def get_child_context(self, new_target: Target[InjectedT]) -> "InjectionContext[InjectedT]":
-        return InjectionContext(new_target, self.injection_state, self)
+    def get_child_context(self,
+                          new_target: Target[InjectedT],
+                          allow_jit_provider: bool = True) -> "InjectionContext[InjectedT]":
+        return InjectionContext(new_target, self.injection_state, self, allow_jit_provider)
 
     def get_new_state_context(self, new_state: "InjectionState") -> "InjectionContext[InjectedT]":
-        return InjectionContext(self.target, new_state, self.parent_context)
+        return InjectionContext(self.target, new_state, self.parent_context, self.allow_jit_provider)
 
     def get_provider(self) -> Provider[InjectedT]:
         return self.injection_state.provider_creator.get_provider(self)

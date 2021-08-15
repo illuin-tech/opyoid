@@ -107,8 +107,8 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     @staticmethod
     def _get_provider(targets: List[Target[InjectedT]],
                       parent_context: InjectionContext) -> Optional[Provider[InjectedT]]:
-        for target in targets:
-            context = parent_context.get_child_context(target)
+        for target_index, target in enumerate(targets):
+            context = parent_context.get_child_context(target, allow_jit_provider=target_index == len(targets) - 1)
             try:
                 return context.get_provider()
             except NoBindingFound:
