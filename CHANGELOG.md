@@ -3,6 +3,13 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.0.1
+### Fixes
+- Using auto bindings does not ignore existing bindings anymore (bug introduced in `0.10.0`)
+- The error message in cyclic dependency errors is now displaying the dependencies in a more logical order
+  (from the parent class to the dependencies)
+
+
 ## 1.0.0
 ### Breaking changes
 - Renamed `bound_type` argument in `ClassBinding` and `ItemBinding` constructors into `bound_class`
@@ -21,6 +28,7 @@ Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ### Features
 - Opyoid is now considered stable
+
 
 ## 0.10.3
 ### Fixes
