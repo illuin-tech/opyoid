@@ -6,7 +6,7 @@ from opyoid.exceptions import NoBindingFound
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.utils import InjectedT
-from .providers_factories import FromBindingProviderFactory, FromCacheProviderFactory, OptionalProviderFactory, \
+from .providers_factories import FromBindingProviderFactory, FromCacheProviderFactory, UnionProviderFactory, \
     ProviderFactory, ProviderProviderFactory, SetProviderFactory, TupleProviderFactory, TypeProviderFactory
 from .providers_factories.jit_provider_factory import JitProviderFactory
 from .providers_factories.list_provider_factory import ListProviderFactory
@@ -24,7 +24,7 @@ class ProviderCreator:
             ListProviderFactory(),
             SetProviderFactory(),
             TupleProviderFactory(),
-            OptionalProviderFactory(),
+            UnionProviderFactory(),
             TypeProviderFactory(),
             ProviderProviderFactory(),
             JitProviderFactory(),

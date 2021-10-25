@@ -314,7 +314,7 @@ assert parent_instance.my_param is SubClass
 
 
 ##  Notes about Generics
-- The only supported generic types are `List`, `Set`, `Tuple`, `Optional` and `Type` (and any combination of them).
+- The supported generic types are `List`, `Set`, `Tuple`, `Optional`, `Union` and `Type` (and any combination of them).
 Other generics must be bound explicitly (e.g. you must bind a dict to `Dict[str, MyClass]` if you want to inject it).
 - Be careful when using generics, the bindings will only be used if the type matches exactly. For example, you cannot
 implicitly bind `MyClass[T]` to inject `MyClass`, or `MyClass[str]` to inject `MyClass[T]`. You need to bind something

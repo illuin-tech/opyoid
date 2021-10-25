@@ -1,5 +1,5 @@
 import unittest
-from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar
+from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 import attr
 
@@ -168,6 +168,29 @@ class TestInjector(unittest.TestCase):
         parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
         self.assertIsInstance(parent, MyParentClass)
         self.assertIsInstance(parent.param, MyClass)
+
+    def test_union_injection(self):
+        class MyParentClass:
+            def __init__(self, param: Union[str, MyClass]):
+                self.param = param
+
+        parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIsInstance(parent.param, MyClass)
+
+    def test_list_union_injection(self):
+        class MyParentClass:
+            def __init__(self, params: List[Union[str, int]]):
+                self.params = params
+
+        injector = Injector(bindings=[
+            SelfBinding(MyParentClass),
+            InstanceBinding(str, "hello"),
+            InstanceBinding(int, 1),
+        ])
+        parent = injector.inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertEqual(["hello", 1], parent.params)
 
     def test_type_direct_injection(self):
         class_type = self.get_injector(MyClass).inject(Type[MyClass])

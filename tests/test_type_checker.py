@@ -3,7 +3,7 @@ from typing import List, Optional, Set, Tuple, Type, Union
 
 from opyoid import Provider
 from opyoid.named import Named
-from opyoid.type_checker import PEP_585, TypeChecker
+from opyoid.type_checker import PEP_585, PEP_604, TypeChecker
 
 
 class TestClass:
@@ -29,21 +29,21 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_list(Tuple[TestClass]))
         self.assertFalse(self.type_checker.is_list(Named[TestClass]))
 
-    def test_is_optional(self):
-        self.assertFalse(self.type_checker.is_optional(str))
-        self.assertFalse(self.type_checker.is_optional(TestClass))
-        self.assertFalse(self.type_checker.is_optional(List[str]))
-        self.assertFalse(self.type_checker.is_optional(List[TestClass]))
-        self.assertTrue(self.type_checker.is_optional(Optional[str]))
-        self.assertTrue(self.type_checker.is_optional(Optional[TestClass]))
-        self.assertFalse(self.type_checker.is_optional(Type[str]))
-        self.assertFalse(self.type_checker.is_optional(Type[TestClass]))
-        self.assertTrue(self.type_checker.is_optional(Optional[List[Type[TestClass]]]))
-        self.assertFalse(self.type_checker.is_optional(List[Type[TestClass]]))
+    def test_is_union(self):
+        self.assertFalse(self.type_checker.is_union(str))
+        self.assertFalse(self.type_checker.is_union(TestClass))
+        self.assertFalse(self.type_checker.is_union(List[str]))
+        self.assertFalse(self.type_checker.is_union(List[TestClass]))
+        self.assertTrue(self.type_checker.is_union(Optional[str]))
+        self.assertTrue(self.type_checker.is_union(Optional[TestClass]))
+        self.assertFalse(self.type_checker.is_union(Type[str]))
+        self.assertFalse(self.type_checker.is_union(Type[TestClass]))
+        self.assertTrue(self.type_checker.is_union(Optional[List[Type[TestClass]]]))
+        self.assertFalse(self.type_checker.is_union(List[Type[TestClass]]))
         self.assertFalse(self.type_checker.is_list(Set[TestClass]))
         self.assertFalse(self.type_checker.is_list(Tuple[TestClass]))
         self.assertFalse(self.type_checker.is_list(Named[TestClass]))
-        self.assertFalse(self.type_checker.is_optional(Union[List[str], Tuple[str]]))
+        self.assertTrue(self.type_checker.is_union(Union[List[str], Tuple[str]]))
 
     def test_is_type(self):
         self.assertFalse(self.type_checker.is_type(str))
@@ -127,7 +127,7 @@ class TestTypeChecker(unittest.TestCase):
 
     # pylint: disable=unsubscriptable-object
     @unittest.skipIf(not PEP_585, "Python 3.9 required")
-    def test_pep85_style(self):
+    def test_pep585_style(self):
         self.assertTrue(self.type_checker.is_list(list[str]))
         self.assertFalse(self.type_checker.is_set(list[str]))
         self.assertFalse(self.type_checker.is_tuple(list[str]))
@@ -145,3 +145,10 @@ class TestTypeChecker(unittest.TestCase):
 
         self.assertTrue(self.type_checker.is_type(type[str]))
         self.assertFalse(self.type_checker.is_type(type))
+
+    # pylint: disable=unsupported-binary-operation
+    @unittest.skipIf(not PEP_604, "Python 3.10 required")
+    def test_pep604_style(self):
+        self.assertTrue(self.type_checker.is_union(str | None))
+        self.assertTrue(self.type_checker.is_union(str | int))
+        self.assertTrue(self.type_checker.is_union(str | None | int))
