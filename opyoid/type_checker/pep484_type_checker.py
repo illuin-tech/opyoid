@@ -36,14 +36,12 @@ class Pep484TypeChecker:
         return isinstance(target_type, type) and issubclass(target_type, Named)
 
     @staticmethod
-    def is_optional(target_type: Type) -> bool:
-        """Returns True if target_type is Optional[<Any>]"""
+    def is_union(target_type: Type) -> bool:
+        """Returns True if target_type is Union[<Any>, <Any>...] or Optional[<Any>]"""
         # pylint: disable=comparison-with-callable
         return \
             isinstance(target_type, _Union) \
-            and target_type.__origin__ == Union \
-            and len(target_type.__args__) >= 2 \
-            and target_type.__args__[-1] == type(None)
+            and target_type.__origin__ == Union
 
     @staticmethod
     def is_type(target_type: Type) -> bool:

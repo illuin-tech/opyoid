@@ -3,6 +3,13 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.1.0
+### Features
+- Added official support for Python 3.10
+- Added support for Union[...] type, which injects the first item type for which bindings exist
+- Added support for List[Union[...]] type, which injects a list combining all the items types in the union
+
+
 ## 1.0.1
 ### Fixes
 - Using auto bindings does not ignore existing bindings anymore (bug introduced in `0.10.0`)

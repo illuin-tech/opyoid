@@ -1,6 +1,6 @@
 from .from_binding_provider_factory import FromBindingProviderFactory
 from .from_cache_provider_factory import FromCacheProviderFactory
-from .optional_provider_factory import OptionalProviderFactory
+from .union_provider_factory import UnionProviderFactory
 from .provider_factory import ProviderFactory
 from .provider_provider_factory import ProviderProviderFactory
 from .set_provider_factory import SetProviderFactory
