@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, Union
+from typing import List, Optional, Tuple, Type, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
@@ -7,6 +7,7 @@ from opyoid.utils import EMPTY, InjectedT
 from .binding import Binding
 from .binding_registry import BindingRegistry
 from .class_binding import ClassBinding
+from .condition import Condition
 from .instance_binding import InstanceBinding
 from .multi_binding import ItemBinding, MultiBinding
 from .provider_binding import ProviderBinding
@@ -18,6 +19,8 @@ from .self_binding import SelfBinding
 class AbstractModule:
     """Base class for Modules, should not be used outside of the library."""
 
+    conditions: Tuple[Condition, ...] = ()
+
     def __init__(self, log_bindings: bool = False):
         self._is_configured = False
         self._binding_registry = BindingRegistry(log_bindings)
@@ -25,6 +28,10 @@ class AbstractModule:
     @property
     def binding_registry(self) -> BindingRegistry:
         return self._binding_registry
+
+    @classmethod
+    def add_condition(cls, condition: Condition):
+        cls.conditions = cls.conditions + (condition,)
 
     def __repr__(self) -> str:
         return ".".join([self.__class__.__module__, self.__class__.__qualname__])
@@ -93,7 +100,8 @@ class AbstractModule:
 
         if not self._is_configured:
             self._is_configured = True
-            self.configure()
+            if all(condition.is_valid() for condition in self.conditions):
+                self.configure()
 
     def multi_bind(self,
                    item_target_type: Type[InjectedT],

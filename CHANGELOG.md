@@ -3,6 +3,12 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.2.0
+### Features
+- Added `conditional_on_env_var` decorator that can be put on modules to easily enable / disable them through
+environment variables
+
+
 ## 1.1.0
 ### Features
 - Added official support for Python 3.10
