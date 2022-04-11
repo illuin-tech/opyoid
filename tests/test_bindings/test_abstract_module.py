@@ -202,8 +202,8 @@ class TestAbstractModule(unittest.TestCase):
                     SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")
                 ),
                 FrozenTarget(MyType, "my_name"): RegisteredBinding(
-                    InstanceBinding(MyType, instance, named="my_name")
-                )
+                    SelfBinding(MyType, scope=PerLookupScope, named="my_name")
+                ),
             },
             self.module.binding_registry.get_bindings_by_target()
         )
@@ -234,6 +234,7 @@ class TestAbstractModule(unittest.TestCase):
                         )
                     ]
                 ),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
             },
             self.module.binding_registry.get_bindings_by_target()
         )

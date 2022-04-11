@@ -822,6 +822,49 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(instances[1], MySubClass2)
         self.assertIsNot(instances[0].arg, instances[1].arg)
 
+    def test_shared_singleton_with_multi_bind(self):
+        class MySubClass1(MyClass):
+            pass
+
+        class MySubClass2(MyClass):
+            pass
+
+        class MyParentClass:
+            def __init__(self, arg: MySubClass1):
+                self.arg = arg
+
+        class MyLastParentClass:
+            def __init__(self, arg: MySubClass2):
+                self.arg = arg
+
+        class MyOtherParentClass:
+            def __init__(self, arg: List[MyClass]):
+                self.arg = arg
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.bind(MyParentClass)
+                self.bind(MyOtherParentClass)
+                self.bind(MyLastParentClass)
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass1),
+                        self.bind_item(to_class=MySubClass2),
+                    ]
+                )
+        injector = Injector([MyModule()])
+        parent = injector.inject(MyParentClass)
+        other_parent = injector.inject(MyOtherParentClass)
+        last_parent = injector.inject(MyLastParentClass)
+        self.assertIsInstance(parent.arg, MySubClass1)
+        self.assertIsInstance(last_parent.arg, MySubClass2)
+        self.assertEqual(2, len(other_parent.arg))
+        self.assertIsInstance(other_parent.arg[0], MySubClass1)
+        self.assertIsInstance(other_parent.arg[1], MySubClass2)
+        self.assertIs(parent.arg, other_parent.arg[0])
+        self.assertIs(last_parent.arg, other_parent.arg[1])
+
     def test_cyclic_dependencies_raise_exception(self):
         class MyOtherClass:
             def __init__(self, arg: MyClass):

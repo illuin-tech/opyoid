@@ -35,13 +35,14 @@ class BindingRegistry:
             if self._log_bindings:
                 self.logger.info(f"Adding {registered_binding.raw_binding} to previous binding")
             previous_binding.item_bindings.extend(registered_binding.item_bindings)
-            return
-        if self._log_bindings:
-            if previous_binding and previous_binding.raw_binding != registered_binding.raw_binding:
-                self.logger.info(f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
-            elif not previous_binding:
-                self.logger.debug(f"Registering {registered_binding.raw_binding!r}")
-        self._bindings_by_target[registered_binding.target] = registered_binding
+        else:
+            if self._log_bindings:
+                if previous_binding and previous_binding.raw_binding != registered_binding.raw_binding:
+                    self.logger.info(
+                        f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
+                elif not previous_binding:
+                    self.logger.debug(f"Registering {registered_binding.raw_binding!r}")
+            self._bindings_by_target[registered_binding.target] = registered_binding
         if add_self_binding:
             self._register_self_binding(registered_binding)
 
@@ -64,6 +65,8 @@ class BindingRegistry:
         elif isinstance(registered_binding, RegisteredMultiBinding):
             for item_binding in registered_binding.item_bindings:
                 self._register_self_binding(item_binding)
+        elif isinstance(binding, SelfBinding):
+            self_binding = binding
 
         if self_binding and self_binding.target not in self:
             self.register(RegisteredBinding(self_binding, registered_binding.source_path))

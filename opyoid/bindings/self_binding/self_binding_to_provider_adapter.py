@@ -27,6 +27,9 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     def create(self,
                binding: RegisteredBinding[SelfBinding[InjectedT]],
                context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
+        cached_provider = context.injection_state.provider_registry.get_provider(context.target)
+        if cached_provider:
+            return cached_provider
         parameters = signature(binding.target.type.__init__).parameters
         positional_providers: List[Provider] = []
         args_provider: Optional[Provider[List]] = None
@@ -60,7 +63,9 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
         except NoBindingFound:
             raise NonInjectableTypeError(f"Could not create a provider for {binding!r}: they are no bindings for"
                                          f" {binding.raw_binding.scope.__name__!r}") from None
-        return scope_provider.get().get_scoped_provider(unscoped_provider)
+        provider = scope_provider.get().get_scoped_provider(unscoped_provider)
+        context.injection_state.provider_registry.set_provider(context.target, provider)
+        return provider
 
     def _get_parameter_provider(self,
                                 parameter: Parameter,

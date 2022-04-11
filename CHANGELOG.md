@@ -3,6 +3,13 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.3.0
+### Features
+- Instances created from a class in a MultiBinding with a Singleton scope can now be reused
+  - If you have a class A that requires List[B], a multibinding on B that binds subclasses B1 and B2,
+    and another class C that requires B1, the same instance of B1 will be shared between A and the list in C
+
+
 ## 1.2.0
 ### Features
 - Added `conditional_on_env_var` decorator that can be put on modules to easily enable / disable them through
