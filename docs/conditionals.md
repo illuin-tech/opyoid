@@ -29,13 +29,13 @@ class MyModule(Module):
         self.bind(MyClass)
 
 
-injector = Injector([MyModule()], [SelfBinding(MyParentClass)])
+injector = Injector([MyModule], [SelfBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert my_instance.my_param == None
 
 os.environ["ENABLE_SUPER_FEATURE"] = "true"
-injector = Injector([MyModule()], [SelfBinding(MyParentClass)])
+injector = Injector([MyModule], [SelfBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
@@ -67,13 +67,13 @@ class MyModule(Module):
         self.bind(MyClass)
 
 
-injector = Injector([MyModule()], [SelfBinding(MyParentClass)])
+injector = Injector([MyModule], [SelfBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert my_instance.my_param == None
 
 os.environ["ENABLE_SUPER_FEATURE"] = "true"
-injector = Injector([MyModule()], [SelfBinding(MyParentClass)])
+injector = Injector([MyModule], [SelfBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)

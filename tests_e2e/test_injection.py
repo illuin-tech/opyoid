@@ -597,6 +597,21 @@ class TestInjector(unittest.TestCase):
         tuple_instance = injector.inject(Tuple[MyClass])
         self.assertIs(list_instance[0], tuple_instance[0])
 
+    def test_multi_binding_adding_same_binding(self):
+        class Module1(Module):
+            def configure(self) -> None:
+                self.multi_bind(MyClass, [self.bind_item(to_class=MyClass)])
+
+        class Module2(Module):
+            def configure(self) -> None:
+                self.multi_bind(MyClass, [self.bind_item(to_class=MyClass)])
+
+        injector = Injector(
+            [Module1(), Module2()],
+        )
+        instance = injector.inject(List[MyClass])
+        self.assertEqual(1, len(instance))
+
     def test_private_module_does_not_expose_bindings(self):
         instance_1 = MyClass()
 
@@ -864,6 +879,60 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(other_parent.arg[1], MySubClass2)
         self.assertIs(parent.arg, other_parent.arg[0])
         self.assertIs(last_parent.arg, other_parent.arg[1])
+
+    def test_shared_module_with_multi_bind(self):
+        class MySubClass1(MyClass):
+            pass
+
+        class MySubClass2(MyClass):
+            pass
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass1),
+                        self.bind_item(to_class=MySubClass2),
+                    ],
+                )
+
+        injector = Injector([MyModule, MyModule])
+        subclasses = injector.inject(List[MyClass])
+        self.assertEqual(2, len(subclasses))
+        self.assertIsInstance(subclasses[0], MySubClass1)
+        self.assertIsInstance(subclasses[1], MySubClass2)
+
+    def test_shared_module_with_multi_bind_2(self):
+        class MySubClass1(MyClass):
+            pass
+
+        class MySubClass2(MyClass):
+            pass
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass1),
+                        self.bind_item(to_class=MySubClass2),
+                    ],
+                )
+
+        class Module1(Module):
+            def configure(self) -> None:
+                self.install(MyModule)
+
+        class Module2(Module):
+            def configure(self) -> None:
+                self.install(MyModule)
+
+        injector = Injector([Module1, Module2])
+        subclasses = injector.inject(List[MyClass])
+        self.assertEqual(2, len(subclasses))
+        self.assertIsInstance(subclasses[0], MySubClass1)
+        self.assertIsInstance(subclasses[1], MySubClass2)
 
     def test_cyclic_dependencies_raise_exception(self):
         class MyOtherClass:

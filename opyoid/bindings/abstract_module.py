@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
@@ -21,9 +21,12 @@ class AbstractModule:
 
     conditions: Tuple[Condition, ...] = ()
 
-    def __init__(self, log_bindings: bool = False):
+    def __init__(
+        self, log_bindings: bool = False, shared_modules: Dict[Type["AbstractModule"], "AbstractModule"] = None
+    ):
         self._is_configured = False
         self._binding_registry = BindingRegistry(log_bindings)
+        self._module_instances = shared_modules or {}
 
     @property
     def binding_registry(self) -> BindingRegistry:
@@ -44,15 +47,25 @@ class AbstractModule:
         """
         raise NotImplementedError
 
-    def install(self, module: "AbstractModule") -> None:
+    def install(self, module: Union["AbstractModule", Type["AbstractModule"]]) -> None:
         """Adds bindings from another Module to this one."""
         # pylint: disable=import-outside-toplevel
         from .private_module import PrivateModule
 
-        module.configure_once()
-        for binding in module.binding_registry.get_bindings_by_target().values():
-            if isinstance(module, PrivateModule):
-                if not module.is_exposed(binding.target):
+        if isinstance(module, AbstractModule):
+            module_instance = module
+        else:
+            if module not in self._module_instances:
+                if issubclass(module, PrivateModule):
+                    self._module_instances[module] = module()
+                else:
+                    self._module_instances[module] = module(shared_modules=self._module_instances)
+            module_instance = self._module_instances[module]
+
+        module_instance.configure_once()
+        for binding in module_instance.binding_registry.get_bindings_by_target().values():
+            if isinstance(module_instance, PrivateModule):
+                if not module_instance.is_exposed(binding.target):
                     continue
                 if isinstance(binding, RegisteredMultiBinding):
                     binding = RegisteredMultiBinding(
@@ -60,7 +73,7 @@ class AbstractModule:
                         item_bindings=[
                             RegisteredBinding(
                                 registered_item_binding.raw_binding,
-                                (module,) + binding.source_path,
+                                (module_instance,) + binding.source_path,
                             )
                             for registered_item_binding in binding.item_bindings
                         ],
@@ -68,7 +81,7 @@ class AbstractModule:
                 else:
                     binding = RegisteredBinding(
                         binding.raw_binding,
-                        (module,) + binding.source_path,
+                        (module_instance,) + binding.source_path,
                     )
             self._binding_registry.register(binding, add_self_binding=False)
 

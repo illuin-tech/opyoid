@@ -35,7 +35,7 @@ class MyModule(Module):
         # self.bind(MyUntypedClass, to_provider=MyUntypedClassProvider, scope=SingletonScope, named="my_name")
 
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 injected_instance = injector.inject(MyUntypedClass)
 assert isinstance(injected_instance, MyUntypedClass)
 assert injected_instance.my_param == "my_string"

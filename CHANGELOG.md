@@ -3,6 +3,9 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+### Features
+- Module classes can now be installed (instances can still be installed), the contained bindings will be created only
+once if the module class installed multiple times
 ### Fixed
 - Fixed missing bindings in log when adding item bindings to a previously existing multi binding
 

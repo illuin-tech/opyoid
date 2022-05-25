@@ -1,4 +1,4 @@
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Union
 
 from .bindings import Binding
 from .bindings.abstract_module import AbstractModule
@@ -17,11 +17,12 @@ class Injector:
     Registers all modules and bindings, then prepares all providers.
     """
 
-    def __init__(self,
-                 modules: List[AbstractModule] = None,
-                 bindings: List[Binding] = None,
-                 options: InjectorOptions = None,
-                 ) -> None:
+    def __init__(
+        self,
+        modules: List[Union[AbstractModule, Type[AbstractModule]]] = None,
+        bindings: List[Binding] = None,
+        options: InjectorOptions = None,
+    ) -> None:
         root_module = RootModule(self, modules, bindings)
         root_module.configure_once()
         self._provider_creator = ProviderCreator()

@@ -39,7 +39,7 @@ class MyModule(Module):
         self.bind(MyParentClass)
 
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
@@ -70,11 +70,11 @@ class MyParentClass:
 
 class MyParentModule(Module):
     def configure(self) -> None:
-        self.install(MyModule())
+        self.install(MyModule)
         self.bind(MyParentClass)
 
 
-injector = Injector([MyParentModule()])
+injector = Injector([MyParentModule])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
@@ -98,7 +98,7 @@ class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, to_class=MySubClass)
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 my_instance = injector.inject(MyClass)
 assert isinstance(my_instance, MySubClass)
 ```
@@ -121,7 +121,7 @@ class MyModule(Module):
         self.bind(MyClass, to_instance=my_instance)
 
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 injected_instance = injector.inject(MyClass)
 assert my_instance is injected_instance
 ```
@@ -154,7 +154,7 @@ class MyModule(Module):
         self.bind(MyClass, scope=SingletonScope)
         self.bind(MyParentClass, scope=SingletonScope)
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 parent_instance = injector.inject(MyParentClass)
@@ -183,7 +183,7 @@ class MyModule(Module):
         self.bind(MyClass, scope=PerLookupScope)
         self.bind(MyParentClass)
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 parent_instance = injector.inject(MyParentClass)
@@ -211,7 +211,7 @@ class MyModule(Module):
     def configure(self) -> None:
         self.bind(MyClass, scope=ThreadScope)
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 instance_1 = injector.inject(MyClass)
 instance_2 = injector.inject(MyClass)
 
@@ -246,7 +246,7 @@ class MyModule(Module):
         self.bind(MyClass)
 
 
-injector = Injector([MyModule()], [SelfBinding(MyParentClass)])
+injector = Injector([MyModule], [SelfBinding(MyParentClass)])
 my_instance = injector.inject(MyParentClass)
 assert isinstance(my_instance, MyParentClass)
 assert isinstance(my_instance.my_param, MyClass)
@@ -302,7 +302,7 @@ class MyModule(Module):
         self.bind(MyParentClass)
 
 
-injector = Injector([MyModule()])
+injector = Injector([MyModule])
 parent_instance = injector.inject(MyParentClass)
 assert isinstance(parent_instance, MyParentClass)
 assert parent_instance.my_param is SubClass
