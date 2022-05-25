@@ -2,9 +2,18 @@ import unittest
 from typing import List
 from unittest.mock import call, create_autospec
 
-from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding, \
-    SingletonScope, ThreadScope, named_arg
-from opyoid.bindings import BindingRegistry, FromClassProvider, SelfBindingToProviderAdapter
+from opyoid import (
+    ClassBinding,
+    InstanceBinding,
+    PerLookupScope,
+    Provider,
+    ProviderBinding,
+    SelfBinding,
+    SingletonScope,
+    ThreadScope,
+    named_arg,
+)
+from opyoid.bindings import BindingRegistry, FromCallableProvider, SelfBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
 from opyoid.injection_context import InjectionContext
@@ -49,7 +58,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.state.provider_creator.get_provider.assert_called_once_with(
             self.context.get_child_context(Target(SingletonScope)),
         )
-        self.assertIsInstance(provider, FromClassProvider)
+        self.assertIsInstance(provider, FromCallableProvider)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
@@ -64,7 +73,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.state.provider_creator.get_provider.assert_called_once_with(
             self.context.get_child_context(Target(SingletonScope)),
         )
-        self.assertIsInstance(provider, FromClassProvider)
+        self.assertIsInstance(provider, FromCallableProvider)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
 
@@ -75,7 +84,8 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         provider = self.adapter.create(RegisteredBinding(SelfBinding(MyType, scope=ThreadScope)), self.context)
 
         self.state.provider_creator.get_provider.assert_called_once_with(
-            self.context.get_child_context(Target(ThreadScope)))
+            self.context.get_child_context(Target(ThreadScope))
+        )
 
         self.assertIsInstance(provider, ThreadScopedProvider)
         instance = provider.get()

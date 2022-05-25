@@ -149,10 +149,6 @@ class TestAbstractModule(unittest.TestCase):
             self.module.binding_registry.get_bindings_by_target()
         )
 
-    def test_bind_non_provider_raises_exception(self):
-        with self.assertRaises(BindingError):
-            self.module.bind(MyType, to_provider=MyType)
-
     def test_bind_non_class_raises_exception(self):
         with self.assertRaises(BindingError):
             self.module.bind(MyType, to_class="hello")

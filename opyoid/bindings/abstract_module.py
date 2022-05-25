@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
@@ -86,14 +86,16 @@ class AbstractModule:
             self._binding_registry.register(binding, add_self_binding=False)
 
     # pylint: disable=too-many-arguments
-    def bind(self,
-             target_type: Type[InjectedT],
-             *,
-             to_class: Type[InjectedT] = EMPTY,
-             to_instance: InjectedT = EMPTY,
-             to_provider: Union[Provider, Type[Provider]] = EMPTY,
-             scope: Type[Scope] = SingletonScope,
-             named: Optional[str] = None) -> RegisteredBinding:
+    def bind(
+        self,
+        target_type: Type[InjectedT],
+        *,
+        to_class: Type[InjectedT] = EMPTY,
+        to_instance: InjectedT = EMPTY,
+        to_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]] = EMPTY,
+        scope: Type[Scope] = SingletonScope,
+        named: Optional[str] = None,
+    ) -> RegisteredBinding:
         try:
             binding = self._create_binding(
                 target_type,
@@ -129,19 +131,23 @@ class AbstractModule:
         )
 
     @staticmethod
-    def bind_item(*,
-                  to_class: Type[InjectedT] = EMPTY,
-                  to_instance: InjectedT = EMPTY,
-                  to_provider: Union[Provider, Type[Provider]] = EMPTY) -> ItemBinding[InjectedT]:
+    def bind_item(
+        *,
+        to_class: Type[InjectedT] = EMPTY,
+        to_instance: InjectedT = EMPTY,
+        to_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]] = EMPTY,
+    ) -> ItemBinding[InjectedT]:
         return ItemBinding(bound_class=to_class, bound_instance=to_instance, bound_provider=to_provider)
 
     @staticmethod
-    def _create_binding(target_type: Type[InjectedT],
-                        bound_class: Type[InjectedT],
-                        bound_instance: InjectedT,
-                        bound_provider: Union[Provider, Type[Provider]],
-                        scope: Type[Scope],
-                        named: Optional[str]) -> Binding:
+    def _create_binding(
+        target_type: Type[InjectedT],
+        bound_class: Type[InjectedT],
+        bound_instance: InjectedT,
+        bound_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]],
+        scope: Type[Scope],
+        named: Optional[str],
+    ) -> Binding:
         if bound_instance is not EMPTY:
             return InstanceBinding(target_type, bound_instance, named=named)
         if bound_provider is not EMPTY:

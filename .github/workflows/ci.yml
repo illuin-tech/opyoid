@@ -52,7 +52,7 @@ jobs:
       - name: Lint with pylint
         run: |
           pylint opyoid
-          pylint tests tests_e2e --disable=too-many-public-methods,no-self-use,too-many-instance-attributes
+          pylint tests tests_e2e --disable=too-many-public-methods,no-self-use,too-many-instance-attributes,too-many-lines
 
   deploy:
     needs: [ test, lint ]

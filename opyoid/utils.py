@@ -1,4 +1,4 @@
-from typing import Any, Type, TypeVar, Union, cast
+from typing import Any, Callable, Type, TypeVar, Union, cast
 
 from .named import Named
 
@@ -24,3 +24,8 @@ def get_class_full_name(klass: Union[Type, str]) -> str:
     if module is None or module == str.__module__:
         return name
     return module + "." + name
+
+
+def get_function_full_name(function: Callable[..., Any]) -> str:
+    # noinspection PyUnresolvedReferences
+    return function.__module__ + "." + function.__qualname__

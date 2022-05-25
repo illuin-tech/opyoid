@@ -520,9 +520,49 @@ class TestInjector(unittest.TestCase):
             def get(self) -> MyParent:
                 return MyParent(self.my_arg, "hello")
 
-        injector = Injector(bindings=[
-            ProviderBinding(MyParent, MyParentProvider(MyClass())),
-        ])
+        injector = Injector(
+            bindings=[
+                ProviderBinding(MyParent, MyParentProvider(MyClass())),
+            ]
+        )
+        my_parent = injector.inject(MyParent)
+        self.assertIsInstance(my_parent.my_arg, MyClass)
+        self.assertEqual("hello", my_parent.my_str)
+
+    def test_function_provider(self):
+        class MyParent:
+            def __init__(self, my_arg: MyClass, my_str: str):
+                self.my_arg = my_arg
+                self.my_str = my_str
+
+        def my_parent_provider(my_arg: MyClass):
+            return MyParent(my_arg, "hello")
+
+        injector = Injector(
+            bindings=[
+                ProviderBinding(MyParent, my_parent_provider),
+                SelfBinding(MyClass),
+            ]
+        )
+        my_parent = injector.inject(MyParent)
+        self.assertIsInstance(my_parent.my_arg, MyClass)
+        self.assertEqual("hello", my_parent.my_str)
+
+    def test_method_provider(self):
+        class MyParent:
+            def __init__(self, my_arg: MyClass, my_str: str):
+                self.my_arg = my_arg
+                self.my_str = my_str
+
+        class MyModule(Module):
+            def my_parent_provider(self, my_arg: MyClass):
+                return MyParent(my_arg, "hello")
+
+            def configure(self) -> None:
+                self.bind(MyParent, to_provider=self.my_parent_provider)
+                self.bind(MyClass)
+
+        injector = Injector([MyModule])
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
         self.assertEqual("hello", my_parent.my_str)

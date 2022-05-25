@@ -1,7 +1,7 @@
 import unittest
 
 from opyoid import PerLookupScope
-from opyoid.bindings import FromClassProvider
+from opyoid.bindings import FromCallableProvider
 
 
 class MyType:
@@ -11,7 +11,7 @@ class MyType:
 class TestPerLookupScope(unittest.TestCase):
     def setUp(self) -> None:
         self.scope = PerLookupScope()
-        self.class_provider = FromClassProvider(MyType, [], None, {})
+        self.class_provider = FromCallableProvider(MyType, [], None, {})
 
     def test_get_scoped_provider_returns_unscoped_provider(self):
         scoped_provider = self.scope.get_scoped_provider(self.class_provider)
