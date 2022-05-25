@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Callable, Dict, List, Optional, TYPE_CHECKING, Tuple, Type, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
@@ -14,6 +14,9 @@ from .provider_binding import ProviderBinding
 from .registered_binding import RegisteredBinding
 from .registered_multi_binding import RegisteredMultiBinding
 from .self_binding import SelfBinding
+
+if TYPE_CHECKING:
+    from typing import TypeVar
 
 
 class AbstractModule:
@@ -52,15 +55,7 @@ class AbstractModule:
         # pylint: disable=import-outside-toplevel
         from .private_module import PrivateModule
 
-        if isinstance(module, AbstractModule):
-            module_instance = module
-        else:
-            if module not in self._module_instances:
-                if issubclass(module, PrivateModule):
-                    self._module_instances[module] = module()
-                else:
-                    self._module_instances[module] = module(shared_modules=self._module_instances)
-            module_instance = self._module_instances[module]
+        module_instance = self._get_module_instance(module)
 
         module_instance.configure_once()
         for binding in module_instance.binding_registry.get_bindings_by_target().values():
@@ -140,6 +135,21 @@ class AbstractModule:
         to_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]] = EMPTY,
     ) -> ItemBinding[InjectedT]:
         return ItemBinding(bound_class=to_class, bound_instance=to_instance, bound_provider=to_provider)
+
+    def _get_module_instance(self, module: Union["AbstractModule", Type["AbstractModule"]]) -> "AbstractModule":
+        # pylint: disable=import-outside-toplevel
+        from .private_module import PrivateModule
+
+        if isinstance(module, AbstractModule):
+            module_instance = module
+        else:
+            if module not in self._module_instances:
+                if issubclass(module, PrivateModule):
+                    self._module_instances[module] = module()
+                else:
+                    self._module_instances[module] = module(shared_modules=self._module_instances)
+            module_instance = self._module_instances[module]
+        return module_instance
 
     @staticmethod
     def _create_binding(

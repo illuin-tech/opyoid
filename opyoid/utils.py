@@ -27,5 +27,8 @@ def get_class_full_name(klass: Union[Type, str]) -> str:
 
 
 def get_function_full_name(function: Callable[..., Any]) -> str:
-    # noinspection PyUnresolvedReferences
-    return function.__module__ + "." + function.__qualname__
+    try:
+        # noinspection PyUnresolvedReferences
+        return function.__module__ + "." + function.__qualname__
+    except AttributeError:
+        return str(function)

@@ -1,7 +1,8 @@
 import unittest
 from typing import List
+from unittest.mock import ANY
 
-from opyoid import AbstractModule, Module, PerLookupScope, Provider, SelfBinding, SingletonScope
+from opyoid import AbstractModule, Module, PerLookupScope, PrivateModule, Provider, SelfBinding, SingletonScope
 from opyoid.bindings import ClassBinding, InstanceBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
@@ -51,6 +52,20 @@ class TestAbstractModule(unittest.TestCase):
             {
                 FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
                 FrozenTarget(OtherType, "my_name"): RegisteredBinding(SelfBinding(OtherType, named="my_name")),
+            },
+            self.module.binding_registry.get_bindings_by_target(),
+        )
+
+    def test_install_private_module(self):
+        class OtherModule(PrivateModule):
+            def configure(self) -> None:
+                self.expose(self.bind(MyType))
+                self.bind(OtherType, named="my_name")
+
+        self.module.install(OtherModule)
+        self.assertEqual(
+            {
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), source_path=(ANY,)),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -149,6 +164,10 @@ class TestAbstractModule(unittest.TestCase):
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
+
+    def test_bind_non_provider_raises_exception(self):
+        with self.assertRaises(BindingError):
+            self.module.bind(MyType, to_provider="hello")
 
     def test_bind_non_class_raises_exception(self):
         with self.assertRaises(BindingError):

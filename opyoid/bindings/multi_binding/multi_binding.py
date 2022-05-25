@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, TypeVar, Union
+from typing import List, Optional, TYPE_CHECKING, Type, Union
 
 import attr
 
@@ -6,6 +6,9 @@ from opyoid.bindings.binding import Binding
 from opyoid.bindings.multi_binding.item_binding import ItemBinding
 from opyoid.scopes import Scope, SingletonScope
 from opyoid.utils import InjectedT
+
+if TYPE_CHECKING:
+    from typing import TypeVar
 
 
 @attr.s(auto_attribs=True, frozen=True, repr=False)
