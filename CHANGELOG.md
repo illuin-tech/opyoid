@@ -3,6 +3,9 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+### Fixed
+- Fixed missing bindings in log when adding item bindings to a previously existing multi binding
+
 ## 1.3.0
 ### Features
 - Instances created from a class in a MultiBinding with a Singleton scope can now be reused
