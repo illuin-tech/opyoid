@@ -108,7 +108,7 @@ class TestProviderCreator(unittest.TestCase):
                 item_bindings=[
                     RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
                     RegisteredBinding(SelfBinding(MyType)),
-                ]
+                ],
             )
         )
         context = InjectionContext(Target(List[MyType]), self.state)
@@ -127,9 +127,7 @@ class TestProviderCreator(unittest.TestCase):
                     ],
                     named="my_name",
                 ),
-                item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"))
-                ]
+                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"))],
             )
         )
         self.binding_registry.register(
@@ -140,9 +138,7 @@ class TestProviderCreator(unittest.TestCase):
                         ItemBinding(bound_instance=self.my_instance),
                     ],
                 ),
-                item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.my_instance))
-                ]
+                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.my_instance))],
             )
         )
         self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding))
@@ -166,7 +162,7 @@ class TestProviderCreator(unittest.TestCase):
                 item_bindings=[
                     RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
                     RegisteredBinding(SelfBinding(MyType)),
-                ]
+                ],
             )
         )
         context = InjectionContext(Target(Set[MyType]), self.state)
@@ -189,7 +185,7 @@ class TestProviderCreator(unittest.TestCase):
                 item_bindings=[
                     RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
                     RegisteredBinding(SelfBinding(MyType)),
-                ]
+                ],
             )
         )
         context = InjectionContext(Target(Tuple[MyType]), self.state)

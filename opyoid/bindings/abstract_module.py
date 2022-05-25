@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
@@ -88,7 +88,7 @@ class AbstractModule:
     # pylint: disable=too-many-arguments
     def bind(
         self,
-        target_type: Type[InjectedT],
+        target_type: Union[Type[InjectedT], "TypeVar"],
         *,
         to_class: Type[InjectedT] = EMPTY,
         to_instance: InjectedT = EMPTY,
@@ -118,13 +118,15 @@ class AbstractModule:
             if all(condition.is_valid() for condition in self.conditions):
                 self.configure()
 
-    def multi_bind(self,
-                   item_target_type: Type[InjectedT],
-                   item_bindings: List[ItemBinding[InjectedT]],
-                   *,
-                   scope: Type[Scope] = SingletonScope,
-                   named: Optional[str] = None,
-                   override_bindings: bool = True) -> RegisteredBinding:
+    def multi_bind(
+        self,
+        item_target_type: Union[Type[InjectedT], "TypeVar"],
+        item_bindings: List[ItemBinding[InjectedT]],
+        *,
+        scope: Type[Scope] = SingletonScope,
+        named: Optional[str] = None,
+        override_bindings: bool = True,
+    ) -> RegisteredBinding:
 
         return self._register_multi_binding(
             MultiBinding(item_target_type, item_bindings, scope=scope, named=named, override_bindings=override_bindings)
@@ -141,7 +143,7 @@ class AbstractModule:
 
     @staticmethod
     def _create_binding(
-        target_type: Type[InjectedT],
+        target_type: Union[Type[InjectedT], "TypeVar"],
         bound_class: Type[InjectedT],
         bound_instance: InjectedT,
         bound_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]],
@@ -187,8 +189,7 @@ class AbstractModule:
                     named=binding.named,
                 )
             else:
-                raise BindingError(
-                    f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
+                raise BindingError(f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
 
             # pylint: disable=no-member
             registered_binding.item_bindings.append(RegisteredBinding(item_binding))

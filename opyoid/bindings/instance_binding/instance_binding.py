@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Type, TypeVar, Union
 
 import attr
 
@@ -8,12 +8,12 @@ from opyoid.utils import InjectedT
 
 @attr.s(auto_attribs=True, frozen=True, repr=False)
 class InstanceBinding(Binding[InjectedT]):
-    _target_type: Type[InjectedT]
+    _target_type: Union[Type[InjectedT], "TypeVar"]
     bound_instance: InjectedT
     _named: Optional[str] = attr.ib(default=None, kw_only=True)
 
     @property
-    def target_type(self) -> Type[InjectedT]:
+    def target_type(self) -> Union[Type[InjectedT], "TypeVar"]:
         return self._target_type
 
     @property

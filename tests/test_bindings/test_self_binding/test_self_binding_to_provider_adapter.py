@@ -122,13 +122,16 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(["my_arg_1", 2, 1.2, 3.4], instance.args)
         self.assertEqual({"arg_3": True}, instance.kwargs)
-        self.assertEqual([
-            call(self.context.get_child_context(Target(str, "arg_1"), allow_jit_provider=False)),
-            call(self.context.get_child_context(Target(int, "arg_2"), allow_jit_provider=False)),
-            call(self.context.get_child_context(Target(List[float], "args"), allow_jit_provider=False)),
-            call(self.context.get_child_context(Target(bool, "arg_3"), allow_jit_provider=False)),
-            call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
-        ], self.state.provider_creator.get_provider.call_args_list)
+        self.assertEqual(
+            [
+                call(self.context.get_child_context(Target(str, "arg_1"), allow_jit_provider=False)),
+                call(self.context.get_child_context(Target(int, "arg_2"), allow_jit_provider=False)),
+                call(self.context.get_child_context(Target(List[float], "args"), allow_jit_provider=False)),
+                call(self.context.get_child_context(Target(bool, "arg_3"), allow_jit_provider=False)),
+                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+            ],
+            self.state.provider_creator.get_provider.call_args_list,
+        )
 
     def test_create_provider_from_named_binding(self):
         class MyOtherType:
@@ -144,16 +147,18 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(
-            RegisteredBinding(SelfBinding(MyOtherType, named="my_name")), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType, named="my_name")), self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
-        self.assertEqual([
-            call(self.context.get_child_context(Target(str, "arg"), allow_jit_provider=False)),
-            call(self.context.get_child_context(Target(str), allow_jit_provider=True)),
-            call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
-        ], self.state.provider_creator.get_provider.call_args_list)
+        self.assertEqual(
+            [
+                call(self.context.get_child_context(Target(str, "arg"), allow_jit_provider=False)),
+                call(self.context.get_child_context(Target(str), allow_jit_provider=True)),
+                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+            ],
+            self.state.provider_creator.get_provider.call_args_list,
+        )
 
     def test_create_provider_with_named_positional_argument(self):
         class MyOtherType:
@@ -173,10 +178,13 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
-        self.assertEqual([
-            call(self.context.get_child_context(Target(str, "my_name"), allow_jit_provider=True)),
-            call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
-        ], self.state.provider_creator.get_provider.call_args_list)
+        self.assertEqual(
+            [
+                call(self.context.get_child_context(Target(str, "my_name"), allow_jit_provider=True)),
+                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+            ],
+            self.state.provider_creator.get_provider.call_args_list,
+        )
 
     def test_create_provider_with_named_args(self):
         class MyOtherType:
@@ -196,10 +204,13 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(("my_arg_1",), instance.arg)
-        self.assertEqual([
-            call(self.context.get_child_context(Target(List[str], "my_name"), allow_jit_provider=True)),
-            call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
-        ], self.state.provider_creator.get_provider.call_args_list)
+        self.assertEqual(
+            [
+                call(self.context.get_child_context(Target(List[str], "my_name"), allow_jit_provider=True)),
+                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+            ],
+            self.state.provider_creator.get_provider.call_args_list,
+        )
 
     def test_create_provider_with_missing_parameters_raises_exception(self):
         class MyOtherType:

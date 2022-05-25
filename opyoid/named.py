@@ -16,7 +16,8 @@ class Named(Generic[WrappedT]):
             Type[Named],
             type(
                 cls.__name__,
-                (cls,), {
+                (cls,),
+                {
                     "name": name,
                     "original_type": original_type,
                 },
@@ -39,10 +40,9 @@ def named_arg(arg_name: str, name: str) -> Callable[[Callable], Callable]:
         if parameter.annotation is Parameter.empty:
             raise NamedError(f"Cannot add name on untyped parameter '{arg_name}'")
         new_parameter = parameter.replace(annotation=Named.get_named_class(parameter.annotation, name))
-        init.__signature__ = Signature([
-            new_parameter if parameter.name == arg_name else parameter
-            for parameter in parameters.values()
-        ])
+        init.__signature__ = Signature(
+            [new_parameter if parameter.name == arg_name else parameter for parameter in parameters.values()]
+        )
         return init
 
     return wrapped_init

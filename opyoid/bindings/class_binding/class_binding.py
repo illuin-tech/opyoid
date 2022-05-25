@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Type, TypeVar, Union
 
 import attr
 
@@ -10,7 +10,7 @@ from opyoid.utils import InjectedT, get_class_full_name
 
 @attr.s(auto_attribs=True, frozen=True, repr=False)
 class ClassBinding(Binding[InjectedT]):
-    _target_type: Type[InjectedT]
+    _target_type: Union[Type[InjectedT], "TypeVar"]
     bound_class: Type[InjectedT]
     scope: Type[Scope] = attr.ib(default=SingletonScope, kw_only=True)
     _named: Optional[str] = attr.ib(default=None, kw_only=True)
@@ -22,7 +22,7 @@ class ClassBinding(Binding[InjectedT]):
             raise BindingError(f"Invalid {self!r}: use a SelfBinding to bind a class to itself")
 
     @property
-    def target_type(self) -> Type[InjectedT]:
+    def target_type(self) -> Union[Type[InjectedT], "TypeVar"]:
         return self._target_type
 
     @property

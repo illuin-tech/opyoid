@@ -3,8 +3,20 @@ from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 import attr
 
-from opyoid import ClassBinding, ImmediateScope, Injector, InstanceBinding, ItemBinding, Module, MultiBinding, \
-    PerLookupScope, Provider, ProviderBinding, SelfBinding, named_arg
+from opyoid import (
+    ClassBinding,
+    ImmediateScope,
+    Injector,
+    InstanceBinding,
+    ItemBinding,
+    Module,
+    MultiBinding,
+    PerLookupScope,
+    Provider,
+    ProviderBinding,
+    SelfBinding,
+    named_arg,
+)
 from opyoid.bindings.private_module import PrivateModule
 from opyoid.exceptions import CyclicDependencyError, NoBindingFound, NonInjectableTypeError
 from opyoid.injector_options import InjectorOptions
@@ -17,10 +29,7 @@ class MyClass:
 class TestInjector(unittest.TestCase):
     @staticmethod
     def get_injector(*classes_to_bind):
-        return Injector(bindings=[
-            SelfBinding(class_to_bind)
-            for class_to_bind in classes_to_bind
-        ])
+        return Injector(bindings=[SelfBinding(class_to_bind) for class_to_bind in classes_to_bind])
 
     def test_simple_injection(self):
         injector = self.get_injector(MyClass)
@@ -66,9 +75,7 @@ class TestInjector(unittest.TestCase):
         class MySubClass(MyClass):
             pass
 
-        injector = Injector(bindings=[
-            ClassBinding(MyClass, MySubClass)
-        ], options=InjectorOptions(auto_bindings=True))
+        injector = Injector(bindings=[ClassBinding(MyClass, MySubClass)], options=InjectorOptions(auto_bindings=True))
         my_instance = injector.inject(ParentClass)
         self.assertIsInstance(my_instance, ParentClass)
         self.assertIsInstance(my_instance.my_arg, MySubClass)
@@ -81,10 +88,12 @@ class TestInjector(unittest.TestCase):
             def __init__(self, my_param: MyClass):
                 self.my_param = my_param
 
-        injector = Injector(bindings=[
-            ClassBinding(MyClass, MySubClass, scope=PerLookupScope),
-            SelfBinding(MyOtherClass),
-        ])
+        injector = Injector(
+            bindings=[
+                ClassBinding(MyClass, MySubClass, scope=PerLookupScope),
+                SelfBinding(MyOtherClass),
+            ]
+        )
         other_instance = injector.inject(MyOtherClass)
         self.assertIsInstance(other_instance.my_param, MyClass)
         self.assertIsInstance(other_instance.my_param, MySubClass)
@@ -132,9 +141,7 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(parent.param[0], MyClass)
 
     def test_set_direct_injection(self):
-        class_set = Injector(
-            bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=MyClass)])]
-        ).inject(Set[MyClass])
+        class_set = Injector(bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=MyClass)])]).inject(Set[MyClass])
         self.assertIsInstance(class_set, set)
         self.assertEqual(1, len(list(class_set)))
         self.assertIsInstance(class_set.pop(), MyClass)
@@ -153,9 +160,9 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(parent.param.pop(), MyClass)
 
     def test_list_direct_injection(self):
-        class_list = Injector(
-            bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=MyClass)])]
-        ).inject(List[MyClass])
+        class_list = Injector(bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=MyClass)])]).inject(
+            List[MyClass]
+        )
         self.assertIsInstance(class_list, list)
         self.assertEqual(1, len(class_list))
         self.assertIsInstance(class_list[0], MyClass)
@@ -183,11 +190,13 @@ class TestInjector(unittest.TestCase):
             def __init__(self, params: List[Union[str, int]]):
                 self.params = params
 
-        injector = Injector(bindings=[
-            SelfBinding(MyParentClass),
-            InstanceBinding(str, "hello"),
-            InstanceBinding(int, 1),
-        ])
+        injector = Injector(
+            bindings=[
+                SelfBinding(MyParentClass),
+                InstanceBinding(str, "hello"),
+                InstanceBinding(int, 1),
+            ]
+        )
         parent = injector.inject(MyParentClass)
         self.assertIsInstance(parent, MyParentClass)
         self.assertEqual(["hello", 1], parent.params)
@@ -317,10 +326,12 @@ class TestInjector(unittest.TestCase):
         class MySubType(MyClass):
             pass
 
-        injector = Injector(bindings=[
-            SelfBinding(MySubType),
-            ClassBinding(MyClass, MySubType),
-        ])
+        injector = Injector(
+            bindings=[
+                SelfBinding(MySubType),
+                ClassBinding(MyClass, MySubType),
+            ]
+        )
         sub_instance_from_sub_type = injector.inject(MySubType)
         sub_instance_from_mother_type = injector.inject(MyClass)
 
@@ -341,10 +352,12 @@ class TestInjector(unittest.TestCase):
             def configure(self) -> None:
                 self.bind(MyOtherClass, to_class=MyCompositeClass)
 
-        injector = Injector([
-            Module1(),
-            Module2(),
-        ])
+        injector = Injector(
+            [
+                Module1(),
+                Module2(),
+            ]
+        )
         instance_1 = injector.inject(MyClass)
         instance_2 = injector.inject(MyOtherClass)
         self.assertIs(instance_1, instance_2)
@@ -368,16 +381,20 @@ class TestInjector(unittest.TestCase):
                 self.my_param = my_param
 
         with self.assertRaises(NonInjectableTypeError):
-            Injector(bindings=[
-                SelfBinding(MyGeneric),
-                SelfBinding(MyClass2),
-            ])
+            Injector(
+                bindings=[
+                    SelfBinding(MyGeneric),
+                    SelfBinding(MyClass2),
+                ]
+            )
 
         with self.assertRaises(NonInjectableTypeError):
-            Injector(bindings=[
-                SelfBinding(MyGeneric),
-                SelfBinding(MyClass3),
-            ])
+            Injector(
+                bindings=[
+                    SelfBinding(MyGeneric),
+                    SelfBinding(MyClass3),
+                ]
+            )
 
         injector = self.get_injector(MyGeneric, MyClass1)
         my_generic = injector.inject(MyGeneric)
@@ -389,24 +406,22 @@ class TestInjector(unittest.TestCase):
         class Class1:
             @named_arg("my_param_1", "new_param_1")
             @named_arg("my_param_2", "new_param_2")
-            def __init__(self,
-                         my_param_1: str,
-                         my_param_2: str,
-                         my_param_3: str,
-                         my_param_4: str):
+            def __init__(self, my_param_1: str, my_param_2: str, my_param_3: str, my_param_4: str):
                 self.my_param_1 = my_param_1
                 self.my_param_2 = my_param_2
                 self.my_param_3 = my_param_3
                 self.my_param_4 = my_param_4
 
-        injector = Injector(bindings=[
-            InstanceBinding(str, "param_1", named="new_param_1"),
-            InstanceBinding(str, "unused_param_1", named="param_1"),
-            InstanceBinding(str, "param_2", named="new_param_2"),
-            InstanceBinding(str, "param_3", named="my_param_3"),
-            InstanceBinding(str, "param_4"),
-            SelfBinding(Class1),
-        ])
+        injector = Injector(
+            bindings=[
+                InstanceBinding(str, "param_1", named="new_param_1"),
+                InstanceBinding(str, "unused_param_1", named="param_1"),
+                InstanceBinding(str, "param_2", named="new_param_2"),
+                InstanceBinding(str, "param_3", named="my_param_3"),
+                InstanceBinding(str, "param_4"),
+                SelfBinding(Class1),
+            ]
+        )
         instance = injector.inject(Class1)
         self.assertIsInstance(instance, Class1)
         self.assertEqual("param_1", instance.my_param_1)
@@ -423,29 +438,31 @@ class TestInjector(unittest.TestCase):
                 self.my_other_param = my_other_param
                 self.my_default_param = my_default_param
 
-        injector = Injector(bindings=[
-            SelfBinding(Class1),
-            MultiBinding(
-                str,
-                [
-                    ItemBinding(bound_instance="my_type_1"),
-                ],
-                named="type_1"
-            ),
-            MultiBinding(
-                str,
-                [
-                    ItemBinding(bound_instance="my_type_2"),
-                ],
-                named="type_2"
-            ),
-            MultiBinding(
-                str,
-                [
-                    ItemBinding(bound_instance="my_default"),
-                ],
-            ),
-        ])
+        injector = Injector(
+            bindings=[
+                SelfBinding(Class1),
+                MultiBinding(
+                    str,
+                    [
+                        ItemBinding(bound_instance="my_type_1"),
+                    ],
+                    named="type_1",
+                ),
+                MultiBinding(
+                    str,
+                    [
+                        ItemBinding(bound_instance="my_type_2"),
+                    ],
+                    named="type_2",
+                ),
+                MultiBinding(
+                    str,
+                    [
+                        ItemBinding(bound_instance="my_default"),
+                    ],
+                ),
+            ]
+        )
         instance = injector.inject(Class1)
         self.assertIsInstance(instance, Class1)
         self.assertEqual(["my_type_1"], instance.my_param)
@@ -459,9 +476,11 @@ class TestInjector(unittest.TestCase):
             def __init__(self):
                 called.append("ok")
 
-        Injector(bindings=[
-            SelfBinding(MyOtherClass, scope=ImmediateScope),
-        ])
+        Injector(
+            bindings=[
+                SelfBinding(MyOtherClass, scope=ImmediateScope),
+            ]
+        )
 
         self.assertEqual(["ok"], called)
 
@@ -478,10 +497,12 @@ class TestInjector(unittest.TestCase):
             def get(self) -> MyParent:
                 return MyParent(self.my_arg, "hello")
 
-        injector = Injector(bindings=[
-            SelfBinding(MyClass),
-            ProviderBinding(MyParent, MyParentProvider),
-        ])
+        injector = Injector(
+            bindings=[
+                SelfBinding(MyClass),
+                ProviderBinding(MyParent, MyParentProvider),
+            ]
+        )
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
         self.assertEqual("hello", my_parent.my_str)
@@ -499,10 +520,12 @@ class TestInjector(unittest.TestCase):
             def get(self) -> MyParent:
                 return MyParent(self.my_arg, "hello")
 
-        injector = Injector(bindings=[
-            InstanceBinding(MyParentProvider, MyParentProvider(MyClass())),
-            ProviderBinding(MyParent, MyParentProvider),
-        ])
+        injector = Injector(
+            bindings=[
+                InstanceBinding(MyParentProvider, MyParentProvider(MyClass())),
+                ProviderBinding(MyParent, MyParentProvider),
+            ]
+        )
         my_parent = injector.inject(MyParent)
         self.assertIsInstance(my_parent.my_arg, MyClass)
         self.assertEqual("hello", my_parent.my_str)
@@ -576,11 +599,13 @@ class TestInjector(unittest.TestCase):
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
-        injector = Injector(bindings=[
-            SelfBinding(MyClass),
-            SelfBinding(MyParentA),
-            SelfBinding(MyParentB),
-        ])
+        injector = Injector(
+            bindings=[
+                SelfBinding(MyClass),
+                SelfBinding(MyParentA),
+                SelfBinding(MyParentB),
+            ]
+        )
         my_parent_a = injector.inject(MyParentA)
         my_parent_b = injector.inject(MyParentB)
 
@@ -597,12 +622,14 @@ class TestInjector(unittest.TestCase):
             def __init__(self, my_arg: MyClass):
                 self.my_arg = my_arg
 
-        injector = Injector(bindings=[
-            SelfBinding(MyClass, named="name_1"),
-            SelfBinding(MyClass, named="name_2"),
-            SelfBinding(MyParentA),
-            SelfBinding(MyParentB),
-        ])
+        injector = Injector(
+            bindings=[
+                SelfBinding(MyClass, named="name_1"),
+                SelfBinding(MyClass, named="name_2"),
+                SelfBinding(MyParentA),
+                SelfBinding(MyParentB),
+            ]
+        )
         my_parent_a = injector.inject(MyParentA)
         my_parent_b = injector.inject(MyParentB)
 
@@ -615,10 +642,9 @@ class TestInjector(unittest.TestCase):
         class SubClass2(MyClass):
             pass
 
-        injector = Injector(bindings=[MultiBinding(MyClass, [
-            ItemBinding(bound_class=SubClass1),
-            ItemBinding(bound_class=SubClass2)
-        ])])
+        injector = Injector(
+            bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=SubClass1), ItemBinding(bound_class=SubClass2)])]
+        )
         list_1 = injector.inject(List[MyClass])
         list_2 = injector.inject(List[MyClass])
 
@@ -630,9 +656,7 @@ class TestInjector(unittest.TestCase):
         self.assertIs(list_1[1], list_2[1])
 
     def test_list_injection_item_singletons(self):
-        injector = Injector(
-            bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=MyClass)])]
-        )
+        injector = Injector(bindings=[MultiBinding(MyClass, [ItemBinding(bound_class=MyClass)])])
         list_instance = injector.inject(List[MyClass])
         tuple_instance = injector.inject(Tuple[MyClass])
         self.assertIs(list_instance[0], tuple_instance[0])
@@ -669,9 +693,7 @@ class TestInjector(unittest.TestCase):
 
         class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.bind(MyClass, to_class=MySubClass)
-                )
+                self.expose(self.bind(MyClass, to_class=MySubClass))
 
         injector = Injector([MyPrivateModule()])
         with self.assertRaises(NonInjectableTypeError):
@@ -682,9 +704,7 @@ class TestInjector(unittest.TestCase):
 
         class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.bind(MyClass, to_instance=instance_1)
-                )
+                self.expose(self.bind(MyClass, to_instance=instance_1))
 
         injector = Injector([MyPrivateModule()])
         instance = injector.inject(MyClass)
@@ -697,9 +717,7 @@ class TestInjector(unittest.TestCase):
 
         class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.bind(MyParentClass)
-                )
+                self.expose(self.bind(MyParentClass))
                 self.bind(MyClass)
 
         injector = Injector([MyPrivateModule()])
@@ -714,9 +732,7 @@ class TestInjector(unittest.TestCase):
 
         class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.bind(MyParentClass)
-                )
+                self.expose(self.bind(MyParentClass))
 
         injector = Injector([MyPrivateModule()], [SelfBinding(MyClass)])
         parent = injector.inject(MyParentClass)
@@ -796,16 +812,9 @@ class TestInjector(unittest.TestCase):
             def __init__(self, *my_param: MyClass):
                 self.my_param = my_param
 
-        injector = Injector(bindings=[
-            SelfBinding(MyParentClass),
-            MultiBinding(
-                MyClass,
-                [
-
-                    ItemBinding(bound_instance=MyClass())
-                ]
-            )
-        ])
+        injector = Injector(
+            bindings=[SelfBinding(MyParentClass), MultiBinding(MyClass, [ItemBinding(bound_instance=MyClass())])]
+        )
         parent = injector.inject(MyParentClass)
         self.assertIsInstance(parent, MyParentClass)
         self.assertIsInstance(parent.my_param, tuple)
@@ -854,20 +863,12 @@ class TestInjector(unittest.TestCase):
 
         class MyModule1(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.multi_bind(MyClass, [
-                        self.bind_item(to_class=MySubClass1)
-                    ])
-                )
+                self.expose(self.multi_bind(MyClass, [self.bind_item(to_class=MySubClass1)]))
                 self.bind(DependencyClass)
 
         class MyModule2(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.multi_bind(MyClass, [
-                        self.bind_item(to_class=MySubClass2)
-                    ], override_bindings=False)
-                )
+                self.expose(self.multi_bind(MyClass, [self.bind_item(to_class=MySubClass2)], override_bindings=False))
                 self.bind(DependencyClass)
 
         injector = Injector([MyModule1(), MyModule2()])
@@ -906,8 +907,9 @@ class TestInjector(unittest.TestCase):
                     [
                         self.bind_item(to_class=MySubClass1),
                         self.bind_item(to_class=MySubClass2),
-                    ]
+                    ],
                 )
+
         injector = Injector([MyModule()])
         parent = injector.inject(MyParentClass)
         other_parent = injector.inject(MyOtherParentClass)
@@ -999,9 +1001,7 @@ class TestInjector(unittest.TestCase):
 
         class MyPrivateModule(PrivateModule):
             def configure(self) -> None:
-                self.expose(
-                    self.bind(MyOtherClass)
-                )
+                self.expose(self.bind(MyOtherClass))
                 self.bind(MyClass)
 
         injector = Injector([MyPrivateModule()], [ClassBinding(MyClass, MyImpl)])

@@ -9,7 +9,4 @@ class ListProvider(Provider[List[InjectedT]]):
         self._item_providers = item_providers
 
     def get(self) -> List[InjectedT]:
-        return [
-            provider.get()
-            for provider in self._item_providers
-        ]
+        return [provider.get() for provider in self._item_providers]

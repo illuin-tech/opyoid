@@ -55,7 +55,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
                 call(Target(str)),
                 call(Target(int)),
             ],
-            self.binding_registry.__contains__.call_args_list
+            self.binding_registry.__contains__.call_args_list,
         )
 
     def test_create_with_parent_binding(self):
@@ -71,7 +71,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
                 call(Target(str)),
                 call(Target(str)),
             ],
-            self.binding_registry.__contains__.call_args_list
+            self.binding_registry.__contains__.call_args_list,
         )
 
     def test_create_creates_provider_for_instance_binding(self):

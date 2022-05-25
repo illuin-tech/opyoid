@@ -37,24 +37,31 @@ class TestBindingRegistry(unittest.TestCase):
         self.binding_registry.register(self.my_type_binding)
         self.binding_registry.register(self.my_type_named_binding)
         self.binding_registry.register(self.other_type_binding)
-        self.assertEqual({
-            FrozenTarget(MyType): self.my_type_binding,
-            FrozenTarget(MyType, "my_name"): self.my_type_named_binding,
-            FrozenTarget(OtherType): self.other_type_binding,
-        }, self.binding_registry.get_bindings_by_target())
+        self.assertEqual(
+            {
+                FrozenTarget(MyType): self.my_type_binding,
+                FrozenTarget(MyType, "my_name"): self.my_type_named_binding,
+                FrozenTarget(OtherType): self.other_type_binding,
+            },
+            self.binding_registry.get_bindings_by_target(),
+        )
 
     def test_register_multi_binding_saves_binding_to_known_type_in_order(self):
         item_binding_1 = ItemBinding(bound_class=MyType)
         registered_item_binding_1 = RegisteredBinding(SelfBinding(MyType))
         item_binding_2 = ItemBinding(bound_instance=MyType())
         registered_item_binding_2 = RegisteredBinding(InstanceBinding(MyType, item_binding_2.bound_instance))
-        binding_1 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_1]), item_bindings=[
-            registered_item_binding_1,
-        ])
+        binding_1 = RegisteredMultiBinding(
+            MultiBinding(MyType, [item_binding_1]),
+            item_bindings=[
+                registered_item_binding_1,
+            ],
+        )
         binding_2 = RegisteredMultiBinding(
-            MultiBinding(MyType, [item_binding_2], override_bindings=False), item_bindings=[
+            MultiBinding(MyType, [item_binding_2], override_bindings=False),
+            item_bindings=[
                 registered_item_binding_2,
-            ]
+            ],
         )
         self.binding_registry.register(binding_1)
         self.binding_registry.register(binding_2)
@@ -147,9 +154,10 @@ class TestBindingRegistry(unittest.TestCase):
             {
                 FrozenTarget(str, "my_name"): provider_binding,
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
-                    InstanceBinding(MyProvider, provider_instance, named="my_name")),
+                    InstanceBinding(MyProvider, provider_instance, named="my_name")
+                ),
             },
-            self.binding_registry.get_bindings_by_target()
+            self.binding_registry.get_bindings_by_target(),
         )
 
     def test_register_provider_binding_with_class_creates_self_binding(self):
@@ -172,9 +180,9 @@ class TestBindingRegistry(unittest.TestCase):
                 return "hello"
 
         provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider))
-        multi_binding = RegisteredMultiBinding(MultiBinding(str, [provider_binding.raw_binding]), item_bindings=[
-            provider_binding
-        ])
+        multi_binding = RegisteredMultiBinding(
+            MultiBinding(str, [provider_binding.raw_binding]), item_bindings=[provider_binding]
+        )
         self.binding_registry.register(multi_binding)
 
         provider_binding = self.binding_registry.get_binding(Target(MyProvider))
