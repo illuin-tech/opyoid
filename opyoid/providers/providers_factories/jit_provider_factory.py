@@ -10,11 +10,14 @@ class JitProviderFactory(ProviderFactory):
         self._provider_factory = SelfBindingToProviderAdapter()
 
     def accept(self, context: InjectionContext[InjectedT]) -> bool:
-        return context.injection_state.options.auto_bindings \
-               and context.target.default is EMPTY \
-               and context.allow_jit_provider \
-               and not isinstance(context.target.type, str)
+        return (
+            context.injection_state.options.auto_bindings
+            and context.target.default is EMPTY
+            and context.allow_jit_provider
+            and not isinstance(context.target.type, str)
+        )
 
     def create(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         return self._provider_factory.create(
-            RegisteredBinding(SelfBinding(context.target.type, named=context.target.named)), context)
+            RegisteredBinding(SelfBinding(context.target.type, named=context.target.named)), context
+        )

@@ -26,10 +26,7 @@ class InjectionContext(Generic[InjectedT]):
         context = self
         while context.parent_context:
             if self == context.parent_context:
-                dependency_chain = "\n".join(
-                    f"-> {target!r}"
-                    for target in reversed(self._dependency_chain)
-                )
+                dependency_chain = "\n".join(f"-> {target!r}" for target in reversed(self._dependency_chain))
                 self.logger.error(f"Cyclic dependency detected, injection graph: \n{dependency_chain}")
                 raise CyclicDependencyError(f"Cyclic dependency detected, injection graph: \n{dependency_chain}")
             context = context.parent_context
@@ -43,9 +40,9 @@ class InjectionContext(Generic[InjectedT]):
             chain.append(context.target)
         return chain
 
-    def get_child_context(self,
-                          new_target: Target[InjectedT],
-                          allow_jit_provider: bool = True) -> "InjectionContext[InjectedT]":
+    def get_child_context(
+        self, new_target: Target[InjectedT], allow_jit_provider: bool = True
+    ) -> "InjectionContext[InjectedT]":
         return InjectionContext(new_target, self.injection_state, self, allow_jit_provider)
 
     def get_new_state_context(self, new_state: "InjectionState") -> "InjectionContext[InjectedT]":

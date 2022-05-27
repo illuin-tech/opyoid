@@ -14,7 +14,7 @@ class InstanceBindingToProviderAdapter(BindingToProviderAdapter[InstanceBinding]
     def accept(self, binding: Binding[InjectedT], context: InjectionContext[InjectedT]) -> bool:
         return isinstance(binding, InstanceBinding)
 
-    def create(self,
-               binding: RegisteredBinding[InstanceBinding[InjectedT]],
-               context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
+    def create(
+        self, binding: RegisteredBinding[InstanceBinding[InjectedT]], context: InjectionContext[InjectedT]
+    ) -> Provider[InjectedT]:
         return FromInstanceProvider(binding.raw_binding.bound_instance)

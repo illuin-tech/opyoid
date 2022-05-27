@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import create_autospec
 
-from opyoid.bindings import FromClassProvider
+from opyoid.bindings import FromCallableProvider
 from opyoid.provider import Provider
 
 
@@ -11,7 +11,7 @@ class TestFromClassProvider(unittest.TestCase):
             def __init__(self):
                 pass
 
-        provider = FromClassProvider(MyType, [], None, {})
+        provider = FromCallableProvider(MyType, [], None, {})
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
@@ -32,11 +32,8 @@ class TestFromClassProvider(unittest.TestCase):
         provider_5 = create_autospec(Provider)
         provider_5.get.return_value = "value_5"
 
-        provider = FromClassProvider(
-            MyType,
-            [provider_1, provider_2],
-            provider_3,
-            {"kwarg_1": provider_4, "kwarg_2": provider_5}
+        provider = FromCallableProvider(
+            MyType, [provider_1, provider_2], provider_3, {"kwarg_1": provider_4, "kwarg_2": provider_5}
         )
         instance = provider.get()
         self.assertIsInstance(instance, MyType)

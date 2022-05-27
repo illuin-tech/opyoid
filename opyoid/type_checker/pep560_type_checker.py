@@ -39,9 +39,7 @@ class Pep560TypeChecker:
     def is_union(target_type: Type) -> bool:
         """Returns True if target_type is Union[<Any>, <Any>...] or Optional[<Any>]"""
         # pylint: disable=comparison-with-callable
-        return \
-            isinstance(target_type, _GenericAlias) \
-            and target_type.__origin__ == Union
+        return isinstance(target_type, _GenericAlias) and target_type.__origin__ == Union
 
     @staticmethod
     def is_type(target_type: Type) -> bool:

@@ -2,7 +2,7 @@ import unittest
 from queue import Queue
 from threading import Thread
 
-from opyoid.bindings import FromClassProvider
+from opyoid.bindings import FromCallableProvider
 from opyoid.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
@@ -12,7 +12,7 @@ class MyType:
 
 class TestSingletonScopedProvider(unittest.TestCase):
     def setUp(self) -> None:
-        self.class_provider = FromClassProvider(MyType, [], None, {})
+        self.class_provider = FromCallableProvider(MyType, [], None, {})
         self.provider = SingletonScopedProvider(self.class_provider)
 
     def test_get_returns_instance(self):

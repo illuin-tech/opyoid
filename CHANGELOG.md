@@ -3,6 +3,16 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.4.0
+### Features
+- Module classes can now be installed (instances can still be installed), the contained bindings will be created only
+once if the module class installed multiple times
+- Provider bindings can now bind any typed function as a provider, this is now the preferred way to create providers but
+provider classes are still supported
+
+### Fixed
+- Fixed missing bindings in log when adding item bindings to a previously existing multi binding
+
 ## 1.3.0
 ### Features
 - Instances created from a class in a MultiBinding with a Singleton scope can now be reused

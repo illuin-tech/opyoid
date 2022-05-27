@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, TYPE_CHECKING, Tuple, Type, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider
@@ -15,15 +15,21 @@ from .registered_binding import RegisteredBinding
 from .registered_multi_binding import RegisteredMultiBinding
 from .self_binding import SelfBinding
 
+if TYPE_CHECKING:
+    from typing import TypeVar
+
 
 class AbstractModule:
     """Base class for Modules, should not be used outside of the library."""
 
     conditions: Tuple[Condition, ...] = ()
 
-    def __init__(self, log_bindings: bool = False):
+    def __init__(
+        self, log_bindings: bool = False, shared_modules: Dict[Type["AbstractModule"], "AbstractModule"] = None
+    ):
         self._is_configured = False
         self._binding_registry = BindingRegistry(log_bindings)
+        self._module_instances = shared_modules or {}
 
     @property
     def binding_registry(self) -> BindingRegistry:
@@ -44,15 +50,17 @@ class AbstractModule:
         """
         raise NotImplementedError
 
-    def install(self, module: "AbstractModule") -> None:
+    def install(self, module: Union["AbstractModule", Type["AbstractModule"]]) -> None:
         """Adds bindings from another Module to this one."""
         # pylint: disable=import-outside-toplevel
         from .private_module import PrivateModule
 
-        module.configure_once()
-        for binding in module.binding_registry.get_bindings_by_target().values():
-            if isinstance(module, PrivateModule):
-                if not module.is_exposed(binding.target):
+        module_instance = self._get_module_instance(module)
+
+        module_instance.configure_once()
+        for binding in module_instance.binding_registry.get_bindings_by_target().values():
+            if isinstance(module_instance, PrivateModule):
+                if not module_instance.is_exposed(binding.target):
                     continue
                 if isinstance(binding, RegisteredMultiBinding):
                     binding = RegisteredMultiBinding(
@@ -60,7 +68,7 @@ class AbstractModule:
                         item_bindings=[
                             RegisteredBinding(
                                 registered_item_binding.raw_binding,
-                                (module,) + binding.source_path,
+                                (module_instance,) + binding.source_path,
                             )
                             for registered_item_binding in binding.item_bindings
                         ],
@@ -68,19 +76,21 @@ class AbstractModule:
                 else:
                     binding = RegisteredBinding(
                         binding.raw_binding,
-                        (module,) + binding.source_path,
+                        (module_instance,) + binding.source_path,
                     )
             self._binding_registry.register(binding, add_self_binding=False)
 
     # pylint: disable=too-many-arguments
-    def bind(self,
-             target_type: Type[InjectedT],
-             *,
-             to_class: Type[InjectedT] = EMPTY,
-             to_instance: InjectedT = EMPTY,
-             to_provider: Union[Provider, Type[Provider]] = EMPTY,
-             scope: Type[Scope] = SingletonScope,
-             named: Optional[str] = None) -> RegisteredBinding:
+    def bind(
+        self,
+        target_type: Union[Type[InjectedT], "TypeVar"],
+        *,
+        to_class: Type[InjectedT] = EMPTY,
+        to_instance: InjectedT = EMPTY,
+        to_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]] = EMPTY,
+        scope: Type[Scope] = SingletonScope,
+        named: Optional[str] = None,
+    ) -> RegisteredBinding:
         try:
             binding = self._create_binding(
                 target_type,
@@ -103,32 +113,53 @@ class AbstractModule:
             if all(condition.is_valid() for condition in self.conditions):
                 self.configure()
 
-    def multi_bind(self,
-                   item_target_type: Type[InjectedT],
-                   item_bindings: List[ItemBinding[InjectedT]],
-                   *,
-                   scope: Type[Scope] = SingletonScope,
-                   named: Optional[str] = None,
-                   override_bindings: bool = True) -> RegisteredBinding:
+    def multi_bind(
+        self,
+        item_target_type: Union[Type[InjectedT], "TypeVar"],
+        item_bindings: List[ItemBinding[InjectedT]],
+        *,
+        scope: Type[Scope] = SingletonScope,
+        named: Optional[str] = None,
+        override_bindings: bool = True,
+    ) -> RegisteredBinding:
 
         return self._register_multi_binding(
             MultiBinding(item_target_type, item_bindings, scope=scope, named=named, override_bindings=override_bindings)
         )
 
     @staticmethod
-    def bind_item(*,
-                  to_class: Type[InjectedT] = EMPTY,
-                  to_instance: InjectedT = EMPTY,
-                  to_provider: Union[Provider, Type[Provider]] = EMPTY) -> ItemBinding[InjectedT]:
+    def bind_item(
+        *,
+        to_class: Type[InjectedT] = EMPTY,
+        to_instance: InjectedT = EMPTY,
+        to_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]] = EMPTY,
+    ) -> ItemBinding[InjectedT]:
         return ItemBinding(bound_class=to_class, bound_instance=to_instance, bound_provider=to_provider)
 
+    def _get_module_instance(self, module: Union["AbstractModule", Type["AbstractModule"]]) -> "AbstractModule":
+        # pylint: disable=import-outside-toplevel
+        from .private_module import PrivateModule
+
+        if isinstance(module, AbstractModule):
+            module_instance = module
+        else:
+            if module not in self._module_instances:
+                if issubclass(module, PrivateModule):
+                    self._module_instances[module] = module()
+                else:
+                    self._module_instances[module] = module(shared_modules=self._module_instances)
+            module_instance = self._module_instances[module]
+        return module_instance
+
     @staticmethod
-    def _create_binding(target_type: Type[InjectedT],
-                        bound_class: Type[InjectedT],
-                        bound_instance: InjectedT,
-                        bound_provider: Union[Provider, Type[Provider]],
-                        scope: Type[Scope],
-                        named: Optional[str]) -> Binding:
+    def _create_binding(
+        target_type: Union[Type[InjectedT], "TypeVar"],
+        bound_class: Type[InjectedT],
+        bound_instance: InjectedT,
+        bound_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]],
+        scope: Type[Scope],
+        named: Optional[str],
+    ) -> Binding:
         if bound_instance is not EMPTY:
             return InstanceBinding(target_type, bound_instance, named=named)
         if bound_provider is not EMPTY:
@@ -168,8 +199,7 @@ class AbstractModule:
                     named=binding.named,
                 )
             else:
-                raise BindingError(
-                    f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
+                raise BindingError(f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
 
             # pylint: disable=no-member
             registered_binding.item_bindings.append(RegisteredBinding(item_binding))

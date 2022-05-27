@@ -3,8 +3,16 @@ from typing import List, Optional, Set, Tuple, Type
 from unittest.mock import ANY
 
 from opyoid import Provider, SelfBinding
-from opyoid.bindings import BindingRegistry, ClassBinding, FromClassProvider, FromInstanceProvider, \
-    InstanceBinding, ListProvider, MultiBinding, ProviderBinding
+from opyoid.bindings import (
+    BindingRegistry,
+    ClassBinding,
+    FromCallableProvider,
+    FromInstanceProvider,
+    InstanceBinding,
+    ListProvider,
+    MultiBinding,
+    ProviderBinding,
+)
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
@@ -100,7 +108,7 @@ class TestProviderCreator(unittest.TestCase):
                 item_bindings=[
                     RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
                     RegisteredBinding(SelfBinding(MyType)),
-                ]
+                ],
             )
         )
         context = InjectionContext(Target(List[MyType]), self.state)
@@ -119,9 +127,7 @@ class TestProviderCreator(unittest.TestCase):
                     ],
                     named="my_name",
                 ),
-                item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"))
-                ]
+                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"))],
             )
         )
         self.binding_registry.register(
@@ -132,9 +138,7 @@ class TestProviderCreator(unittest.TestCase):
                         ItemBinding(bound_instance=self.my_instance),
                     ],
                 ),
-                item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.my_instance))
-                ]
+                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.my_instance))],
             )
         )
         self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding))
@@ -158,12 +162,12 @@ class TestProviderCreator(unittest.TestCase):
                 item_bindings=[
                     RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
                     RegisteredBinding(SelfBinding(MyType)),
-                ]
+                ],
             )
         )
         context = InjectionContext(Target(Set[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
-        self.assertIsInstance(provider, FromClassProvider)
+        self.assertIsInstance(provider, FromCallableProvider)
         set_instance = provider.get()
         self.assertIn(self.my_instance, set_instance)
         self.assertEqual(2, len(set_instance))
@@ -181,12 +185,12 @@ class TestProviderCreator(unittest.TestCase):
                 item_bindings=[
                     RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
                     RegisteredBinding(SelfBinding(MyType)),
-                ]
+                ],
             )
         )
         context = InjectionContext(Target(Tuple[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
-        self.assertIsInstance(provider, FromClassProvider)
+        self.assertIsInstance(provider, FromCallableProvider)
         tuple_instance = provider.get()
         self.assertEqual((self.my_instance, ANY), tuple_instance)
         self.assertIsInstance(tuple_instance[1], MyType)

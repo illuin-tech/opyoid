@@ -20,6 +20,7 @@ class EnvVarCondition(Condition):
         env_value = os.getenv(self._env_var_name)
         if self._expected_value is not None and env_value != self._expected_value:
             self.logger.info(
-                f"Disabling {self._module} as environment variable {self._env_var_name} is set to {env_value}")
+                f"Disabling {self._module} as environment variable {self._env_var_name} is set to {env_value}"
+            )
             return False
         return True

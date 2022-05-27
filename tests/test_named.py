@@ -47,6 +47,7 @@ class TestNamed(unittest.TestCase):
     def test_adding_name_on_unknown_parameter_raises_exception(self):
         # pylint: disable=unused-variable
         with self.assertRaises(NamedError):
+
             class MyClass:
                 @named_arg("my_unknown_arg", "my_name")
                 def __init__(self, my_param: MyType):
@@ -55,6 +56,7 @@ class TestNamed(unittest.TestCase):
     def test_adding_name_on_untyped_parameter_raises_exception(self):
         # pylint: disable=unused-variable
         with self.assertRaises(NamedError):
+
             class MyClass:
                 @named_arg("my_param", "my_name")
                 def __init__(self, my_param):

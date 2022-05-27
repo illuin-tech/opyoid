@@ -1,9 +1,15 @@
 import logging
 from typing import List
 
-from opyoid.bindings import Binding, BindingToProviderAdapter, ClassBindingToProviderAdapter, \
-    InstanceBindingToProviderAdapter, MultiBindingToProviderAdapter, ProviderBindingToProviderAdapter, \
-    SelfBindingToProviderAdapter
+from opyoid.bindings import (
+    Binding,
+    BindingToProviderAdapter,
+    ClassBindingToProviderAdapter,
+    InstanceBindingToProviderAdapter,
+    MultiBindingToProviderAdapter,
+    ProviderBindingToProviderAdapter,
+    SelfBindingToProviderAdapter,
+)
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import BindingError
 from opyoid.injection_context import InjectionContext
@@ -26,10 +32,12 @@ class FromRegisteredBindingProviderFactory:
             MultiBindingToProviderAdapter(self),
         ]
 
-    def create(self,
-               binding: RegisteredBinding[Binding[InjectedT]],
-               context: InjectionContext[InjectedT],
-               cache_provider: bool = True) -> Provider[InjectedT]:
+    def create(
+        self,
+        binding: RegisteredBinding[Binding[InjectedT]],
+        context: InjectionContext[InjectedT],
+        cache_provider: bool = True,
+    ) -> Provider[InjectedT]:
         module_path = binding.source_path
         while module_path:
             state = context.injection_state
@@ -46,9 +54,9 @@ class FromRegisteredBindingProviderFactory:
                 return context.get_provider()
         return self._create_from_binding(binding, context)
 
-    def _create_from_binding(self,
-                             binding: RegisteredBinding[Binding[InjectedT]],
-                             context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
+    def _create_from_binding(
+        self, binding: RegisteredBinding[Binding[InjectedT]], context: InjectionContext[InjectedT]
+    ) -> Provider[InjectedT]:
         for adapter in self._binding_to_provider_adapters:
             if adapter.accept(binding.raw_binding, context):
                 return adapter.create(binding, context)

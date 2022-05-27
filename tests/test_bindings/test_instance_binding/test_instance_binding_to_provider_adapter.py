@@ -27,8 +27,9 @@ class TestInstanceBindingToProviderAdapter(unittest.TestCase):
         self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.context))
 
     def test_create_returns_provider(self):
-        provider = self.adapter.create(RegisteredBinding(InstanceBinding(MyType, self.instance)),
-                                       self.providers_creator)
+        provider = self.adapter.create(
+            RegisteredBinding(InstanceBinding(MyType, self.instance)), self.providers_creator
+        )
 
         instance = provider.get()
         self.assertIs(instance, self.instance)

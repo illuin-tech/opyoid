@@ -9,23 +9,16 @@ setuptools.setup(
     name="opyoid",
     version="DEV",
     url="https://github.com/illuin-tech/opyoid/",
-
     author="Illuin Technology",
     author_email="contact@illuin.tech",
-
     description="Dependency injection library",
     long_description=long_description,
     long_description_content_type="text/markdown",
-
     zip_safe=False,
     platforms="any",
-
-    install_requires=[
-        "attrs>=19.1.0,<23.0.0"
-    ],
+    install_requires=["attrs>=19.1.0,<23.0.0"],
     python_requires=">=3.6,<4.0",
     packages=setuptools.find_packages(include=["opyoid", "opyoid.*"]),
-
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

@@ -1,7 +1,8 @@
 import unittest
 from typing import List
+from unittest.mock import ANY
 
-from opyoid import AbstractModule, Module, PerLookupScope, Provider, SelfBinding, SingletonScope
+from opyoid import AbstractModule, Module, PerLookupScope, PrivateModule, Provider, SelfBinding, SingletonScope
 from opyoid.bindings import ClassBinding, InstanceBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.multi_binding import ItemBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
@@ -50,10 +51,23 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
-                FrozenTarget(OtherType, "my_name"): RegisteredBinding(
-                    SelfBinding(OtherType, named="my_name")),
+                FrozenTarget(OtherType, "my_name"): RegisteredBinding(SelfBinding(OtherType, named="my_name")),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
+        )
+
+    def test_install_private_module(self):
+        class OtherModule(PrivateModule):
+            def configure(self) -> None:
+                self.expose(self.bind(MyType))
+                self.bind(OtherType, named="my_name")
+
+        self.module.install(OtherModule)
+        self.assertEqual(
+            {
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), source_path=(ANY,)),
+            },
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_class_to_itself(self):
@@ -63,7 +77,7 @@ class TestAbstractModule(unittest.TestCase):
             {
                 FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_class_to_another_class(self):
@@ -74,7 +88,7 @@ class TestAbstractModule(unittest.TestCase):
                 FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
                 FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_instance(self):
@@ -85,7 +99,7 @@ class TestAbstractModule(unittest.TestCase):
             {
                 FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_multiple_overrides_binding(self):
@@ -97,7 +111,7 @@ class TestAbstractModule(unittest.TestCase):
                 FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
                 FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_with_scope(self):
@@ -106,7 +120,7 @@ class TestAbstractModule(unittest.TestCase):
             {
                 FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType, scope=PerLookupScope)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_with_name(self):
@@ -119,12 +133,12 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
-                FrozenTarget(MyType, "my_name"): RegisteredBinding(
-                    SelfBinding(MyType, named="my_name")),
-                FrozenTarget(OtherType, "my_other_name"):
-                    RegisteredBinding(InstanceBinding(OtherType, my_other_instance, named="my_other_name")),
+                FrozenTarget(MyType, "my_name"): RegisteredBinding(SelfBinding(MyType, named="my_name")),
+                FrozenTarget(OtherType, "my_other_name"): RegisteredBinding(
+                    InstanceBinding(OtherType, my_other_instance, named="my_other_name")
+                ),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_provider_class(self):
@@ -132,11 +146,13 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 FrozenTarget(MyType, "my_name"): RegisteredBinding(
-                    ProviderBinding(MyType, MyProvider, scope=PerLookupScope, named="my_name")),
+                    ProviderBinding(MyType, MyProvider, scope=PerLookupScope, named="my_name")
+                ),
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
-                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")),
+                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")
+                ),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_provider_instance(self):
@@ -146,12 +162,12 @@ class TestAbstractModule(unittest.TestCase):
                 FrozenTarget(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider)),
                 FrozenTarget(MyProvider): RegisteredBinding(InstanceBinding(MyProvider, self.my_provider)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_bind_non_provider_raises_exception(self):
         with self.assertRaises(BindingError):
-            self.module.bind(MyType, to_provider=MyType)
+            self.module.bind(MyType, to_provider="hello")
 
     def test_bind_non_class_raises_exception(self):
         with self.assertRaises(BindingError):
@@ -195,8 +211,8 @@ class TestAbstractModule(unittest.TestCase):
                         ),
                         RegisteredBinding(
                             ProviderBinding(MyType, provider, scope=PerLookupScope, named="my_name"),
-                        )
-                    ]
+                        ),
+                    ],
                 ),
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
                     SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")
@@ -205,7 +221,7 @@ class TestAbstractModule(unittest.TestCase):
                     SelfBinding(MyType, scope=PerLookupScope, named="my_name")
                 ),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_multi_binding_default_parameters(self):
@@ -232,11 +248,11 @@ class TestAbstractModule(unittest.TestCase):
                         RegisteredBinding(
                             SelfBinding(MyType),
                         )
-                    ]
+                    ],
                 ),
                 FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
             },
-            self.module.binding_registry.get_bindings_by_target()
+            self.module.binding_registry.get_bindings_by_target(),
         )
 
     def test_multi_binding_with_empty_item_raises_exception(self):
