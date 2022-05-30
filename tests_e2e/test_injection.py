@@ -15,6 +15,7 @@ from opyoid import (
     Provider,
     ProviderBinding,
     SelfBinding,
+    SingletonScope,
     named_arg,
 )
 from opyoid.bindings.private_module import PrivateModule
@@ -921,6 +922,80 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(other_parent.arg[1], MySubClass2)
         self.assertIs(parent.arg, other_parent.arg[0])
         self.assertIs(last_parent.arg, other_parent.arg[1])
+
+    def test_shared_item_with_multi_binds(self):
+        class MySubClass1(MyClass):
+            pass
+
+        class MySubClass2(MyClass):
+            pass
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass1),
+                        self.bind_item(to_class=MySubClass2, named=None),
+                    ],
+                    named="name_1",
+                )
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass1),
+                        self.bind_item(to_class=MySubClass2, named=None),
+                    ],
+                    named="name_2",
+                )
+
+        injector = Injector([MyModule()])
+        list_1 = injector.inject(List[MyClass], named="name_1")
+        list_2 = injector.inject(List[MyClass], named="name_2")
+        item_1 = injector.inject(MySubClass1, named="name_1")
+        item_2 = injector.inject(MySubClass2)
+
+        self.assertEqual(2, len(list_1))
+        self.assertEqual(2, len(list_2))
+        self.assertIsInstance(list_1[0], MySubClass1)
+        self.assertIsInstance(list_1[1], MySubClass2)
+        self.assertIsInstance(list_2[0], MySubClass1)
+        self.assertIsInstance(list_2[1], MySubClass2)
+        self.assertIsNot(list_1[0], list_2[0])
+        self.assertIs(list_1[0], item_1)
+        self.assertIs(list_1[1], list_2[1])
+        self.assertIs(list_1[1], item_2)
+
+    def test_scoped_item_binding(self):
+        class MySubClass1(MyClass):
+            pass
+
+        class MySubClass2(MyClass):
+            pass
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass1),
+                        self.bind_item(to_class=MySubClass2, scope=SingletonScope),
+                    ],
+                    scope=PerLookupScope,
+                )
+
+        injector = Injector([MyModule()])
+        list_1 = injector.inject(List[MyClass])
+        list_2 = injector.inject(List[MyClass])
+
+        self.assertEqual(2, len(list_1))
+        self.assertEqual(2, len(list_2))
+        self.assertIsInstance(list_1[0], MySubClass1)
+        self.assertIsInstance(list_1[1], MySubClass2)
+        self.assertIsInstance(list_2[0], MySubClass1)
+        self.assertIsInstance(list_2[1], MySubClass2)
+        self.assertIsNot(list_1[0], list_2[0])
+        self.assertIs(list_1[1], list_2[1])
 
     def test_shared_module_with_multi_bind(self):
         class MySubClass1(MyClass):

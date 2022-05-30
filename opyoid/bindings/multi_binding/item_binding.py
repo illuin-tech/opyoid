@@ -1,8 +1,9 @@
-from typing import Generic, Type, Union
+from typing import Generic, Optional, Type, Union
 
 import attr
 
 from opyoid.provider import Provider
+from opyoid.scopes import Scope
 from opyoid.utils import EMPTY, InjectedT, get_class_full_name
 
 
@@ -11,6 +12,8 @@ class ItemBinding(Generic[InjectedT]):
     bound_class: Type[InjectedT] = EMPTY
     bound_instance: InjectedT = EMPTY
     bound_provider: Union[Provider, Type[Provider]] = EMPTY
+    named: Optional[str] = attr.ib(default=EMPTY, kw_only=True)
+    scope: Type[Scope] = attr.ib(default=EMPTY, kw_only=True)
 
     def __repr__(self) -> str:
         if self.bound_class is not EMPTY:

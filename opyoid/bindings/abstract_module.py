@@ -133,8 +133,12 @@ class AbstractModule:
         to_class: Type[InjectedT] = EMPTY,
         to_instance: InjectedT = EMPTY,
         to_provider: Union[Provider, Type[Provider], Callable[..., InjectedT]] = EMPTY,
+        scope: Type[Scope] = EMPTY,
+        named: Optional[str] = EMPTY,
     ) -> ItemBinding[InjectedT]:
-        return ItemBinding(bound_class=to_class, bound_instance=to_instance, bound_provider=to_provider)
+        return ItemBinding(
+            bound_class=to_class, bound_instance=to_instance, bound_provider=to_provider, scope=scope, named=named
+        )
 
     def _get_module_instance(self, module: Union["AbstractModule", Type["AbstractModule"]]) -> "AbstractModule":
         # pylint: disable=import-outside-toplevel
@@ -179,24 +183,26 @@ class AbstractModule:
     def _register_multi_binding(self, binding: MultiBinding[InjectedT]) -> RegisteredMultiBinding:
         registered_binding = RegisteredMultiBinding(binding)
         for item_binding in binding.item_bindings:
+            scope = item_binding.scope if item_binding.scope is not EMPTY else binding.scope
+            named = item_binding.named if item_binding.named is not EMPTY else binding.named
             if item_binding.bound_class is not EMPTY:
                 item_binding = SelfBinding(
                     item_binding.bound_class,
-                    scope=binding.scope,
-                    named=binding.named,
+                    scope=scope,
+                    named=named,
                 )
             elif item_binding.bound_instance is not EMPTY:
                 item_binding = InstanceBinding(
                     binding.item_target_type,
                     item_binding.bound_instance,
-                    named=binding.named,
+                    named=named,
                 )
             elif item_binding.bound_provider is not EMPTY:
                 item_binding = ProviderBinding(
                     binding.item_target_type,
                     item_binding.bound_provider,
-                    scope=binding.scope,
-                    named=binding.named,
+                    scope=scope,
+                    named=named,
                 )
             else:
                 raise BindingError(f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
