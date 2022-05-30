@@ -3,6 +3,11 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.5.0
+### Features
+- Added `named` and `scope` parameters to item bindings, by default they keep the parent MultiBinding name and scope
+(as they did before)
+
 ## 1.4.0
 ### Features
 - Module classes can now be installed (instances can still be installed), the contained bindings will be created only
