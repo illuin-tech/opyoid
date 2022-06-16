@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.5.1
+### Fixes
+- Fixed unwanted bindings being automatically created when using InstanceBindings with builtin types
+
 ## 1.5.0
 ### Features
 - Added `named` and `scope` parameters to item bindings, by default they keep the parent MultiBinding name and scope
