@@ -1084,3 +1084,25 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(my_impl, MyImpl)
         self.assertIsInstance(my_impl.arg, MyOtherClass)
         self.assertIsInstance(my_impl.arg.arg, MyClass)
+
+    def test_builtin_parameters_self_binding_is_not_created(self):
+        class MyOtherClass:
+            def __init__(self, param_1: Optional[int] = 1, param_2: str = "bye", param_3: Optional[list] = None):
+                self.param_1 = param_1
+                self.param_2 = param_2
+                self.param_3 = param_3
+
+        CustomT = TypeVar("CustomT")
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.bind(Optional[MyClass], to_instance=None)
+                self.bind(CustomT, to_instance="hello")
+                self.bind(List[int], to_instance=[2])
+                self.bind(MyOtherClass)
+
+        injector = Injector([MyModule])
+        instance = injector.inject(MyOtherClass)
+        self.assertEqual(instance.param_1, 1)
+        self.assertEqual(instance.param_2, "bye")
+        self.assertIsNone(instance.param_3)

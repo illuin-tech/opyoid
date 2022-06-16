@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, cast
+from typing import Any, Dict, Optional, cast
 
 from opyoid.exceptions import NonInjectableTypeError
 from opyoid.frozen_target import FrozenTarget
@@ -84,7 +84,7 @@ class BindingRegistry:
                 self_binding = SelfBinding(binding.bound_provider, scope=binding.scope, named=binding.named)
         elif isinstance(binding, ClassBinding):
             self_binding = SelfBinding(binding.bound_class, scope=binding.scope, named=binding.named)
-        elif isinstance(binding, InstanceBinding):
+        elif isinstance(binding, InstanceBinding) and not self._is_object_builtin(binding.bound_instance):
             self_binding = InstanceBinding(type(binding.bound_instance), binding.bound_instance, named=binding.named)
         elif isinstance(registered_binding, RegisteredMultiBinding):
             for item_binding in registered_binding.item_bindings:
@@ -115,3 +115,7 @@ class BindingRegistry:
                 )
         frozen_target = FrozenTarget(target.type, target.named)
         return self._bindings_by_target.get(frozen_target)
+
+    @staticmethod
+    def _is_object_builtin(target: Any) -> bool:
+        return type(target) in [bool, bytearray, bytes, complex, float, int, str, type(None), dict, list, set, tuple]
