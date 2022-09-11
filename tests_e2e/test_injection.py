@@ -1,3 +1,4 @@
+import os
 import unittest
 from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar, Union
 
@@ -1106,3 +1107,154 @@ class TestInjector(unittest.TestCase):
         self.assertEqual(instance.param_1, 1)
         self.assertEqual(instance.param_2, "bye")
         self.assertIsNone(instance.param_3)
+
+    def test_loading_string_from_env_var(self):
+        # pylint: disable=invalid-name
+        @attr.s(auto_attribs=True)
+        class MyEnvClass:
+            my_key: str
+            my_key_123: str
+            my_key123something: str
+            SomeUpperCamel: str
+            someCamel: str
+            some123Camel: str
+            someABCamel: str
+            SOME_UPPER_CASE: str
+            SOME_UPPER123CASE: str
+
+        os.environ.update(
+            {
+                "MY_ENV_CLASS_MY_KEY": "my_key_value",
+                "MY_ENV_CLASS_MY_KEY_123": "my_key_123_value",
+                "MY_ENV_CLASS_MY_KEY_123_SOMETHING": "my_key_123_something_value",
+                "MY_ENV_CLASS_SOME_UPPER_CAMEL": "some_upper_camel_value",
+                "MY_ENV_CLASS_SOME_CAMEL": "some_camel_value",
+                "MY_ENV_CLASS_SOME_123_CAMEL": "some_123_camel_value",
+                "MY_ENV_CLASS_SOME_AB_CAMEL": "some_ab_camel_value",
+                "MY_ENV_CLASS_SOME_UPPER_CASE": "some_upper_case_value",
+                "MY_ENV_CLASS_SOME_UPPER_123_CASE": "some_upper_123_case_value",
+            }
+        )
+
+        injector = Injector(bindings=[SelfBinding(MyEnvClass)])
+        instance = injector.inject(MyEnvClass)
+        self.assertEqual(
+            MyEnvClass(
+                "my_key_value",
+                "my_key_123_value",
+                "my_key_123_something_value",
+                "some_upper_camel_value",
+                "some_camel_value",
+                "some_123_camel_value",
+                "some_ab_camel_value",
+                "some_upper_case_value",
+                "some_upper_123_case_value",
+            ),
+            instance,
+        )
+
+    def test_loading_from_env_var_overrides_default(self):
+        @attr.s(auto_attribs=True)
+        class MyEnvClass:
+            my_key: str = "default"
+
+        os.environ.update(
+            {
+                "MY_ENV_CLASS_MY_KEY": "my_key_value",
+            }
+        )
+
+        injector = Injector(bindings=[SelfBinding(MyEnvClass)])
+        instance = injector.inject(MyEnvClass)
+        self.assertEqual(
+            MyEnvClass(
+                "my_key_value",
+            ),
+            instance,
+        )
+
+    def test_loading_from_env_var_overrides_binding(self):
+        @attr.s(auto_attribs=True)
+        class MyEnvClass:
+            my_key: str
+
+        os.environ.update(
+            {
+                "MY_ENV_CLASS_MY_KEY": "my_key_value",
+            }
+        )
+
+        injector = Injector(
+            bindings=[
+                SelfBinding(MyEnvClass),
+                InstanceBinding(str, "some_value", named="my_key"),
+                InstanceBinding(str, "some_value"),
+            ]
+        )
+        instance = injector.inject(MyEnvClass)
+        self.assertEqual(
+            MyEnvClass(
+                "my_key_value",
+            ),
+            instance,
+        )
+
+    def test_loading_types_from_env_var(self):
+        @attr.s(auto_attribs=True)
+        class MyEnvClass:
+            some_int: int
+            some_float: float
+            some_bool: bool
+            some_bool_2: bool
+            some_bool_3: bool
+            some_bool_4: bool
+            some_bool_5: bool
+            some_bool_6: bool
+            some_optional: Optional[str]
+
+        os.environ.update(
+            {
+                "MY_ENV_CLASS_SOME_INT": "42",
+                "MY_ENV_CLASS_SOME_FLOAT": "1.345",
+                "MY_ENV_CLASS_SOME_BOOL": "true",
+                "MY_ENV_CLASS_SOME_BOOL_2": "false",
+                "MY_ENV_CLASS_SOME_BOOL_3": "True",
+                "MY_ENV_CLASS_SOME_BOOL_4": "False",
+                "MY_ENV_CLASS_SOME_BOOL_5": "0",
+                "MY_ENV_CLASS_SOME_BOOL_6": "1",
+                "MY_ENV_CLASS_SOME_OPTIONAL": "test_value",
+            }
+        )
+
+        injector = Injector(bindings=[SelfBinding(MyEnvClass)])
+        instance = injector.inject(MyEnvClass)
+        self.assertEqual(
+            MyEnvClass(
+                42,
+                1.345,
+                True,
+                False,
+                True,
+                False,
+                False,
+                True,
+                "test_value",
+            ),
+            instance,
+        )
+
+    def test_loading_named_parameters_from_env_var(self):
+        class MyEnvClass:
+            @named_arg("some_key", "renamed_key")
+            def __init__(self, some_key: str):
+                self.key = some_key
+
+        os.environ.update(
+            {
+                "MY_ENV_CLASS_RENAMED_KEY": "renamed_value",
+            }
+        )
+
+        injector = Injector(bindings=[SelfBinding(MyEnvClass)])
+        instance = injector.inject(MyEnvClass)
+        self.assertEqual("renamed_value", instance.key)

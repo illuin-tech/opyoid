@@ -1,5 +1,6 @@
 import logging
-from typing import Generic, List, Optional, TYPE_CHECKING
+from inspect import Parameter
+from typing import Generic, List, Optional, TYPE_CHECKING, Type
 
 import attr
 
@@ -21,6 +22,8 @@ class InjectionContext(Generic[InjectedT]):
     injection_state: "InjectionState"
     parent_context: Optional["InjectionContext"] = attr.ib(default=None, eq=False)
     allow_jit_provider: bool = True
+    current_class: Optional[Type[InjectedT]] = None
+    current_parameter: Optional[Parameter] = None
 
     def __attrs_post_init__(self):
         context = self
