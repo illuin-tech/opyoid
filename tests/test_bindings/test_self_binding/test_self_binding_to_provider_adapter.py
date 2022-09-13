@@ -1,4 +1,5 @@
 import unittest
+from inspect import signature
 from typing import List
 from unittest.mock import call, create_autospec
 
@@ -122,13 +123,27 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(["my_arg_1", 2, 1.2, 3.4], instance.args)
         self.assertEqual({"arg_3": True}, instance.kwargs)
+        ctx_1 = self.context.get_child_context(Target(str, "arg_1"), allow_jit_provider=False)
+        ctx_1.current_class = MyOtherType
+        ctx_1.current_parameter = signature(MyOtherType).parameters.get("arg_1")
+        ctx_2 = self.context.get_child_context(Target(int, "arg_2"), allow_jit_provider=False)
+        ctx_2.current_class = MyOtherType
+        ctx_2.current_parameter = signature(MyOtherType).parameters.get("arg_2")
+        ctx_3 = self.context.get_child_context(Target(List[float], "args"), allow_jit_provider=False)
+        ctx_3.current_class = MyOtherType
+        ctx_3.current_parameter = signature(MyOtherType).parameters.get("args")
+        ctx_4 = self.context.get_child_context(Target(bool, "arg_3"), allow_jit_provider=False)
+        ctx_4.current_class = MyOtherType
+        ctx_4.current_parameter = signature(MyOtherType).parameters.get("arg_3")
+        ctx_5 = self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)
+
         self.assertEqual(
             [
-                call(self.context.get_child_context(Target(str, "arg_1"), allow_jit_provider=False)),
-                call(self.context.get_child_context(Target(int, "arg_2"), allow_jit_provider=False)),
-                call(self.context.get_child_context(Target(List[float], "args"), allow_jit_provider=False)),
-                call(self.context.get_child_context(Target(bool, "arg_3"), allow_jit_provider=False)),
-                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+                call(ctx_1),
+                call(ctx_2),
+                call(ctx_3),
+                call(ctx_4),
+                call(ctx_5),
             ],
             self.state.provider_creator.get_provider.call_args_list,
         )
@@ -151,11 +166,18 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
+        ctx_1 = self.context.get_child_context(Target(str, "arg"), allow_jit_provider=False)
+        ctx_1.current_class = MyOtherType
+        ctx_1.current_parameter = signature(MyOtherType).parameters.get("arg")
+        ctx_2 = self.context.get_child_context(Target(str), allow_jit_provider=True)
+        ctx_2.current_class = MyOtherType
+        ctx_2.current_parameter = signature(MyOtherType).parameters.get("arg")
+        ctx_3 = self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)
         self.assertEqual(
             [
-                call(self.context.get_child_context(Target(str, "arg"), allow_jit_provider=False)),
-                call(self.context.get_child_context(Target(str), allow_jit_provider=True)),
-                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+                call(ctx_1),
+                call(ctx_2),
+                call(ctx_3),
             ],
             self.state.provider_creator.get_provider.call_args_list,
         )
@@ -178,10 +200,14 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
+        ctx_1 = self.context.get_child_context(Target(str, "my_name"), allow_jit_provider=True)
+        ctx_1.current_class = MyOtherType
+        ctx_1.current_parameter = signature(MyOtherType).parameters.get("arg")
+        ctx_2 = self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)
         self.assertEqual(
             [
-                call(self.context.get_child_context(Target(str, "my_name"), allow_jit_provider=True)),
-                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+                call(ctx_1),
+                call(ctx_2),
             ],
             self.state.provider_creator.get_provider.call_args_list,
         )
@@ -204,10 +230,15 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(("my_arg_1",), instance.arg)
+        ctx_1 = self.context.get_child_context(Target(List[str], "my_name"), allow_jit_provider=True)
+        ctx_1.current_class = MyOtherType
+        ctx_1.current_parameter = signature(MyOtherType).parameters.get("arg")
+        ctx_2 = self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)
+
         self.assertEqual(
             [
-                call(self.context.get_child_context(Target(List[str], "my_name"), allow_jit_provider=True)),
-                call(self.context.get_child_context(Target(SingletonScope), allow_jit_provider=True)),
+                call(ctx_1),
+                call(ctx_2),
             ],
             self.state.provider_creator.get_provider.call_args_list,
         )

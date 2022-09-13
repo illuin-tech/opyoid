@@ -35,6 +35,7 @@ class CallableToProviderAdapter:
         args_provider: Optional[Provider[List]] = None
         keyword_providers: Dict[str, Provider] = {}
         for parameter in parameters:
+            context.current_parameter = parameter
             # Ignore '**kwargs'
             if parameter.kind == Parameter.VAR_KEYWORD:
                 continue
@@ -125,6 +126,8 @@ class CallableToProviderAdapter:
     ) -> Optional[Provider[InjectedT]]:
         for target_index, target in enumerate(targets):
             context = parent_context.get_child_context(target, allow_jit_provider=target_index == len(targets) - 1)
+            context.current_class = parent_context.current_class
+            context.current_parameter = parent_context.current_parameter
             try:
                 return context.get_provider()
             except NoBindingFound:

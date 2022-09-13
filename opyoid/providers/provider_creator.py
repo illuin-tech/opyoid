@@ -9,15 +9,16 @@ from opyoid.utils import InjectedT
 from .providers_factories import (
     FromBindingProviderFactory,
     FromCacheProviderFactory,
-    UnionProviderFactory,
+    FromEnvVarProviderFactory,
+    JitProviderFactory,
+    ListProviderFactory,
     ProviderFactory,
     ProviderProviderFactory,
     SetProviderFactory,
     TupleProviderFactory,
     TypeProviderFactory,
+    UnionProviderFactory,
 )
-from .providers_factories.jit_provider_factory import JitProviderFactory
-from .providers_factories.list_provider_factory import ListProviderFactory
 
 
 class ProviderCreator:
@@ -28,6 +29,7 @@ class ProviderCreator:
     def __init__(self) -> None:
         self._provider_factories: List[ProviderFactory] = [
             FromCacheProviderFactory(),
+            FromEnvVarProviderFactory(),
             FromBindingProviderFactory(),
             ListProviderFactory(),
             SetProviderFactory(),

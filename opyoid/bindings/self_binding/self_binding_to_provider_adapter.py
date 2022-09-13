@@ -25,4 +25,5 @@ class SelfBindingToProviderAdapter(BindingToProviderAdapter[SelfBinding]):
     def create(
         self, binding: RegisteredBinding[SelfBinding[InjectedT]], context: InjectionContext[InjectedT]
     ) -> Provider[InjectedT]:
+        context.current_class = binding.target.type
         return self._adapter.create(binding, binding.target.type, context)

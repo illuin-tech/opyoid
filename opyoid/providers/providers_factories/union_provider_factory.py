@@ -20,6 +20,8 @@ class UnionProviderFactory(ProviderFactory):
             try:
                 new_target = Target(subtype, context.target.named)
                 new_context = context.get_child_context(new_target)
+                new_context.current_class = context.current_class
+                new_context.current_parameter = context.current_parameter
                 return new_context.get_provider()
             except NoBindingFound:
                 pass

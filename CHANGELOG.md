@@ -3,6 +3,12 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.6.0
+- Built-in types such as strings, ints, floats and booleans can be loaded from enviroment variables
+  - The environment variable name should be `<UPPER_CLASS_NAME_UPPER_PARAMTER_NAME>`
+  - Use InjectorOptions.use_env_vars to enable/disable the feature (activated by default)
+  - Check the docs for more details
+
 ## 1.5.1
 ### Fixes
 - Fixed unwanted bindings being automatically created when using InstanceBindings with builtin types
