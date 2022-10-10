@@ -3,7 +3,7 @@
 
 # Linting
 pylint==2.11.1
-black==22.8.0
+black==22.10.0
 
 # Publish
 twine==3.4.2
