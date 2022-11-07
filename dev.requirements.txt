@@ -8,7 +8,7 @@ black==22.8.0
 # Publish
 twine==3.4.2
 setuptools==58.3.0
-wheel==0.37.1
+wheel==0.38.2
 
 # Coverage
 pytest-cov==4.0.0
