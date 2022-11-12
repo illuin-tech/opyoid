@@ -1,11 +1,11 @@
-from typing import Optional, TYPE_CHECKING, Type, Union
+from typing import Optional, Type, TYPE_CHECKING, Union
 
 import attr
 
 from opyoid.bindings.binding import Binding
 from opyoid.exceptions import BindingError
 from opyoid.scopes import Scope, SingletonScope
-from opyoid.utils import InjectedT, get_class_full_name
+from opyoid.utils import get_class_full_name, InjectedT
 
 if TYPE_CHECKING:
     from typing import TypeVar

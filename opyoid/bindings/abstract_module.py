@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, TYPE_CHECKING, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, TYPE_CHECKING, Union
 
 from opyoid.exceptions import BindingError
 from opyoid.provider import Provider

@@ -2,7 +2,7 @@ import os
 from unittest import TestCase
 from unittest.mock import ANY
 
-from opyoid import Module, conditional_on_env_var
+from opyoid import conditional_on_env_var, Module
 from opyoid.frozen_target import FrozenTarget
 
 

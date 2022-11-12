@@ -1,6 +1,6 @@
 import unittest
 
-from opyoid import Module, Injector
+from opyoid import Injector, Module
 from opyoid.bindings import InstanceBinding
 
 

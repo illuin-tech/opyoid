@@ -4,7 +4,7 @@ import attr
 
 from opyoid.provider import Provider
 from opyoid.scopes import Scope
-from opyoid.utils import EMPTY, InjectedT, get_class_full_name
+from opyoid.utils import EMPTY, get_class_full_name, InjectedT
 
 
 @attr.s(auto_attribs=True, frozen=True, repr=False, kw_only=True)

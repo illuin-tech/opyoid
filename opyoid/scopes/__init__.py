@@ -1,3 +1,5 @@
+from .context_scope import ContextScope
+from .context_scoped_provider import ContextScopedProvider
 from .immediate_scope import ImmediateScope
 from .per_lookup_scope import PerLookupScope
 from .scope import Scope

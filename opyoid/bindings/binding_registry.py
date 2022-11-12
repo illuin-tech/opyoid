@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast, Dict, Optional
 
 from opyoid.exceptions import NonInjectableTypeError
 from opyoid.frozen_target import FrozenTarget

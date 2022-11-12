@@ -9,7 +9,7 @@ from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
 from opyoid.type_checker import TypeChecker
-from opyoid.utils import EMPTY, InjectedT, get_class_full_name
+from opyoid.utils import EMPTY, get_class_full_name, InjectedT
 from .from_callable_provider import FromCallableProvider
 
 

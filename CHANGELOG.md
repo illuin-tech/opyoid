@@ -5,6 +5,27 @@ Opyoid follows [semver guidelines](https://semver.org) for versioning.
 ## Unreleased
 ### Features
 - Opyoid is now PEP561 compliant, and as such compatible with mypy
+- Added a Context Scope that can be used to control more precisely the scope of created objects:
+```python
+from opyoid import ContextScope, Injector, SelfBinding
+
+class MyClass:
+  pass
+
+
+injector = Injector(bindings=[SelfBinding(MyClass, scope=ContextScope)])
+scope = injector.inject(ContextScope)
+
+with scope:
+    instance_1 = injector.inject(MyClass)
+    instance_2 = injector.inject(MyClass)
+
+with scope:
+    instance_3 = injector.inject(MyClass)
+
+assert instance_1 is instance_2
+assert instance_1 is not instance_3
+```
 
 ## 1.6.0
 ### Features
