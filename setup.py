@@ -19,6 +19,7 @@ setuptools.setup(
     install_requires=["attrs>=19.1.0,<23.0.0"],
     python_requires=">=3.6,<4.0",
     packages=setuptools.find_packages(include=["opyoid", "opyoid.*"]),
+    package_data={"opyoid": ["py.typed"]},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
