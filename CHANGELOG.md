@@ -3,7 +3,11 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+### Features
+- Opyoid is now PEP561 compliant, and as such compatible with mypy
+
 ## 1.6.0
+### Features
 - Built-in types such as strings, ints, floats and booleans can be loaded from enviroment variables
   - The environment variable name should be `<UPPER_CLASS_NAME_UPPER_PARAMTER_NAME>`
   - Use InjectorOptions.use_env_vars to enable/disable the feature (activated by default)
