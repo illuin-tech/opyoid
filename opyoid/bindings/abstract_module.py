@@ -52,7 +52,7 @@ class AbstractModule:
 
     def install(self, module: Union["AbstractModule", Type["AbstractModule"]]) -> None:
         """Adds bindings from another Module to this one."""
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel, cyclic-import
         from .private_module import PrivateModule
 
         module_instance = self._get_module_instance(module)
