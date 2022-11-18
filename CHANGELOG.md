@@ -3,7 +3,9 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 1.7.0
 ### Features
+- Add official support for Python 3.11
 - Opyoid is now PEP561 compliant, and as such compatible with mypy
 - Added a Context Scope that can be used to control more precisely the scope of created objects:
 ```python

@@ -22,5 +22,5 @@ Run `python -m unitttest discover` to run the tests.
 Run these commands to check the files linting:
 ```shell script
 pylint opyoid
-pylint tests tests_e2e --disable=too-many-public-methods,no-self-use,too-many-instance-attributes
+pylint tests tests_e2e --disable=too-many-public-methods,too-many-instance-attributes
 ```

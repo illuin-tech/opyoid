@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
+        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10', '3.11' ]
 
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
         run: |
           py.test --cov-report xml --cov-report term --cov=opyoid ./tests ./tests_e2e
       - name: Codecov
-        if: matrix.python-version == '3.10'
+        if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         # python 3.6 has too many false positives
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
 
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
       - name: Lint with pylint
         run: |
           pylint opyoid
-          pylint tests tests_e2e --disable=too-many-public-methods,no-self-use,too-many-instance-attributes,too-many-lines
+          pylint tests tests_e2e --disable=too-many-public-methods,too-many-instance-attributes,too-many-lines
 
   deploy:
     needs: [ test, lint ]
