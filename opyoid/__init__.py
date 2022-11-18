@@ -15,6 +15,6 @@ from .injector import Injector
 from .injector_options import InjectorOptions
 from .named import named_arg
 from .provider import Provider
-from .scopes import ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
+from .scopes import ContextScope, ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
 from .target import Target
 from .utils import InjectedT

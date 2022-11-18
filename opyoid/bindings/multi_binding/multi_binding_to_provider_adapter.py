@@ -11,10 +11,10 @@ from .list_provider import ListProvider
 from .multi_binding import MultiBinding
 
 if TYPE_CHECKING:
+    from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
     from opyoid.providers.providers_factories.from_registered_binding_provider_factory import (
         FromRegisteredBindingProviderFactory,
     )
-    from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
 
 
 class MultiBindingToProviderAdapter(BindingToProviderAdapter[MultiBinding]):

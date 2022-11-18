@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING, Type, Union
+from typing import Optional, Type, TYPE_CHECKING, Union
 
 import attr
 

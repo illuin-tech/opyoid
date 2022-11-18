@@ -1,6 +1,6 @@
-from typing import List, Optional, TYPE_CHECKING, Type, Union
+from typing import List, Optional, Type, TYPE_CHECKING, Union
 
-from opyoid.scopes import ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
+from opyoid.scopes import ContextScope, ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
 from .abstract_module import AbstractModule
 from .binding import Binding
 from .module import Module
@@ -30,6 +30,7 @@ class RootModule(Module):
         self.bind(PerLookupScope, to_instance=PerLookupScope())
         self.bind(SingletonScope, to_instance=SingletonScope())
         self.bind(ThreadScope, to_instance=ThreadScope())
+        self.bind(ContextScope, to_instance=ContextScope())
         for module in self._modules:
             self.install(module)
         for binding in self._bindings:

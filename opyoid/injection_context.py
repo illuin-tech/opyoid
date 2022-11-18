@@ -1,6 +1,6 @@
 import logging
 from inspect import Parameter
-from typing import Generic, List, Optional, TYPE_CHECKING, Type
+from typing import Generic, List, Optional, Type, TYPE_CHECKING
 
 import attr
 

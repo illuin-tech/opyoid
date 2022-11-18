@@ -6,13 +6,13 @@ from unittest.mock import call, create_autospec
 from opyoid import (
     ClassBinding,
     InstanceBinding,
+    named_arg,
     PerLookupScope,
     Provider,
     ProviderBinding,
     SelfBinding,
     SingletonScope,
     ThreadScope,
-    named_arg,
 )
 from opyoid.bindings import BindingRegistry, FromCallableProvider, SelfBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding

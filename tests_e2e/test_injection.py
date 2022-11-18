@@ -12,16 +12,17 @@ from opyoid import (
     ItemBinding,
     Module,
     MultiBinding,
+    named_arg,
     PerLookupScope,
     Provider,
     ProviderBinding,
     SelfBinding,
     SingletonScope,
-    named_arg,
 )
 from opyoid.bindings.private_module import PrivateModule
 from opyoid.exceptions import CyclicDependencyError, NoBindingFound, NonInjectableTypeError
 from opyoid.injector_options import InjectorOptions
+from opyoid.scopes.context_scope import ContextScope
 
 
 class MyClass:
@@ -1258,3 +1259,35 @@ class TestInjector(unittest.TestCase):
         injector = Injector(bindings=[SelfBinding(MyEnvClass)])
         instance = injector.inject(MyEnvClass)
         self.assertEqual("renamed_value", instance.key)
+
+    def test_context_scope(self):
+        class MyOtherClass:
+            pass
+
+        injector = Injector(
+            bindings=[
+                SelfBinding(MyClass),
+                SelfBinding(MyOtherClass, scope=ContextScope),
+            ]
+        )
+        scope = injector.inject(ContextScope)
+
+        instance_1 = injector.inject(MyClass)
+        other_instance_1 = injector.inject(MyOtherClass)
+
+        with scope:
+            instance_2 = injector.inject(MyClass)
+            other_instance_2 = injector.inject(MyOtherClass)
+
+            instance_3 = injector.inject(MyClass)
+            other_instance_3 = injector.inject(MyOtherClass)
+
+        instance_4 = injector.inject(MyClass)
+        other_instance_4 = injector.inject(MyOtherClass)
+        self.assertIs(instance_1, instance_2)
+        self.assertIs(instance_1, instance_3)
+        self.assertIs(instance_1, instance_4)
+        self.assertIsNot(other_instance_1, other_instance_2)
+        self.assertIs(other_instance_2, other_instance_3)
+        self.assertIsNot(other_instance_1, other_instance_4)
+        self.assertIsNot(other_instance_2, other_instance_4)

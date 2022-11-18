@@ -1,6 +1,6 @@
 # pylint: disable=no-name-in-module
 # noinspection PyUnresolvedReferences,PyProtectedMember
-from typing import Type, Union, _GenericAlias
+from typing import _GenericAlias, Type, Union
 
 from opyoid.named import Named
 from opyoid.provider import Provider

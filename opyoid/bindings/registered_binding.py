@@ -1,4 +1,4 @@
-from typing import Generic, TYPE_CHECKING, Tuple, TypeVar
+from typing import Generic, Tuple, TYPE_CHECKING, TypeVar
 
 import attr
 

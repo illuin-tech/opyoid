@@ -1,5 +1,5 @@
 from inspect import Parameter, Signature, signature
-from typing import Callable, Generic, Mapping, Type, TypeVar, Union, cast
+from typing import Callable, cast, Generic, Mapping, Type, TypeVar, Union
 
 from opyoid.exceptions import NamedError
 

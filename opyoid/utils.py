@@ -1,4 +1,4 @@
-from typing import Any, Callable, Type, TypeVar, Union, cast
+from typing import Any, Callable, cast, Type, TypeVar, Union
 
 from .named import Named
 

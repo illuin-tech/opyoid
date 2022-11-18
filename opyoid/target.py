@@ -2,7 +2,7 @@ from typing import Any, Generic, Optional, Type, Union
 
 import attr
 
-from opyoid.utils import EMPTY, InjectedT, get_class_full_name
+from opyoid.utils import EMPTY, get_class_full_name, InjectedT
 
 
 @attr.s(auto_attribs=True, repr=False)
