@@ -11,4 +11,4 @@ setuptools==65.5.1; python_version >= '3.7'
 wheel==0.38.4; python_version >= '3.7'
 
 # Coverage
-pytest-cov==4.0.0
+pytest-cov==4.1.0
