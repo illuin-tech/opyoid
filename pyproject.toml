@@ -1,0 +1,74 @@
+[project]
+name = "opyoid"
+description = "Dependency injection library"
+authors = [{ name = "Illuin Technology", email = "contact@illuin.tech" }]
+maintainers = [{ name = "Illuin Technology", email = "contact@illuin.tech" }]
+requires-python = ">=3.8"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed"
+]
+version = "0.0.0"
+dependencies = [
+    "attrs>=19.1.0,<23.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pylint==2.15.5",
+    "black==22.10.0",
+    "twine==4.0.1",
+    "setuptools==65.5.1",
+    "wheel==0.38.4",
+    "pytest-cov==4.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/illuin-tech/opyoid"
+"Bug Reports" = "https://github.com/illuin-tech/opyoid/issues"
+"Source" = "https://github.com/illuin-tech/opyoid/"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["any"]
+packages.find.include = ["opyoid", "opyoid.*"]
+package-data.opyoid = ["py.typed"]
+
+[tool.coverage]
+run.source = ["opyoid"]
+run.branch = true
+report.exclude_also = [
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.mypy]
+exclude = [
+    "env",
+]
+strict = true
+implicit_reexport = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+allow_untyped_defs = true

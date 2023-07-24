@@ -1,11 +1,9 @@
-# noinspection PyUnresolvedReferences,PyProtectedMember
 from typing import _GenericAlias, Type, Union
 
 from opyoid.named import Named
 from opyoid.provider import Provider
 
 
-# noinspection PyUnresolvedReferences
 class Pep560TypeChecker:
     """Various helpers to check type hints."""
 

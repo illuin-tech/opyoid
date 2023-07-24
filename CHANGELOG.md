@@ -3,6 +3,9 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+### Breaking changes
+- Remove support for Python < 3.8
+
 ## 1.7.0
 ### Features
 - Add official support for Python 3.11
