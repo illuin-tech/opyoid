@@ -2,7 +2,7 @@ import logging
 from threading import RLock
 from typing import List
 
-from opyoid.exceptions import NoBindingFound
+from opyoid.exceptions import IncompatibleProviderFactory, NoBindingFound
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.utils import InjectedT
@@ -49,6 +49,8 @@ class ProviderCreator:
 
     def _get_provider(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
         for provider_factory in self._provider_factories:
-            if provider_factory.accept(context):
+            try:
                 return provider_factory.create(context)
+            except IncompatibleProviderFactory:
+                pass
         raise NoBindingFound(f"Could not find any bindings for {context.target!r}")

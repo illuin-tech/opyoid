@@ -9,10 +9,6 @@ class ProviderFactory:
     A target corresponds to either a Binding target or a dependency of a Binding target.
     """
 
-    def accept(self, context: InjectionContext[InjectedT]) -> bool:
-        """Returns True if this factory can handle this target."""
-        raise NotImplementedError
-
     def create(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
-        """Returns the provider corresponding to this target."""
+        """Returns the provider corresponding to this target or raises IncompatibleProviderFactory."""
         raise NotImplementedError

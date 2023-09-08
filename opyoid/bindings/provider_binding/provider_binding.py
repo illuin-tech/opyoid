@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Type, Union
+from typing import Callable, Optional, Type, TypeVar, Union
 
 import attr
 
@@ -11,7 +11,7 @@ from opyoid.utils import get_class_full_name, get_function_full_name, InjectedT
 
 @attr.s(auto_attribs=True, frozen=True, repr=False)
 class ProviderBinding(Binding[InjectedT]):
-    _target_type: Type[InjectedT]
+    _target_type: Union[Type[InjectedT], TypeVar]
     bound_provider: Union[Type[Provider[InjectedT]], Provider[InjectedT], Callable[..., InjectedT]]
     scope: Type[Scope] = attr.ib(default=SingletonScope, kw_only=True)
     _named: Optional[str] = attr.ib(default=None, kw_only=True)
@@ -26,7 +26,7 @@ class ProviderBinding(Binding[InjectedT]):
             )
 
     @property
-    def target_type(self) -> Type[InjectedT]:
+    def target_type(self) -> Union[Type[InjectedT], TypeVar]:
         return self._target_type
 
     @property

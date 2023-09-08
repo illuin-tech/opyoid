@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, TYPE_CHECKING, Union
+from typing import Any, List, Optional, Type, TYPE_CHECKING, Union
 
 from opyoid.scopes import ContextScope, ImmediateScope, PerLookupScope, SingletonScope, ThreadScope
 from .abstract_module import AbstractModule
@@ -14,7 +14,7 @@ class RootModule(Module):
         self,
         injector: "Injector",
         modules: Optional[List[Union[AbstractModule, Type[AbstractModule]]]],
-        bindings: Optional[List[Binding]],
+        bindings: Optional[List[Binding[Any]]],
     ) -> None:
         Module.__init__(self, log_bindings=True)
         self._injector = injector

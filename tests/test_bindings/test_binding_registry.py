@@ -1,5 +1,5 @@
 import unittest
-from typing import List
+from typing import cast, List
 from unittest.mock import create_autospec
 
 from opyoid import ClassBinding, PerLookupScope, Provider, SelfBinding
@@ -65,7 +65,9 @@ class TestBindingRegistry(unittest.TestCase):
         )
         self.binding_registry.register(binding_1)
         self.binding_registry.register(binding_2)
-        registered_binding = self.binding_registry.get_binding(Target(List[MyType]))
+        registered_binding = cast(
+            RegisteredMultiBinding[MyType], self.binding_registry.get_binding(Target(List[MyType]))
+        )
         self.assertIsInstance(registered_binding, RegisteredMultiBinding)
         self.assertIsInstance(registered_binding.raw_binding, MultiBinding)
         self.assertEqual([registered_item_binding_1, registered_item_binding_2], registered_binding.item_bindings)
@@ -77,9 +79,8 @@ class TestBindingRegistry(unittest.TestCase):
         binding_2 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True))
         self.binding_registry.register(binding_1)
         self.binding_registry.register(binding_2)
-        binding = self.binding_registry.get_binding(Target(List[MyType])).raw_binding
-        self.assertIsInstance(binding, MultiBinding)
-        self.assertEqual([item_binding_2], binding.item_bindings)
+        binding = self.binding_registry.get_binding(Target(List[MyType]))
+        self.assertIs(binding_2, binding)
 
     def test_get_binding_returns_binding(self):
         self.binding_registry.register(self.my_type_binding)
@@ -129,7 +130,7 @@ class TestBindingRegistry(unittest.TestCase):
         binding_1.target = FrozenTarget(MyNewType)
 
         # pylint: disable=function-redefined
-        class MyNewType:
+        class MyNewType:  # type: ignore[no-redef]
             pass
 
         binding_2 = create_autospec(Binding, spec_set=True)
@@ -169,10 +170,13 @@ class TestBindingRegistry(unittest.TestCase):
         self.binding_registry.register(provider_binding)
 
         self.assertEqual(provider_binding, self.binding_registry.get_binding(Target(str, "my_name")))
-        provider_binding = self.binding_registry.get_binding(Target(MyProvider, "my_name"))
-        self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
-        self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
-        self.assertEqual(PerLookupScope, provider_binding.raw_binding.scope)
+        registered_binding = cast(
+            RegisteredBinding[str], self.binding_registry.get_binding(Target(MyProvider, "my_name"))
+        )
+        raw_binding = cast(SelfBinding[str], registered_binding.raw_binding)
+        self.assertIsInstance(raw_binding, SelfBinding)
+        self.assertEqual(MyProvider, raw_binding.target_type)
+        self.assertEqual(PerLookupScope, raw_binding.scope)
 
     def test_register_multi_binding_with_provider_binding_creates_self_binding(self):
         class MyProvider(Provider[str]):
@@ -181,13 +185,13 @@ class TestBindingRegistry(unittest.TestCase):
 
         provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider))
         multi_binding = RegisteredMultiBinding(
-            MultiBinding(str, [provider_binding.raw_binding]), item_bindings=[provider_binding]
+            MultiBinding(str, [ItemBinding(bound_provider=MyProvider)]), item_bindings=[provider_binding]
         )
         self.binding_registry.register(multi_binding)
 
-        provider_binding = self.binding_registry.get_binding(Target(MyProvider))
-        self.assertIsInstance(provider_binding.raw_binding, SelfBinding)
-        self.assertEqual(MyProvider, provider_binding.raw_binding.target_type)
+        registered_binding = cast(RegisteredBinding[str], self.binding_registry.get_binding(Target(MyProvider)))
+        self.assertIsInstance(registered_binding.raw_binding, SelfBinding)
+        self.assertEqual(MyProvider, registered_binding.raw_binding.target_type)
 
     def test_register_class_binding_creates_self_binding_if_target_does_not_exist(self):
         class MySubType(MyType):
@@ -196,7 +200,7 @@ class TestBindingRegistry(unittest.TestCase):
         class_binding = RegisteredBinding(ClassBinding(MyType, MySubType))
         self.binding_registry.register(class_binding)
         self.assertIs(class_binding, self.binding_registry.get_binding(Target(MyType)))
-        self_binding = self.binding_registry.get_binding(Target(MySubType))
+        self_binding = cast(RegisteredBinding[MySubType], self.binding_registry.get_binding(Target(MySubType)))
         self.assertIsInstance(self_binding.raw_binding, SelfBinding)
         self.assertEqual(MySubType, self_binding.raw_binding.target_type)
 

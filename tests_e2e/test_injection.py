@@ -1,6 +1,6 @@
 import os
 import unittest
-from typing import Generic, List, Optional, Set, Tuple, Type, TypeVar, Union
+from typing import cast, Generic, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 import attr
 
@@ -31,7 +31,7 @@ class MyClass:
 
 class TestInjector(unittest.TestCase):
     @staticmethod
-    def get_injector(*classes_to_bind):
+    def get_injector(*classes_to_bind) -> Injector:
         return Injector(bindings=[SelfBinding(class_to_bind) for class_to_bind in classes_to_bind])
 
     def test_simple_injection(self):
@@ -51,13 +51,13 @@ class TestInjector(unittest.TestCase):
 
     def test_auto_injection_with_default(self):
         class ParentClass:
-            def __init__(self, my_arg: MyClass = None):
+            def __init__(self, my_arg: str = "default"):
                 self.my_arg = my_arg
 
         injector = Injector(options=InjectorOptions(auto_bindings=True))
         my_instance = injector.inject(ParentClass)
         self.assertIsInstance(my_instance, ParentClass)
-        self.assertIsNone(my_instance.my_arg)
+        self.assertEqual("default", my_instance.my_arg)
 
     def test_auto_injection_with_named_binding(self):
         class ParentClass:
@@ -234,13 +234,16 @@ class TestInjector(unittest.TestCase):
             def configure(self) -> None:
                 self.multi_bind(
                     MyClass,
-                    [
-                        self.bind_item(to_class=MyClass),
-                        self.bind_item(to_class=MySubClass),
-                        self.bind_item(to_instance=my_instance),
-                        self.bind_item(to_provider=MyProvider),
-                        self.bind_item(to_provider=MyProvider2()),
-                    ],
+                    cast(
+                        List[ItemBinding[MyClass]],
+                        [
+                            self.bind_item(to_class=MyClass),
+                            self.bind_item(to_class=MySubClass),
+                            self.bind_item(to_instance=my_instance),
+                            self.bind_item(to_provider=MyProvider),
+                            self.bind_item(to_provider=MyProvider2()),
+                        ],
+                    ),
                 )
                 self.bind(MyParentClass)
 
@@ -305,10 +308,12 @@ class TestInjector(unittest.TestCase):
 
         parent = self.get_injector(MyClass, MyParentClass).inject(MyParentClass)
         self.assertEqual([MyClass], parent.list_type_param)
-        self.assertEqual(1, len(parent.optional_list_param))
-        self.assertIsInstance(parent.optional_list_param[0], MyClass)
-        self.assertEqual(1, len(parent.list_optional_param))
-        self.assertIsInstance(parent.list_optional_param[0], MyClass)
+        optional_list_param = cast(List[MyClass], parent.optional_list_param)
+        self.assertEqual(1, len(optional_list_param))
+        self.assertIsInstance(optional_list_param[0], MyClass)
+        list_optional_param = cast(List[MyClass], parent.list_optional_param)
+        self.assertEqual(1, len(list_optional_param))
+        self.assertIsInstance(list_optional_param[0], MyClass)
         self.assertEqual(MyClass, parent.optional_type_param)
         self.assertEqual([MyClass], parent.optional_list_type_param)
         self.assertEqual([[MyClass]], parent.list_list_type_param)
@@ -372,7 +377,7 @@ class TestInjector(unittest.TestCase):
             pass
 
         class MyClass1:
-            def __init__(self, my_param: MyGeneric):
+            def __init__(self, my_param: MyGeneric):  # type: ignore[type-arg]
                 self.my_param = my_param
 
         class MyClass2:
@@ -1089,7 +1094,12 @@ class TestInjector(unittest.TestCase):
 
     def test_builtin_parameters_self_binding_is_not_created(self):
         class MyOtherClass:
-            def __init__(self, param_1: Optional[int] = 1, param_2: str = "bye", param_3: Optional[list] = None):
+            def __init__(
+                self,
+                param_1: Optional[int] = 1,
+                param_2: str = "bye",
+                param_3: Optional[List] = None,  # type: ignore[type-arg]
+            ):
                 self.param_1 = param_1
                 self.param_2 = param_2
                 self.param_3 = param_3

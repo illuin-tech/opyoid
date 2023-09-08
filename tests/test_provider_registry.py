@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import create_autospec
 
-from opyoid import NonInjectableTypeError, Provider, Target
+from opyoid import InjectException, NonInjectableTypeError, Provider, Target
 from opyoid.provider_registry import ProviderRegistry
 
 
@@ -42,6 +42,10 @@ class TestProviderRegistry(unittest.TestCase):
 
         self.assertEqual(self.provider_1, provider)
 
+    def test_set_provider_with_string_target_raises_exception(self):
+        with self.assertRaises(InjectException):
+            self.registry.set_provider(Target("MyType"), self.provider_1)
+
     def test_get_named_provider_from_string(self):
         self.registry.set_provider(self.target, self.provider_1)
         self.registry.set_provider(self.named_target, self.provider_2)
@@ -60,7 +64,7 @@ class TestProviderRegistry(unittest.TestCase):
         target_1 = Target(MyNewType)
 
         # pylint: disable=function-redefined
-        class MyNewType:
+        class MyNewType:  # type: ignore[no-redef]
             pass
 
         target_2 = Target(MyNewType)

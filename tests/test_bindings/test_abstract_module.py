@@ -167,11 +167,11 @@ class TestAbstractModule(unittest.TestCase):
 
     def test_bind_non_provider_raises_exception(self):
         with self.assertRaises(BindingError):
-            self.module.bind(MyType, to_provider="hello")
+            self.module.bind(MyType, to_provider="hello")  # type: ignore[arg-type]
 
     def test_bind_non_class_raises_exception(self):
         with self.assertRaises(BindingError):
-            self.module.bind(MyType, to_class="hello")
+            self.module.bind(MyType, to_class="hello")  # type: ignore[arg-type]
 
     def test_multi_binding(self):
         instance = MyType()

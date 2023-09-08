@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, TYPE_CHECKING, Union
+from typing import List, Optional, Type, TypeVar, Union
 
 import attr
 
@@ -7,21 +7,18 @@ from opyoid.bindings.multi_binding.item_binding import ItemBinding
 from opyoid.scopes import Scope, SingletonScope
 from opyoid.utils import InjectedT
 
-if TYPE_CHECKING:
-    from typing import TypeVar
-
 
 @attr.s(auto_attribs=True, frozen=True, repr=False)
 class MultiBinding(Binding[List[InjectedT]]):
-    item_target_type: Union[Type[InjectedT], "TypeVar"]
+    item_target_type: Union[Type[InjectedT], TypeVar]
     item_bindings: List[ItemBinding[InjectedT]]
     scope: Type[Scope] = attr.ib(default=SingletonScope, kw_only=True)
     _named: Optional[str] = attr.ib(default=None, kw_only=True)
     override_bindings: bool = attr.ib(default=True, kw_only=True)
 
     @property
-    def target_type(self) -> Union[Type[List[InjectedT]], "TypeVar"]:
-        return List[self.item_target_type]
+    def target_type(self) -> Union[Type[List[InjectedT]], TypeVar]:
+        return List[self.item_target_type]  # type: ignore[name-defined]
 
     @property
     def named(self) -> Optional[str]:

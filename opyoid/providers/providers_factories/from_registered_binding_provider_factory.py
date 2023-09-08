@@ -2,7 +2,6 @@ import logging
 from typing import List
 
 from opyoid.bindings import (
-    Binding,
     BindingToProviderAdapter,
     ClassBindingToProviderAdapter,
     InstanceBindingToProviderAdapter,
@@ -11,7 +10,7 @@ from opyoid.bindings import (
     SelfBindingToProviderAdapter,
 )
 from opyoid.bindings.registered_binding import RegisteredBinding
-from opyoid.exceptions import BindingError
+from opyoid.exceptions import BindingError, IncompatibleAdapter
 from opyoid.injection_context import InjectionContext
 from opyoid.injection_state import InjectionState
 from opyoid.provider import Provider
@@ -34,7 +33,7 @@ class FromRegisteredBindingProviderFactory:
 
     def create(
         self,
-        binding: RegisteredBinding[Binding[InjectedT]],
+        binding: RegisteredBinding[InjectedT],
         context: InjectionContext[InjectedT],
         cache_provider: bool = True,
     ) -> Provider[InjectedT]:
@@ -55,9 +54,11 @@ class FromRegisteredBindingProviderFactory:
         return self._create_from_binding(binding, context)
 
     def _create_from_binding(
-        self, binding: RegisteredBinding[Binding[InjectedT]], context: InjectionContext[InjectedT]
+        self, binding: RegisteredBinding[InjectedT], context: InjectionContext[InjectedT]
     ) -> Provider[InjectedT]:
         for adapter in self._binding_to_provider_adapters:
-            if adapter.accept(binding.raw_binding, context):
+            try:
                 return adapter.create(binding, context)
+            except IncompatibleAdapter:
+                pass
         raise BindingError(f"Could not find a BindingToProviderAdapter for {binding!r}")

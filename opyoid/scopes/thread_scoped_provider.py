@@ -1,4 +1,5 @@
 import threading
+from typing import cast
 
 from opyoid.provider import Provider
 from opyoid.utils import InjectedT
@@ -15,7 +16,7 @@ class ThreadScopedProvider(Provider[InjectedT]):
     def get(self) -> InjectedT:
         with self._lock:
             try:
-                return self._local.cached_instance
+                return cast(InjectedT, self._local.cached_instance)
             except AttributeError:
                 self._local.cached_instance = self._inner_provider.get()
         return self._local.cached_instance

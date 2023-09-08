@@ -1,4 +1,4 @@
-from typing import Generic, Optional, Type
+from typing import Any, Generic, Optional
 
 import attr
 
@@ -11,7 +11,7 @@ class Binding(Generic[InjectedT]):
     """Abstract class representing a link between a Target and something used to create it."""
 
     @property
-    def target_type(self) -> Type[InjectedT]:
+    def target_type(self) -> Any:
         raise NotImplementedError
 
     @property

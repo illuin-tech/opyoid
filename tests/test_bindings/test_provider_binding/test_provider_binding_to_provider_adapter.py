@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from opyoid import InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding, SingletonScope, ThreadScope
+from opyoid import PerLookupScope, Provider, ProviderBinding, SelfBinding, SingletonScope, ThreadScope
 from opyoid.bindings import BindingRegistry, FromInstanceProvider, ProviderBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
-from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
+from opyoid.exceptions import IncompatibleAdapter, NoBindingFound, NonInjectableTypeError
 from opyoid.injection_context import InjectionContext
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
@@ -16,6 +16,7 @@ class MyType:
     pass
 
 
+# mypy: disable-error-code="attr-defined"
 class TestProviderBindingToProviderAdapter(unittest.TestCase):
     def setUp(self):
         self.adapter = ProviderBindingToProviderAdapter()
@@ -32,15 +33,6 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         self.scope = PerLookupScope()
         self.mock_scope_provider.get.return_value = self.scope
         self.context = InjectionContext(Target(MyType), self.state)
-
-    def test_accept_provider_binding_returns_true(self):
-        self.assertTrue(
-            self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider, spec_set=True)), self.context)
-        )
-
-    def test_accept_non_provider_binding_returns_false(self):
-        self.assertFalse(self.adapter.accept(SelfBinding(MyType), self.context))
-        self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType()), self.context))
 
     def test_create_returns_provider_from_provider_instance_binding(self):
         provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, self.provider)), self.context)
@@ -119,3 +111,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
 
         with self.assertRaises(NonInjectableTypeError):
             self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.context)
+
+    def test_other_binding_raises_exception(self):
+        with self.assertRaises(IncompatibleAdapter):
+            self.adapter.create(RegisteredBinding(SelfBinding(MyType)), self.context)

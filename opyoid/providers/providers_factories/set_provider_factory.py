@@ -1,6 +1,7 @@
-from typing import List, Set
+from typing import Callable, cast, List
 
 from opyoid.bindings import FromCallableProvider
+from opyoid.exceptions import IncompatibleProviderFactory
 from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 from opyoid.target import Target
@@ -12,10 +13,12 @@ from .provider_factory import ProviderFactory
 class SetProviderFactory(ProviderFactory):
     """Creates a Provider that groups the target set items providers."""
 
-    def accept(self, context: InjectionContext[InjectedT]) -> bool:
-        return TypeChecker.is_set(context.target.type)
-
-    def create(self, context: InjectionContext[Set[InjectedT]]) -> Provider[Set[InjectedT]]:
-        new_target = Target(List[context.target.type.__args__[0]], context.target.named)
-        new_context = context.get_child_context(new_target)
-        return FromCallableProvider(set, [new_context.get_provider()], None, {})
+    def create(self, context: InjectionContext[InjectedT]) -> Provider[InjectedT]:
+        if TypeChecker.is_set(context.target.type):
+            new_target: Target[List[InjectedT]] = Target(
+                List[context.target.type.__args__[0]],  # type: ignore[name-defined]
+                context.target.named,
+            )
+            new_context = context.get_child_context(new_target)
+            return FromCallableProvider(cast(Callable[..., InjectedT], set), [new_context.get_provider()], None, {})
+        raise IncompatibleProviderFactory

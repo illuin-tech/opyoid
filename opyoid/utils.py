@@ -1,4 +1,4 @@
-from typing import Any, Callable, cast, Type, TypeVar, Union
+from typing import Any, Callable, Type, TypeVar, Union
 
 from .named import Named
 
@@ -6,11 +6,11 @@ InjectedT = TypeVar("InjectedT", bound=Any)
 EMPTY = object()
 
 
-def get_class_full_name(klass: Union[Type, str]) -> str:
+def get_class_full_name(klass: Union[Type[Any], TypeVar, str]) -> str:
     if isinstance(klass, str):
         return klass
     if isinstance(klass, type) and issubclass(klass, Named):
-        return get_class_full_name(cast(Type[Named], klass).original_type) + f"#{klass.name}"
+        return get_class_full_name(klass.original_type) + f"#{klass.name}"
     if hasattr(klass, "__origin__"):
         return repr(klass)
     try:

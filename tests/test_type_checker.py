@@ -10,6 +10,7 @@ class TestClass:
     pass
 
 
+# mypy: disable-error-code="index,misc,operator"
 class TestTypeChecker(unittest.TestCase):
     def setUp(self) -> None:
         self.type_checker = TypeChecker()
@@ -108,7 +109,7 @@ class TestTypeChecker(unittest.TestCase):
         self.assertTrue(self.type_checker.is_provider(Provider[TestClass]))
 
     def test_is_named(self):
-        class MyNamedType(Named):
+        class MyNamedType(Named[str]):
             original_type = str
             name = "my_name"
 

@@ -28,12 +28,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pylint==2.15.5",
-    "black==22.10.0",
-    "twine==4.0.1",
-    "setuptools==65.5.1",
-    "wheel==0.38.4",
-    "pytest-cov==4.0.0",
+    "black==23.7.0",
+    "mypy==1.4.1",
+    "pytest==7.4.0",
+    "pytest-cov==4.1.0",
+    "pylint==2.17.4",
+    "setuptools==68.0.0",
+    "twine==4.0.2",
+    "wheel==0.31.0",
 ]
 
 [project.urls]
@@ -68,7 +70,9 @@ exclude = [
 strict = true
 implicit_reexport = true
 ignore_missing_imports = true
+warn_unused_ignores = false
 
 [[tool.mypy.overrides]]
-module = "tests.*"
+module = ["tests.*", "tests_e2e.*"]
 allow_untyped_defs = true
+disable_error_code = 'var-annotated, no-untyped-def'

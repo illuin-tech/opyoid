@@ -43,31 +43,18 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         with self.assertRaises(BindingError):
             self.provider_factory.create(self.str_context)
 
-    def test_accept(self):
-        self.binding_registry.__contains__.side_effect = [
-            True,
-            False,
-        ]
-        self.assertTrue(self.provider_factory.accept(self.str_context))
-        self.assertFalse(self.provider_factory.accept(self.int_context))
-        self.assertEqual(
-            [
-                call(Target(str)),
-                call(Target(int)),
-            ],
-            self.binding_registry.__contains__.call_args_list,
-        )
-
     def test_create_with_parent_binding(self):
         self.state.parent_state = InjectionState(create_autospec(ProviderCreator, spec_set=True), self.binding_registry)
         self.binding_registry.__contains__.side_effect = [
             False,
             True,
+            False,
         ]
 
-        self.assertTrue(self.provider_factory.accept(self.str_context))
+        self.assertTrue(self.provider_factory.create(self.str_context))
         self.assertEqual(
             [
+                call(Target(str)),
                 call(Target(str)),
                 call(Target(str)),
             ],
