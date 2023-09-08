@@ -23,7 +23,7 @@ classifiers = [
 ]
 version = "0.0.0"
 dependencies = [
-    "attrs>=19.1.0,<23.0.0",
+    "attrs>=19.1.0,<24.0.0",
 ]
 
 [project.optional-dependencies]
