@@ -676,7 +676,7 @@ class TestInjector(unittest.TestCase):
 
         class Module2(Module):
             def configure(self) -> None:
-                self.multi_bind(MyClass, [self.bind_item(to_class=MyClass)])
+                self.multi_bind(MyClass, [self.bind_item(to_class=MyClass)], override_bindings=True)
 
         injector = Injector(
             [Module1(), Module2()],
@@ -1042,6 +1042,7 @@ class TestInjector(unittest.TestCase):
                         self.bind_item(to_class=MySubClass1),
                         self.bind_item(to_class=MySubClass2),
                     ],
+                    override_bindings=True,
                 )
 
         class Module1(Module):

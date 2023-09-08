@@ -119,7 +119,7 @@ class AbstractModule:
         *,
         scope: Type[Scope] = SingletonScope,
         named: Optional[str] = None,
-        override_bindings: bool = True,
+        override_bindings: bool = False,
     ) -> RegisteredMultiBinding[Any]:
         return self._register_multi_binding(
             MultiBinding(

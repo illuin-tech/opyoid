@@ -52,6 +52,7 @@ class BindingRegistry:
                 MultiBinding[InjectedItemT],
                 new_binding.raw_binding,  # type: ignore[attr-defined]
             ).override_bindings
+            and new_binding is not previous_binding
         )
 
     def _append_to_multi_binding(

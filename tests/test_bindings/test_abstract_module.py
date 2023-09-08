@@ -242,7 +242,7 @@ class TestAbstractModule(unittest.TestCase):
                         ],
                         scope=SingletonScope,
                         named=None,
-                        override_bindings=True,
+                        override_bindings=False,
                     ),
                     item_bindings=[
                         RegisteredBinding(
