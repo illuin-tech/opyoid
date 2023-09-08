@@ -1,12 +1,12 @@
-from typing import List
+from typing import Any, List, TypeVar
 
 import attr
 
-from opyoid.utils import InjectedT
-from .multi_binding import MultiBinding
 from .registered_binding import RegisteredBinding
+
+InjectedItemT = TypeVar("InjectedItemT", bound=Any)
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class RegisteredMultiBinding(RegisteredBinding[MultiBinding[InjectedT]]):
-    item_bindings: List[RegisteredBinding[InjectedT]] = attr.Factory(list)
+class RegisteredMultiBinding(RegisteredBinding[List[InjectedItemT]]):
+    item_bindings: List[RegisteredBinding[InjectedItemT]] = attr.Factory(list)

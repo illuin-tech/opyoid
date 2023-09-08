@@ -15,7 +15,7 @@ All pull requests should:
 - Update the `CHANGELOG.md` file with the `Fixes`, `Features` and/or `Breaking changes` that the changes will bring
 
 ## Local development
-Install the development dependencies with `pip install -r dev.requirements.txt`.
+Install the development dependencies with `pip install -e ".[dev]"`.
 
 Run `python -m unitttest discover` to run the tests.
 

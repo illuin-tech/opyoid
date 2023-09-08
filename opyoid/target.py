@@ -1,4 +1,4 @@
-from typing import Any, Generic, Optional, Type, Union
+from typing import Any, Generic, Optional, Type, TypeVar, Union
 
 import attr
 
@@ -9,9 +9,9 @@ from opyoid.utils import EMPTY, get_class_full_name, InjectedT
 class Target(Generic[InjectedT]):
     """Identifies a class being injected."""
 
-    type: Union[Type[InjectedT], str]
+    type: Union[Type[InjectedT], TypeVar, str, Any]
     named: Optional[str] = None
-    default: Any = attr.ib(default=EMPTY, eq=False)
+    default: Union[InjectedT, object] = attr.ib(default=EMPTY, eq=False)
 
     def __repr__(self) -> str:
         return f"{get_class_full_name(self.type)}" + (f"#{self.named}" if self.named else "")

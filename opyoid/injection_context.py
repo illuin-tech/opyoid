@@ -1,6 +1,6 @@
 import logging
 from inspect import Parameter
-from typing import Generic, List, Optional, Type, TYPE_CHECKING
+from typing import Any, Generic, List, Optional, Type, TYPE_CHECKING, TypeVar
 
 import attr
 
@@ -10,8 +10,11 @@ from .target import Target
 from .utils import InjectedT
 
 if TYPE_CHECKING:
-    from .bindings import RegisteredBinding
+    from .bindings import Binding, RegisteredBinding
     from .injection_state import InjectionState
+
+
+InjectedSubT = TypeVar("InjectedSubT", bound=Any)
 
 
 @attr.s(auto_attribs=True)
@@ -20,12 +23,12 @@ class InjectionContext(Generic[InjectedT]):
 
     target: Target[InjectedT]
     injection_state: "InjectionState"
-    parent_context: Optional["InjectionContext"] = attr.ib(default=None, eq=False)
+    parent_context: Optional["InjectionContext[Any]"] = attr.ib(default=None, eq=False)
     allow_jit_provider: bool = True
     current_class: Optional[Type[InjectedT]] = None
     current_parameter: Optional[Parameter] = None
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         context = self
         while context.parent_context:
             if self == context.parent_context:
@@ -35,7 +38,7 @@ class InjectionContext(Generic[InjectedT]):
             context = context.parent_context
 
     @property
-    def _dependency_chain(self) -> List[Target]:
+    def _dependency_chain(self) -> List[Target[Any]]:
         context = self
         chain = [self.target]
         while context.parent_context:
@@ -44,8 +47,8 @@ class InjectionContext(Generic[InjectedT]):
         return chain
 
     def get_child_context(
-        self, new_target: Target[InjectedT], allow_jit_provider: bool = True
-    ) -> "InjectionContext[InjectedT]":
+        self, new_target: Target[InjectedSubT], allow_jit_provider: bool = True
+    ) -> "InjectionContext[InjectedSubT]":
         return InjectionContext(new_target, self.injection_state, self, allow_jit_provider)
 
     def get_new_state_context(self, new_state: "InjectionState") -> "InjectionContext[InjectedT]":

@@ -1,9 +1,10 @@
 import unittest
 from unittest.mock import create_autospec
 
-from opyoid import InstanceBinding, Provider, ProviderBinding, SelfBinding
+from opyoid import InstanceBinding, SelfBinding
 from opyoid.bindings import InstanceBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
+from opyoid.exceptions import IncompatibleAdapter
 from opyoid.injection_context import InjectionContext
 from opyoid.providers import ProviderCreator
 
@@ -19,13 +20,6 @@ class TestInstanceBindingToProviderAdapter(unittest.TestCase):
         self.instance = MyType()
         self.context = create_autospec(InjectionContext, spec_set=True)
 
-    def test_accept_instance_binding_returns_true(self):
-        self.assertTrue(self.adapter.accept(InstanceBinding(MyType, MyType()), self.context))
-
-    def test_accept_non_instance_binding_returns_false(self):
-        self.assertFalse(self.adapter.accept(SelfBinding(MyType), self.context))
-        self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.context))
-
     def test_create_returns_provider(self):
         provider = self.adapter.create(
             RegisteredBinding(InstanceBinding(MyType, self.instance)), self.providers_creator
@@ -33,3 +27,7 @@ class TestInstanceBindingToProviderAdapter(unittest.TestCase):
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
+
+    def test_other_binding_type_raises_exception(self):
+        with self.assertRaises(IncompatibleAdapter):
+            self.adapter.create(RegisteredBinding(SelfBinding(MyType)), self.providers_creator)

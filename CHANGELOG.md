@@ -3,6 +3,11 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 2.0.0
+### Breaking changes
+- Remove support for Python < 3.8
+- MultiBindings now have the parameter `override_bindings` set to `False` by default (was `True`)
+
 ## 1.7.0
 ### Features
 - Add official support for Python 3.11

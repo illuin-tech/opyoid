@@ -32,3 +32,15 @@ class CyclicDependencyError(InjectException):
     """Raised when a cyclic dependency is detected."""
 
     pass
+
+
+class IncompatibleProviderFactory(InjectException):
+    """Raised when the provider does not correspond to the target, is caught internally."""
+
+    pass
+
+
+class IncompatibleAdapter(InjectException):
+    """Raised when the adapter does not correspond to the binding, is caught internally."""
+
+    pass

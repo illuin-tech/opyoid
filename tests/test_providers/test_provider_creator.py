@@ -60,9 +60,9 @@ class TestProviderCreator(unittest.TestCase):
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
-        provider = self.provider_creator.get_provider(self.other_context)
-        self.assertIsInstance(provider, FromInstanceProvider)
-        instance = provider.get()
+        other_provider = self.provider_creator.get_provider(self.other_context)
+        self.assertIsInstance(other_provider, FromInstanceProvider)
+        instance = other_provider.get()
         self.assertIsInstance(instance, MyOtherType)
 
     def test_get_provider_caches_providers(self):

@@ -1,5 +1,5 @@
 from threading import Lock
-from typing import Union
+from typing import cast, Union
 
 from opyoid.provider import Provider
 from opyoid.utils import EMPTY, InjectedT
@@ -18,4 +18,4 @@ class SingletonScopedProvider(Provider[InjectedT]):
             if self._cached_instance is EMPTY:
                 injected_instance = self._inner_provider.get()
                 self._cached_instance = injected_instance
-        return self._cached_instance
+        return cast(InjectedT, self._cached_instance)

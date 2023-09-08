@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Type
+from typing import Optional, Type
 
 from opyoid.bindings import AbstractModule, Condition
 
@@ -8,7 +8,7 @@ from opyoid.bindings import AbstractModule, Condition
 class EnvVarCondition(Condition):
     logger = logging.getLogger(__name__)
 
-    def __init__(self, env_var_name: str, module: Type[AbstractModule], expected_value: str = None):
+    def __init__(self, env_var_name: str, module: Type[AbstractModule], expected_value: Optional[str] = None):
         self._env_var_name = env_var_name
         self._module = module
         self._expected_value = expected_value

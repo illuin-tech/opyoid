@@ -1,4 +1,4 @@
-from typing import Generic, Tuple, TYPE_CHECKING, TypeVar
+from typing import Generic, Tuple, TYPE_CHECKING
 
 import attr
 
@@ -9,11 +9,9 @@ from .binding import Binding
 if TYPE_CHECKING:
     from .private_module import PrivateModule
 
-BindingT = TypeVar("BindingT", bound=Binding)
-
 
 @attr.s(auto_attribs=True, frozen=True)
-class RegisteredBinding(Generic[BindingT]):
-    raw_binding: BindingT
+class RegisteredBinding(Generic[InjectedT]):
+    raw_binding: Binding[InjectedT]
     source_path: Tuple["PrivateModule", ...] = attr.Factory(tuple)
     target: FrozenTarget[InjectedT] = attr.Factory(lambda self: self.raw_binding.target, takes_self=True)

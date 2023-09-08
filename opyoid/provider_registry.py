@@ -1,6 +1,6 @@
-from typing import Dict
+from typing import Any, Dict, Optional
 
-from .exceptions import NonInjectableTypeError
+from .exceptions import InjectException, NonInjectableTypeError
 from .frozen_target import FrozenTarget
 from .provider import Provider
 from .target import Target
@@ -10,18 +10,19 @@ from .utils import InjectedT
 class ProviderRegistry:
     """Stores Providers for each Target to create a cache."""
 
-    def __init__(self):
-        self._provider_by_target: Dict[FrozenTarget, Provider] = {}
+    def __init__(self) -> None:
+        self._provider_by_target: Dict[FrozenTarget[Any], Provider[Any]] = {}
 
-    def __contains__(self, item: Target[InjectedT]) -> bool:
+    def __contains__(self, item: Target[Any]) -> bool:
         return self.get_provider(item) is not None
 
     def set_provider(self, target: Target[InjectedT], provider: Provider[InjectedT]) -> None:
+        if isinstance(target.type, str):
+            raise InjectException()
         frozen_target = FrozenTarget(target.type, target.named)
         self._provider_by_target[frozen_target] = provider
 
-    def get_provider(self, target: Target[InjectedT]) -> Provider[InjectedT]:
-        frozen_target = FrozenTarget(target.type, target.named)
+    def get_provider(self, target: Target[InjectedT]) -> Optional[Provider[InjectedT]]:
         if isinstance(target.type, str):
             possible_target_types = list(
                 set(
@@ -37,4 +38,8 @@ class ProviderRegistry:
                 raise NonInjectableTypeError(
                     f"Could not find provider for '{target.type}': multiple types with this name found"
                 )
+            else:
+                return None
+        else:
+            frozen_target = FrozenTarget(target.type, target.named)
         return self._provider_by_target.get(frozen_target)

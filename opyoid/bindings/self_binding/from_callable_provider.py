@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from opyoid.provider import Provider
 from opyoid.utils import InjectedT
@@ -8,9 +8,9 @@ class FromCallableProvider(Provider[InjectedT]):
     def __init__(
         self,
         injected_callable: Callable[..., InjectedT],
-        positional_providers: List[Provider],
-        args_provider: Optional[Provider[List]],
-        keyword_providers: Dict[str, Provider],
+        positional_providers: List[Provider[Any]],
+        args_provider: Optional[Provider[List[Any]]],
+        keyword_providers: Dict[str, Provider[Any]],
     ) -> None:
         self._injected_callable = injected_callable
         self._positional_providers = positional_providers

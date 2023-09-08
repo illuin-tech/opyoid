@@ -3,20 +3,10 @@ from inspect import signature
 from typing import List
 from unittest.mock import call, create_autospec
 
-from opyoid import (
-    ClassBinding,
-    InstanceBinding,
-    named_arg,
-    PerLookupScope,
-    Provider,
-    ProviderBinding,
-    SelfBinding,
-    SingletonScope,
-    ThreadScope,
-)
+from opyoid import InstanceBinding, named_arg, PerLookupScope, Provider, SelfBinding, SingletonScope, ThreadScope
 from opyoid.bindings import BindingRegistry, FromCallableProvider, SelfBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
-from opyoid.exceptions import NoBindingFound, NonInjectableTypeError
+from opyoid.exceptions import IncompatibleAdapter, NoBindingFound, NonInjectableTypeError
 from opyoid.injection_context import InjectionContext
 from opyoid.injection_state import InjectionState
 from opyoid.providers import ProviderCreator
@@ -28,6 +18,7 @@ class MyType:
     pass
 
 
+# mypy: disable-error-code="attr-defined"
 class TestSelfBindingToProviderAdapter(unittest.TestCase):
     def setUp(self):
         self.adapter = SelfBindingToProviderAdapter()
@@ -39,17 +30,6 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.mock_scope_provider = create_autospec(Provider, spec_set=True)
         self.scope = PerLookupScope()
         self.mock_scope_provider.get.return_value = self.scope
-
-    def test_accept_self_binding_returns_true(self):
-        self.assertTrue(self.adapter.accept(SelfBinding(MyType), self.context))
-
-    def test_accept_non_self_binding_returns_false(self):
-        class MySubType(MyType):
-            pass
-
-        self.assertFalse(self.adapter.accept(InstanceBinding(MyType, MyType()), self.context))
-        self.assertFalse(self.adapter.accept(ClassBinding(MyType, MySubType), self.context))
-        self.assertFalse(self.adapter.accept(ProviderBinding(MyType, create_autospec(Provider)), self.context))
 
     def test_create_provider_without_args(self):
         self.state.provider_creator.get_provider.return_value = self.mock_scope_provider
@@ -286,3 +266,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
 
         with self.assertRaises(NonInjectableTypeError):
             self.adapter.create(RegisteredBinding(SelfBinding(MyType)), self.context)
+
+    def test_other_binding_type_raises_exception(self):
+        with self.assertRaises(IncompatibleAdapter):
+            self.adapter.create(RegisteredBinding(InstanceBinding(MyType, MyType())), self.context)

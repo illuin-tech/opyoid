@@ -1,3 +1,5 @@
+from typing import cast
+
 from opyoid.provider import Provider
 from opyoid.utils import EMPTY, InjectedT
 
@@ -17,7 +19,7 @@ class ContextScopedProvider(Provider[InjectedT]):
         if self._cached_instance is EMPTY:
             self._cached_instance = self._unscoped_provider.get()
 
-        return self._cached_instance
+        return cast(InjectedT, self._cached_instance)
 
     def enter(self) -> None:
         self._is_scope_activated = True
