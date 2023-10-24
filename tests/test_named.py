@@ -24,7 +24,7 @@ class TestNamed(unittest.TestCase):
                 self.my_param = my_param
                 self.my_other_param = my_other_param
 
-        parameters = signature(MyClass.__init__).parameters
+        parameters = signature(MyClass).parameters
         my_param = parameters["my_param"]
         self.assertTrue(issubclass(my_param.annotation, Named))
         self.assertEqual(MyType, my_param.annotation.original_type)
@@ -37,7 +37,7 @@ class TestNamed(unittest.TestCase):
             def __init__(self, my_param: int = 3):
                 self.my_param = my_param
 
-        parameters = signature(MyClass.__init__).parameters
+        parameters = signature(MyClass).parameters
         my_param = parameters["my_param"]
         self.assertTrue(issubclass(my_param.annotation, Named))
         self.assertEqual(int, my_param.annotation.original_type)

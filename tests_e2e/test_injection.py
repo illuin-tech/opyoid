@@ -1302,3 +1302,70 @@ class TestInjector(unittest.TestCase):
         self.assertIs(other_instance_2, other_instance_3)
         self.assertIsNot(other_instance_1, other_instance_4)
         self.assertIsNot(other_instance_2, other_instance_4)
+
+    def test_dependency_loop_injection(self):
+        class ClassA:
+            def __init__(self, my_arg: "ClassB"):
+                self.my_arg = my_arg
+
+        class ClassB:
+            def __init__(
+                self,
+            ) -> None:
+                self.my_arg: Optional[ClassA] = None
+                self.my_other_arg: Tuple[ClassA, ...] = ()
+
+            def __opyoid_post_init__(self, my_arg: ClassA, *other_args: ClassA) -> None:
+                self.my_arg = my_arg
+                self.my_other_arg = other_args
+
+        injector = self.get_injector(ClassA, ClassB)
+
+        instance_a = injector.inject(ClassA)
+        instance_b = injector.inject(ClassB)
+
+        self.assertIsInstance(instance_a, ClassA)
+        self.assertIsInstance(instance_a.my_arg, ClassB)
+        self.assertIsInstance(instance_b, ClassB)
+        self.assertIsInstance(instance_b.my_arg, ClassA)
+        self.assertIs(instance_a.my_arg, instance_b)
+        self.assertIs(instance_b.my_arg, instance_a)
+        self.assertCountEqual([instance_a], instance_b.my_other_arg)
+
+    def test_dependency_loop_injection_with_private_module(self):
+        class ClassA:
+            def __init__(self, my_arg: "ClassB", other_arg: str):
+                self.my_arg = my_arg
+                self.other_arg = other_arg
+
+        class ClassB:
+            def __init__(
+                self,
+            ) -> None:
+                self.my_arg: Optional[ClassA] = None
+
+            def __opyoid_post_init__(self, my_arg: ClassA) -> None:
+                self.my_arg = my_arg
+
+        class Module1(PrivateModule):
+            def configure(self) -> None:
+                self.bind(ClassA)
+                self.expose(self.multi_bind(ClassB, [self.bind_item(to_class=ClassB)]))
+                self.bind(str, to_instance="value_1")
+
+        class Module2(PrivateModule):
+            def configure(self) -> None:
+                self.bind(ClassA)
+                self.expose(self.multi_bind(ClassB, [self.bind_item(to_class=ClassB)]))
+                self.bind(str, to_instance="value_2")
+
+        injector = Injector([Module1, Module2])
+
+        instances = injector.inject(List[ClassB])
+        self.assertEqual(2, len(instances))
+        self.assertIsInstance(instances[0], ClassB)
+        self.assertIsInstance(instances[0].my_arg, ClassA)
+        self.assertEqual("value_1", instances[0].my_arg.other_arg)
+        self.assertIsInstance(instances[1], ClassB)
+        self.assertIsInstance(instances[1].my_arg, ClassA)
+        self.assertEqual("value_2", instances[1].my_arg.other_arg)

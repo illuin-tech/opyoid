@@ -1,8 +1,10 @@
 import unittest
 from queue import Queue
 from threading import Thread
+from unittest.mock import create_autospec
 
 from opyoid.bindings import FromCallableProvider
+from opyoid.injection_context import InjectionContext
 from opyoid.scopes.thread_scoped_provider import ThreadScopedProvider
 
 
@@ -12,7 +14,8 @@ class MyType:
 
 class TestThreadScopedProvider(unittest.TestCase):
     def setUp(self) -> None:
-        self.class_provider = FromCallableProvider(MyType, [], None, {})
+        self.context = create_autospec(InjectionContext, spec_set=True)
+        self.class_provider = FromCallableProvider(MyType, [], None, {}, self.context)
         self.provider = ThreadScopedProvider(self.class_provider)
 
     def test_get_returns_instance(self):

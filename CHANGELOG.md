@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 2.1.0
+### Features
+- Added `__opyoid_post_init__` method support to allow breaking dependency loops, check the README for more details
+
 ## 2.0.0
 ### Breaking changes
 - Remove support for Python < 3.8

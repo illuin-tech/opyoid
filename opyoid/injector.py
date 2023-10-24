@@ -40,4 +40,8 @@ class Injector:
 
     def inject(self, target_type: Union[Type[InjectedT], TypeVar, Any], *, named: Optional[str] = None) -> InjectedT:
         injection_context: InjectionContext[InjectedT] = InjectionContext(Target(target_type, named), self._root_state)
-        return injection_context.get_provider().get()
+        result = injection_context.get_provider().get()
+        # pylint: disable=not-an-iterable
+        for post_init_callback in self._root_state.post_init_callbacks:
+            post_init_callback()
+        return result

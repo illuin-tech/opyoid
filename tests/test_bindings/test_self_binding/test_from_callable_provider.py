@@ -2,16 +2,20 @@ import unittest
 from unittest.mock import create_autospec
 
 from opyoid.bindings import FromCallableProvider
+from opyoid.injection_context import InjectionContext
 from opyoid.provider import Provider
 
 
 class TestFromClassProvider(unittest.TestCase):
+    def setUp(self) -> None:
+        self.context = create_autospec(InjectionContext, spec_set=True)
+
     def test_provider_without_args(self):
         class MyType:
             def __init__(self):
                 pass
 
-        provider = FromCallableProvider(MyType, [], None, {})
+        provider = FromCallableProvider(MyType, [], None, {}, self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyType)
 
@@ -31,9 +35,12 @@ class TestFromClassProvider(unittest.TestCase):
         provider_4.get.return_value = "value_4"
         provider_5 = create_autospec(Provider)
         provider_5.get.return_value = "value_5"
-
         provider = FromCallableProvider(
-            MyType, [provider_1, provider_2], provider_3, {"kwarg_1": provider_4, "kwarg_2": provider_5}
+            MyType,
+            [provider_1, provider_2],
+            provider_3,
+            {"kwarg_1": provider_4, "kwarg_2": provider_5},
+            self.context,
         )
         instance = provider.get()
         self.assertIsInstance(instance, MyType)

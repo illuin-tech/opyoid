@@ -1,7 +1,9 @@
 import unittest
+from unittest.mock import create_autospec
 
 from opyoid import ImmediateScope
 from opyoid.bindings import FromCallableProvider
+from opyoid.injection_context import InjectionContext
 from opyoid.scopes.singleton_scoped_provider import SingletonScopedProvider
 
 
@@ -12,7 +14,8 @@ class MyType:
 class TestImmediateScope(unittest.TestCase):
     def setUp(self) -> None:
         self.scope = ImmediateScope()
-        self.class_provider = FromCallableProvider(MyType, [], None, {})
+        self.context = create_autospec(InjectionContext, spec_set=True)
+        self.class_provider = FromCallableProvider(MyType, [], None, {}, self.context)
 
     def test_get_scoped_provider_returns_singleton_scoped_provider(self):
         scoped_provider = self.scope.get_scoped_provider(self.class_provider)
@@ -28,6 +31,6 @@ class TestImmediateScope(unittest.TestCase):
             def __init__(self):
                 MyOtherType.created_count += 1
 
-        class_provider = FromCallableProvider(MyOtherType, [], None, {})
+        class_provider = FromCallableProvider(MyOtherType, [], None, {}, self.context)
         self.scope.get_scoped_provider(class_provider)
         self.assertEqual(1, MyOtherType.created_count)

@@ -20,5 +20,7 @@ class SetProviderFactory(ProviderFactory):
                 context.target.named,
             )
             new_context = context.get_child_context(new_target)
-            return FromCallableProvider(cast(Callable[..., InjectedT], set), [new_context.get_provider()], None, {})
+            return FromCallableProvider(
+                cast(Callable[..., InjectedT], set), [new_context.get_provider()], None, {}, context
+            )
         raise IncompatibleProviderFactory

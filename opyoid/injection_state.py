@@ -1,4 +1,4 @@
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Callable, Dict, List, Optional, TYPE_CHECKING
 
 import attr
 
@@ -18,3 +18,10 @@ class InjectionState:
     parent_state: Optional["InjectionState"] = None
     provider_registry: ProviderRegistry = attr.Factory(ProviderRegistry)
     state_by_module: Dict[AbstractModule, "InjectionState"] = attr.Factory(dict)
+    post_init_callbacks: List[Callable[[], None]] = attr.Factory(list)
+
+    def add_post_init_callback(self, callback: Callable[[], None]) -> None:
+        if self.parent_state:
+            self.parent_state.add_post_init_callback(callback)
+        else:
+            self.post_init_callbacks.append(callback)  # pylint: disable=no-member
