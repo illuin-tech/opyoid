@@ -63,7 +63,7 @@ class AbstractModule:
                     continue
                 if isinstance(binding, RegisteredMultiBinding):
                     binding = RegisteredMultiBinding(
-                        cast(Binding[List[Any]], binding.raw_binding),
+                        binding.raw_binding,
                         item_bindings=[
                             RegisteredBinding(
                                 registered_item_binding.raw_binding,
