@@ -34,7 +34,7 @@ dev = [
     "pytest==7.4.3",
     "pytest-cov==4.1.0",
     "pylint==3.0.3",
-    "setuptools==68.0.0",
+    "setuptools==69.0.3",
     "twine==4.0.2",
     "wheel==0.42.0",
 ]
