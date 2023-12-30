@@ -36,7 +36,7 @@ dev = [
     "pylint==3.0.3",
     "setuptools==68.0.0",
     "twine==4.0.2",
-    "wheel==0.37.1",
+    "wheel==0.42.0",
 ]
 
 [project.urls]
