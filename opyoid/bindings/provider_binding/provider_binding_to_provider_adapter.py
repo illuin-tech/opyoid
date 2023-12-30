@@ -28,6 +28,7 @@ class ProviderBindingToProviderAdapter(BindingToProviderAdapter):
         if isinstance(binding.raw_binding.bound_provider, Provider):
             return binding.raw_binding.bound_provider
         if not isinstance(binding.raw_binding.bound_provider, type):
+            context.target.provider_cache_key = binding.raw_binding.bound_provider
             return self._adapter.create(binding.raw_binding.bound_provider, context, binding.raw_binding.scope)
         bound_provider = cast(Type[Provider[InjectedT]], binding.raw_binding.bound_provider)
         provider_target: Target[Provider[InjectedT]] = Target(bound_provider, binding.raw_binding.named)

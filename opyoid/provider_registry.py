@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from .exceptions import InjectException, NonInjectableTypeError
 from .frozen_target import FrozenTarget
@@ -11,7 +11,7 @@ class ProviderRegistry:
     """Stores Providers for each Target to create a cache."""
 
     def __init__(self) -> None:
-        self._provider_by_target: Dict[FrozenTarget[Any], Provider[Any]] = {}
+        self._provider_by_target: Dict[FrozenTarget[Any], List[Tuple[Any, Provider[Any]]]] = {}
 
     def __contains__(self, item: Target[Any]) -> bool:
         return self.get_provider(item) is not None
@@ -20,7 +20,13 @@ class ProviderRegistry:
         if isinstance(target.type, str):
             raise InjectException()
         frozen_target = FrozenTarget(target.type, target.named)
-        self._provider_by_target[frozen_target] = provider
+        if frozen_target not in self._provider_by_target:
+            self._provider_by_target[frozen_target] = []
+        for index, (cache_key, _existing_provider) in enumerate(self._provider_by_target[frozen_target]):
+            if cache_key == target.provider_cache_key:
+                self._provider_by_target[frozen_target][index] = (target.provider_cache_key, provider)
+                return
+        self._provider_by_target[frozen_target].append((target.provider_cache_key, provider))
 
     def get_provider(self, target: Target[InjectedT]) -> Optional[Provider[InjectedT]]:
         if isinstance(target.type, str):
@@ -42,4 +48,8 @@ class ProviderRegistry:
                 return None
         else:
             frozen_target = FrozenTarget(target.type, target.named)
-        return self._provider_by_target.get(frozen_target)
+        options = self._provider_by_target.get(frozen_target, [])
+        for cache_key, provider in options:
+            if cache_key == target.provider_cache_key:
+                return provider
+        return None

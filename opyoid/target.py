@@ -12,6 +12,7 @@ class Target(Generic[InjectedT]):
     type: Union[Type[InjectedT], TypeVar, str, Any]
     named: Optional[str] = None
     default: Union[InjectedT, object] = attr.ib(default=EMPTY, eq=False)
+    provider_cache_key: Optional[Any] = None
 
     def __repr__(self) -> str:
         return f"{get_class_full_name(self.type)}" + (f"#{self.named}" if self.named else "")
