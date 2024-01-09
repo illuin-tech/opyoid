@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 2.0.2
+### Fixes
+- Fixed an InjectException raised when trying to bind a class with a stringified parameter type
+
 ## 2.0.1
 ### Fixes
 - Fixed MultiBindings not using the correct provider when having multiple ItemBindings to Providers

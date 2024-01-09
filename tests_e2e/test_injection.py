@@ -872,6 +872,24 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(other_parent.my_param, MyClass)
         self.assertIs(parent.my_param, other_parent.my_param)
 
+    def test_injection_with_string_type_cache_2(self):
+        class MyParentClass:
+            def __init__(self, my_param: "MyClass"):
+                self.my_param = my_param
+
+        class MyOtherParentClass:
+            def __init__(self, my_param: MyClass):
+                self.my_param = my_param
+
+        injector = self.get_injector(MyOtherParentClass, MyParentClass, MyClass)
+        parent = injector.inject(MyParentClass)
+        self.assertIsInstance(parent, MyParentClass)
+        self.assertIsInstance(parent.my_param, MyClass)
+        other_parent = injector.inject(MyOtherParentClass)
+        self.assertIsInstance(other_parent, MyOtherParentClass)
+        self.assertIsInstance(other_parent.my_param, MyClass)
+        self.assertIs(parent.my_param, other_parent.my_param)
+
     def test_private_module_multi_bind(self):
         class DependencyClass:
             pass

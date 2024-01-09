@@ -38,6 +38,7 @@ class ProviderRegistry:
                 )
             )
             if len(possible_target_types) == 1:
+                target.type = possible_target_types[0]
                 # noinspection PyTypeChecker
                 frozen_target = FrozenTarget(possible_target_types[0], target.named)
             elif possible_target_types:
