@@ -35,7 +35,7 @@ dev = [
     "pytest-cov==5.0.0",
     "pylint==3.2.3",
     "setuptools==70.0.0",
-    "twine==5.1.0",
+    "twine==5.1.1",
     "wheel==0.43.0",
 ]
 
