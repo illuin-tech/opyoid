@@ -30,9 +30,9 @@ class CallableToProviderAdapter:
         if cached_provider:
             return cached_provider
         if isinstance(type_or_function, type):
-            parameters = list(signature(type_or_function.__init__).parameters.values())[1:]
+            parameters = list(signature(type_or_function.__init__).parameters.values())[1:]  # type: ignore[misc]
         else:
-            parameters = signature(type_or_function).parameters.values()
+            parameters = list(signature(type_or_function).parameters.values())
         positional_providers: List[Provider[Any]] = []
         args_provider: Optional[Provider[List[Any]]] = None
         keyword_providers: Dict[str, Provider[Any]] = {}
