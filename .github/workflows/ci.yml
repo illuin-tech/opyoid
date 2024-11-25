@@ -31,7 +31,7 @@ jobs:
           py.test --cov-report xml --cov-report term --cov=opyoid ./tests ./tests_e2e
       - name: Codecov
         if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
