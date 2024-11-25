@@ -32,7 +32,7 @@ dev = [
     "build==1.2.2.post1",
     "mypy==1.13.0",
     "pytest==8.3.3",
-    "pytest-cov==5.0.0",
+    "pytest-cov==6.0.0",
     "pylint==3.2.7",
     "setuptools==75.6.0",
     "twine==5.1.1",
