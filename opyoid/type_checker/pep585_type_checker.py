@@ -1,6 +1,4 @@
-# pylint: disable=no-name-in-module
-# noinspection PyUnresolvedReferences
-from types import GenericAlias  # type: ignore[attr-defined]
+from types import GenericAlias
 from typing import Any
 
 from opyoid.type_checker.pep560_type_checker import Pep560TypeChecker

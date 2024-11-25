@@ -92,12 +92,12 @@ class AbstractModule:
     ) -> RegisteredBinding[InjectedT]:
         try:
             binding = self._create_binding(
-                target_type,
-                to_class,
-                to_instance,
-                to_provider,
-                scope,
-                named,
+                target_type=target_type,
+                bound_class=to_class,
+                bound_instance=to_instance,
+                bound_provider=to_provider,
+                scope=scope,
+                named=named,
             )
         except BindingError as error:
             raise BindingError(f"Error in {self!r} when binding to {target_type!r}: {error}") from None
@@ -161,6 +161,7 @@ class AbstractModule:
 
     @staticmethod
     def _create_binding(
+        *,
         target_type: Any,
         bound_class: Type[Any],
         bound_instance: Any,
@@ -218,7 +219,6 @@ class AbstractModule:
             else:
                 raise BindingError(f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
 
-            # pylint: disable=no-member
             registered_binding.item_bindings.append(RegisteredBinding(item_binding))
         self._binding_registry.register(registered_binding)
         return registered_binding
