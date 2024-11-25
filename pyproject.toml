@@ -3,7 +3,7 @@ name = "opyoid"
 description = "Dependency injection library"
 authors = [{ name = "Illuin Technology", email = "contact@illuin.tech" }]
 maintainers = [{ name = "Illuin Technology", email = "contact@illuin.tech" }]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",

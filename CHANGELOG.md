@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 3.0.0
+### Breaking changes
+- Remove support for Python 3.8
+
 ## 2.0.2
 ### Fixes
 - Fixed an InjectException raised when trying to bind a class with a stringified parameter type
