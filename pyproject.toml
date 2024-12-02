@@ -31,7 +31,7 @@ dev = [
     "black==24.10.0",
     "build==1.2.2.post1",
     "mypy==1.13.0",
-    "pytest==8.3.3",
+    "pytest==8.3.4",
     "pytest-cov==6.0.0",
     "pylint==3.3.2",
     "setuptools==75.6.0",
