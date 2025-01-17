@@ -1413,3 +1413,41 @@ class TestInjector(unittest.TestCase):
         self.assertIsNot(result[0], result[1])
         self.assertIs(result[0], result[2])
         self.assertIs(result[2], instance)
+
+    def test_multi_bind_with_pep_589(self):
+        class SubClass1(MyClass):
+            pass
+
+        class SubClass2(MyClass):
+            pass
+
+        class MultiModule(Module):
+            def configure(self) -> None:
+                self.bind(MyClass, to_class=SubClass1)
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=SubClass1),
+                        self.bind_item(to_class=SubClass2),
+                        self.bind_item(to_class=SubClass1),
+                    ],
+                )
+
+        injector = Injector([MultiModule()])
+        result_1 = injector.inject(list[MyClass])
+        result_2 = injector.inject(List[MyClass])
+        instance = injector.inject(MyClass)
+        self.assertEqual(3, len(result_1))
+        self.assertEqual(3, len(result_2))
+        self.assertIsNot(result_1[0], result_1[1])
+        self.assertIsNot(result_2[0], result_2[1])
+        self.assertIs(result_1[1], result_2[1])
+        self.assertIs(result_1[0], result_1[2])
+        self.assertIs(result_2[0], result_2[2])
+        self.assertIs(result_1[0], result_2[2])
+        self.assertIs(result_1[2], instance)
+
+    def test_multi_bind_with_no_binding(self):
+        injector = Injector([])
+        with self.assertRaises(NoBindingFound):
+            injector.inject(list[MyClass])
