@@ -2,6 +2,7 @@ from .from_binding_provider_factory import FromBindingProviderFactory
 from .from_cache_provider_factory import FromCacheProviderFactory
 from .from_env_var_provider_factory import FromEnvVarProviderFactory
 from .jit_provider_factory import JitProviderFactory
+from .list_from_items_provider_factory import ListFromItemsProviderFactory
 from .list_provider_factory import ListProviderFactory
 from .provider_factory import ProviderFactory
 from .provider_provider_factory import ProviderProviderFactory

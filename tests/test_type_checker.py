@@ -3,7 +3,7 @@ from typing import List, Optional, Set, Tuple, Type, Union
 
 from opyoid import Provider
 from opyoid.named import Named
-from opyoid.type_checker import PEP_585, PEP_604, TypeChecker
+from opyoid.type_checker import PEP_604, TypeChecker
 
 
 class TestClass:
@@ -126,8 +126,6 @@ class TestTypeChecker(unittest.TestCase):
         self.assertFalse(self.type_checker.is_named(Tuple[TestClass]))
         self.assertTrue(self.type_checker.is_named(MyNamedType))
 
-    # pylint: disable=unsubscriptable-object
-    @unittest.skipIf(not PEP_585, "Python 3.9 required")
     def test_pep585_style(self):
         self.assertTrue(self.type_checker.is_list(list[str]))
         self.assertFalse(self.type_checker.is_set(list[str]))

@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 3.0.1
+### Fixes
+- Fix NoBindingFound error being raised when using multi bindings and injecting pep585 style list arguments
+
 ## 3.0.0
 ### Breaking changes
 - Remove support for Python 3.8
