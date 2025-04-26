@@ -1068,6 +1068,60 @@ class TestInjector(unittest.TestCase):
         self.assertIsInstance(subclasses[0], MySubClass1)
         self.assertIsInstance(subclasses[1], MySubClass2)
 
+    def test_multi_bind_does_not_duplicate_from_same_module(self):
+        class MySubClass(MyClass):
+            pass
+
+        class MySubModule(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass),
+                    ],
+                    override_bindings=False,
+                )
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.install(MySubModule)
+
+        class MyModule2(Module):
+            def configure(self) -> None:
+                self.install(MySubModule)
+
+        injector = Injector([MyModule, MyModule2])
+        subclasses = injector.inject(List[MyClass])
+        self.assertEqual(1, len(subclasses))
+
+    def test_multi_bind_does_duplicate_from_different_modules(self):
+        class MySubClass(MyClass):
+            pass
+
+        class MyModule(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass),
+                    ],
+                    override_bindings=False,
+                )
+
+        class MyModule2(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass),
+                    ],
+                    override_bindings=False,
+                )
+
+        injector = Injector([MyModule, MyModule2])
+        subclasses = injector.inject(List[MyClass])
+        self.assertEqual(2, len(subclasses))
+
     def test_shared_module_with_multi_bind_2(self):
         class MySubClass1(MyClass):
             pass

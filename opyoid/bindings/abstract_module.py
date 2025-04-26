@@ -28,7 +28,7 @@ class AbstractModule:
     ):
         self._is_configured = False
         self._binding_registry = BindingRegistry(log_bindings)
-        self._module_instances = shared_modules or {}
+        self._module_instances = shared_modules if shared_modules is not None else {}
 
     @property
     def binding_registry(self) -> BindingRegistry:
