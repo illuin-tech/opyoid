@@ -205,12 +205,15 @@ class TestAbstractModule(unittest.TestCase):
                     item_bindings=[
                         RegisteredBinding(
                             SelfBinding(MyType, scope=PerLookupScope, named="my_name"),
+                            multi_bind_parent=self.module
                         ),
                         RegisteredBinding(
                             InstanceBinding(MyType, instance, named="my_name"),
+                            multi_bind_parent=self.module
                         ),
                         RegisteredBinding(
                             ProviderBinding(MyType, provider, scope=PerLookupScope, named="my_name"),
+                            multi_bind_parent=self.module
                         ),
                     ],
                 ),
@@ -247,6 +250,7 @@ class TestAbstractModule(unittest.TestCase):
                     item_bindings=[
                         RegisteredBinding(
                             SelfBinding(MyType),
+                            multi_bind_parent=self.module
                         )
                     ],
                 ),

@@ -17,7 +17,7 @@ from .self_binding import SelfBinding
 
 
 class AbstractModule:
-    """Base class for Modules, should not be used outside of the library."""
+    """Base class for Modules, should not be used outside the library."""
 
     conditions: Tuple[Condition, ...] = ()
 
@@ -68,6 +68,7 @@ class AbstractModule:
                             RegisteredBinding(
                                 registered_item_binding.raw_binding,
                                 (module_instance,) + binding.source_path,
+                                multi_bind_parent=module_instance,
                             )
                             for registered_item_binding in binding.item_bindings
                         ],
@@ -219,6 +220,6 @@ class AbstractModule:
             else:
                 raise BindingError(f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
 
-            registered_binding.item_bindings.append(RegisteredBinding(item_binding))
+            registered_binding.item_bindings.append(RegisteredBinding(item_binding, multi_bind_parent=self))
         self._binding_registry.register(registered_binding)
         return registered_binding

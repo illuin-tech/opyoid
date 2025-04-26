@@ -5,6 +5,7 @@ Opyoid follows [semver guidelines](https://semver.org) for versioning.
 ## Unreleased
 ## 3.0.2
 ### Fixes
+- Fixed an issue with multi binding unexpectedly injecting multiple instances of the same class
 - Fixed an edge case when modules were configured multiple times when imported inside different modules
 
 ## 3.0.1

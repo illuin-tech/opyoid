@@ -451,10 +451,10 @@ class TestInjector(unittest.TestCase):
             @named_arg("my_param", "type_1")
             @named_arg("my_other_param", "type_2")
             def __init__(
-                self,
-                my_param: List[str],
-                my_other_param: List[str],
-                my_default_param: List[str],
+                    self,
+                    my_param: List[str],
+                    my_other_param: List[str],
+                    my_default_param: List[str],
             ):
                 self.my_param = my_param
                 self.my_other_param = my_other_param
@@ -1072,6 +1072,12 @@ class TestInjector(unittest.TestCase):
         class MySubClass(MyClass):
             pass
 
+        class MySubClass2(MyClass):
+            pass
+
+        class MySubClass3(MyClass):
+            pass
+
         class MySubModule(Module):
             def configure(self) -> None:
                 self.multi_bind(
@@ -1088,11 +1094,29 @@ class TestInjector(unittest.TestCase):
 
         class MyModule2(Module):
             def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass2),
+                    ]
+                )
                 self.install(MySubModule)
 
-        injector = Injector([MyModule, MyModule2])
+
+        class MyModule3(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass3),
+                    ]
+                )
+                self.install(MySubModule)
+
+
+        injector = Injector([MyModule, MyModule2, MyModule3])
         subclasses = injector.inject(List[MyClass])
-        self.assertEqual(1, len(subclasses))
+        self.assertEqual(3, len(subclasses))
 
     def test_multi_bind_does_duplicate_from_different_modules(self):
         class MySubClass(MyClass):
@@ -1191,10 +1215,10 @@ class TestInjector(unittest.TestCase):
     def test_builtin_parameters_self_binding_is_not_created(self):
         class MyOtherClass:
             def __init__(
-                self,
-                param_1: Optional[int] = 1,
-                param_2: str = "bye",
-                param_3: Optional[List] = None,  # type: ignore[type-arg]
+                    self,
+                    param_1: Optional[int] = 1,
+                    param_2: str = "bye",
+                    param_3: Optional[List] = None,  # type: ignore[type-arg]
             ):
                 self.param_1 = param_1
                 self.param_2 = param_2
