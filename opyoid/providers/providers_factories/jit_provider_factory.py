@@ -18,6 +18,6 @@ class JitProviderFactory(ProviderFactory):
             and isinstance(context.target.type, type)
         ):
             return self._provider_factory.create(
-                RegisteredBinding(SelfBinding(context.target.type, named=context.target.named)), context
+                RegisteredBinding(SelfBinding(context.target.type, named=context.target.named), None), context
             )
         raise IncompatibleProviderFactory

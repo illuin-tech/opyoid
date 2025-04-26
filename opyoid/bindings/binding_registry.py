@@ -66,8 +66,9 @@ class BindingRegistry:
         new_raw_binding = cast(MultiBinding[InjectedItemT], registered_binding.raw_binding)
         previous_raw_binding = cast(MultiBinding[InjectedItemT], previous_binding.raw_binding)
         for item_binding, raw_item_binding in zip(registered_binding.item_bindings, new_raw_binding.item_bindings):
-            previous_binding.item_bindings.append(item_binding)
-            previous_raw_binding.item_bindings.append(raw_item_binding)
+            if item_binding not in previous_binding.item_bindings:
+                previous_binding.item_bindings.append(item_binding)
+                previous_raw_binding.item_bindings.append(raw_item_binding)
 
     def _create_or_override_binding(
         self, registered_binding: RegisteredBinding[InjectedT], previous_binding: Optional[RegisteredBinding[InjectedT]]
@@ -102,7 +103,9 @@ class BindingRegistry:
             self_binding = binding
 
         if self_binding is not None and self_binding.target not in self:
-            self.register(RegisteredBinding(self_binding, registered_binding.source_path))
+            self.register(
+                RegisteredBinding(self_binding, registered_binding.binding_source, registered_binding.source_path)
+            )
 
     def get_bindings_by_target(self) -> Dict[FrozenTarget[Any], RegisteredBinding[Any]]:
         return self._bindings_by_target

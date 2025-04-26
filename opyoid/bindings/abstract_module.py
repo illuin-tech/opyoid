@@ -17,7 +17,7 @@ from .self_binding import SelfBinding
 
 
 class AbstractModule:
-    """Base class for Modules, should not be used outside of the library."""
+    """Base class for Modules, should not be used outside the library."""
 
     conditions: Tuple[Condition, ...] = ()
 
@@ -64,9 +64,11 @@ class AbstractModule:
                 if isinstance(binding, RegisteredMultiBinding):
                     binding = RegisteredMultiBinding(
                         binding.raw_binding,
+                        module_instance,
                         item_bindings=[
                             RegisteredBinding(
                                 registered_item_binding.raw_binding,
+                                module_instance,
                                 (module_instance,) + binding.source_path,
                             )
                             for registered_item_binding in binding.item_bindings
@@ -75,6 +77,7 @@ class AbstractModule:
                 else:
                     binding = RegisteredBinding(
                         binding.raw_binding,
+                        module_instance,
                         (module_instance,) + binding.source_path,
                     )
             self._binding_registry.register(binding, add_self_binding=False)
@@ -181,12 +184,12 @@ class AbstractModule:
         if isinstance(binding, MultiBinding):
             registered_binding: RegisteredBinding[Any] = self._register_multi_binding(binding)
         else:
-            registered_binding = RegisteredBinding(binding)
+            registered_binding = RegisteredBinding(binding, binding_source=self)
             self._binding_registry.register(registered_binding)
         return registered_binding
 
     def _register_multi_binding(self, binding: MultiBinding[InjectedT]) -> RegisteredMultiBinding[InjectedT]:
-        registered_binding = RegisteredMultiBinding(binding)
+        registered_binding = RegisteredMultiBinding(binding, binding_source=self)
         for source_item_binding in binding.item_bindings:
             scope = cast(
                 Type[Scope], source_item_binding.scope if source_item_binding.scope is not EMPTY else binding.scope
@@ -219,6 +222,6 @@ class AbstractModule:
             else:
                 raise BindingError(f"ItemBinding in {binding!r} has no instance, class or provider, one should be set")
 
-            registered_binding.item_bindings.append(RegisteredBinding(item_binding))
+            registered_binding.item_bindings.append(RegisteredBinding(item_binding, binding_source=self))
         self._binding_registry.register(registered_binding)
         return registered_binding

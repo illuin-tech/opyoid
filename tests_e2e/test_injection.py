@@ -1072,6 +1072,12 @@ class TestInjector(unittest.TestCase):
         class MySubClass(MyClass):
             pass
 
+        class MySubClass2(MyClass):
+            pass
+
+        class MySubClass3(MyClass):
+            pass
+
         class MySubModule(Module):
             def configure(self) -> None:
                 self.multi_bind(
@@ -1088,11 +1094,27 @@ class TestInjector(unittest.TestCase):
 
         class MyModule2(Module):
             def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass2),
+                    ],
+                )
                 self.install(MySubModule)
 
-        injector = Injector([MyModule, MyModule2])
+        class MyModule3(Module):
+            def configure(self) -> None:
+                self.multi_bind(
+                    MyClass,
+                    [
+                        self.bind_item(to_class=MySubClass3),
+                    ],
+                )
+                self.install(MySubModule)
+
+        injector = Injector([MyModule, MyModule2, MyModule3])
         subclasses = injector.inject(List[MyClass])
-        self.assertEqual(1, len(subclasses))
+        self.assertEqual(3, len(subclasses))
 
     def test_multi_bind_does_duplicate_from_different_modules(self):
         class MySubClass(MyClass):

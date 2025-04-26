@@ -3,7 +3,16 @@ from inspect import signature
 from typing import List
 from unittest.mock import call, create_autospec
 
-from opyoid import InstanceBinding, named_arg, PerLookupScope, Provider, SelfBinding, SingletonScope, ThreadScope
+from opyoid import (
+    AbstractModule,
+    InstanceBinding,
+    named_arg,
+    PerLookupScope,
+    Provider,
+    SelfBinding,
+    SingletonScope,
+    ThreadScope,
+)
 from opyoid.bindings import BindingRegistry, FromCallableProvider, SelfBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import IncompatibleAdapter, NoBindingFound, NonInjectableTypeError
@@ -30,11 +39,12 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.mock_scope_provider = create_autospec(Provider, spec_set=True)
         self.scope = PerLookupScope()
         self.mock_scope_provider.get.return_value = self.scope
+        self.module = create_autospec(AbstractModule, spec_set=True)
 
     def test_create_provider_without_args(self):
         self.state.provider_creator.get_provider.return_value = self.mock_scope_provider
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyType), self.module), self.context)
 
         self.state.provider_creator.get_provider.assert_called_once_with(
             self.context.get_child_context(Target(SingletonScope)),
@@ -49,7 +59,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
 
         self.state.provider_creator.get_provider.return_value = self.mock_scope_provider
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
 
         self.state.provider_creator.get_provider.assert_called_once_with(
             self.context.get_child_context(Target(SingletonScope)),
@@ -62,7 +72,9 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         mock_scope_provider = create_autospec(Provider, spec_set=True)
         mock_scope_provider.get.return_value = ThreadScope()
         self.state.provider_creator.get_provider.return_value = mock_scope_provider
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyType, scope=ThreadScope)), self.context)
+        provider = self.adapter.create(
+            RegisteredBinding(SelfBinding(MyType, scope=ThreadScope), self.module), self.context
+        )
 
         self.state.provider_creator.get_provider.assert_called_once_with(
             self.context.get_child_context(Target(ThreadScope))
@@ -98,7 +110,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(["my_arg_1", 2, 1.2, 3.4], instance.args)
@@ -142,7 +154,9 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType, named="my_name")), self.context)
+        provider = self.adapter.create(
+            RegisteredBinding(SelfBinding(MyOtherType, named="my_name"), self.module), self.context
+        )
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
@@ -176,7 +190,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual("my_arg_1", instance.arg)
@@ -206,7 +220,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
         instance = provider.get()
         self.assertIsInstance(instance, MyOtherType)
         self.assertEqual(("my_arg_1",), instance.arg)
@@ -231,7 +245,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.state.provider_creator.get_provider.side_effect = NoBindingFound
 
         with self.assertRaises(NonInjectableTypeError):
-            self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+            self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
 
     def test_create_provider_with_default_parameter(self):
         class MyOtherType:
@@ -244,7 +258,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
         instance = provider.get()
         self.assertEqual(instance.arg, "default_value")
 
@@ -257,7 +271,7 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType)), self.context)
+        provider = self.adapter.create(RegisteredBinding(SelfBinding(MyOtherType), self.module), self.context)
         instance = provider.get()
         self.assertEqual(instance.arg, "default_value")
 
@@ -265,8 +279,8 @@ class TestSelfBindingToProviderAdapter(unittest.TestCase):
         self.state.provider_creator.get_provider.side_effect = NoBindingFound()
 
         with self.assertRaises(NonInjectableTypeError):
-            self.adapter.create(RegisteredBinding(SelfBinding(MyType)), self.context)
+            self.adapter.create(RegisteredBinding(SelfBinding(MyType), self.module), self.context)
 
     def test_other_binding_type_raises_exception(self):
         with self.assertRaises(IncompatibleAdapter):
-            self.adapter.create(RegisteredBinding(InstanceBinding(MyType, MyType())), self.context)
+            self.adapter.create(RegisteredBinding(InstanceBinding(MyType, MyType()), self.module), self.context)

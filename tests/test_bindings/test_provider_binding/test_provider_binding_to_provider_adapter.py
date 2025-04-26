@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from opyoid import PerLookupScope, Provider, ProviderBinding, SelfBinding, SingletonScope, ThreadScope
+from opyoid import AbstractModule, PerLookupScope, Provider, ProviderBinding, SelfBinding, SingletonScope, ThreadScope
 from opyoid.bindings import BindingRegistry, FromInstanceProvider, ProviderBindingToProviderAdapter
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import IncompatibleAdapter, NoBindingFound, NonInjectableTypeError
@@ -33,9 +33,12 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         self.scope = PerLookupScope()
         self.mock_scope_provider.get.return_value = self.scope
         self.context = InjectionContext(Target(MyType), self.state)
+        self.module = create_autospec(AbstractModule, spec_set=True)
 
     def test_create_returns_provider_from_provider_instance_binding(self):
-        provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, self.provider)), self.context)
+        provider = self.adapter.create(
+            RegisteredBinding(ProviderBinding(MyType, self.provider), self.module), self.context
+        )
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
@@ -47,7 +50,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
             self.mock_scope_provider,
         ]
 
-        provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.context)
+        provider = self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider), self.module), self.context)
 
         instance = provider.get()
         self.assertIs(instance, self.instance)
@@ -67,7 +70,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
 
         context = InjectionContext(Target(MyType, "my_name"), self.state)
         provider = self.adapter.create(
-            RegisteredBinding(ProviderBinding(MyType, Provider, named="my_name")),
+            RegisteredBinding(ProviderBinding(MyType, Provider, named="my_name"), self.module),
             context,
         )
 
@@ -88,7 +91,7 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         ]
 
         provider = self.adapter.create(
-            RegisteredBinding(ProviderBinding(MyType, Provider, scope=ThreadScope)),
+            RegisteredBinding(ProviderBinding(MyType, Provider, scope=ThreadScope), self.module),
             self.context,
         )
 
@@ -110,8 +113,8 @@ class TestProviderBindingToProviderAdapter(unittest.TestCase):
         ]
 
         with self.assertRaises(NonInjectableTypeError):
-            self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider)), self.context)
+            self.adapter.create(RegisteredBinding(ProviderBinding(MyType, Provider), self.module), self.context)
 
     def test_other_binding_raises_exception(self):
         with self.assertRaises(IncompatibleAdapter):
-            self.adapter.create(RegisteredBinding(SelfBinding(MyType)), self.context)
+            self.adapter.create(RegisteredBinding(SelfBinding(MyType), self.module), self.context)

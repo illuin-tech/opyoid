@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import call, create_autospec
 
-from opyoid import ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding
+from opyoid import AbstractModule, ClassBinding, InstanceBinding, PerLookupScope, Provider, ProviderBinding, SelfBinding
 from opyoid.bindings import Binding, BindingRegistry
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.exceptions import BindingError
@@ -26,6 +26,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         self.provider_factory = FromBindingProviderFactory()
         self.provider_creator = create_autospec(ProviderCreator, spec_set=True)
         self.mock_scope_provider = create_autospec(Provider, spec_set=True)
+        self.module = create_autospec(AbstractModule, spec_set=True)
         self.scope = PerLookupScope()
         self.mock_scope_provider.get.return_value = self.scope
         self.state = InjectionState(
@@ -38,7 +39,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
 
     def test_unknown_binding_type_raises_binding_error(self):
         mock_binding = create_autospec(Binding, spec_set=True)
-        self.binding_registry.get_binding.return_value = RegisteredBinding(mock_binding)
+        self.binding_registry.get_binding.return_value = RegisteredBinding(mock_binding, self.module)
         self.binding_registry.__contains__.return_value = True
         with self.assertRaises(BindingError):
             self.provider_factory.create(self.str_context)
@@ -63,7 +64,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
 
     def test_create_creates_provider_for_instance_binding(self):
         binding = InstanceBinding(MyType, MyType())
-        self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
+        self.binding_registry.get_binding.return_value = RegisteredBinding(binding, self.module)
         self.binding_registry.__contains__.return_value = True
 
         provider = self.provider_factory.create(self.context)
@@ -75,7 +76,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         mock_provider = create_autospec(Provider, spec_set=True)
         mock_provider.get.return_value = OtherType()
         self.provider_creator.get_provider.return_value = mock_provider
-        self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
+        self.binding_registry.get_binding.return_value = RegisteredBinding(binding, self.module)
         self.binding_registry.__contains__.return_value = True
 
         provider = self.provider_factory.create(self.context)
@@ -85,7 +86,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
     def test_create_creates_provider_for_self_binding(self):
         binding = SelfBinding(MyType)
         self.provider_creator.get_provider.return_value = self.mock_scope_provider
-        self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
+        self.binding_registry.get_binding.return_value = RegisteredBinding(binding, self.module)
         self.binding_registry.__contains__.return_value = True
 
         provider = self.provider_factory.create(self.context)
@@ -96,7 +97,7 @@ class TestFromBindingsProviderFactory(unittest.TestCase):
         provider = create_autospec(Provider, spec_set=True)
         provider.get.return_value = MyType()
         binding = ProviderBinding(MyType, provider)
-        self.binding_registry.get_binding.return_value = RegisteredBinding(binding)
+        self.binding_registry.get_binding.return_value = RegisteredBinding(binding, self.module)
         self.binding_registry.__contains__.return_value = True
         self.provider_creator.get_provider.return_value = self.mock_scope_provider
 
