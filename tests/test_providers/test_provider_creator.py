@@ -1,8 +1,8 @@
 import unittest
 from typing import List, Optional, Set, Tuple, Type
-from unittest.mock import ANY
+from unittest.mock import ANY, create_autospec
 
-from opyoid import Provider, SelfBinding
+from opyoid import AbstractModule, Provider, SelfBinding
 from opyoid.bindings import (
     BindingRegistry,
     ClassBinding,
@@ -35,7 +35,10 @@ class MyOtherType:
 class TestProviderCreator(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_registry = BindingRegistry()
-        self.binding_registry.register(RegisteredBinding(InstanceBinding(SingletonScope, SingletonScope())))
+        self.module = create_autospec(AbstractModule, spec_set=True)
+        self.binding_registry.register(
+            RegisteredBinding(InstanceBinding(SingletonScope, SingletonScope()), self.module)
+        )
         self.provider_creator = ProviderCreator()
         self.state = InjectionState(
             self.provider_creator,
@@ -52,8 +55,8 @@ class TestProviderCreator(unittest.TestCase):
         self.my_other_instance_binding = InstanceBinding(MyOtherType, self.my_other_instance)
 
     def test_get_provider_with_instance_bindings(self):
-        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
-        self.binding_registry.register(RegisteredBinding(self.my_other_instance_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding, self.module))
+        self.binding_registry.register(RegisteredBinding(self.my_other_instance_binding, self.module))
 
         provider = self.provider_creator.get_provider(self.context)
         self.assertIsInstance(provider, FromInstanceProvider)
@@ -66,14 +69,14 @@ class TestProviderCreator(unittest.TestCase):
         self.assertIsInstance(instance, MyOtherType)
 
     def test_get_provider_caches_providers(self):
-        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding, self.module))
 
         provider_1 = self.provider_creator.get_provider(self.context)
         provider_2 = self.provider_creator.get_provider(self.context)
         self.assertIs(provider_1, provider_2)
 
     def test_get_provider_with_named_bindings(self):
-        self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding, self.module))
 
         with self.assertRaises(NoBindingFound):
             self.provider_creator.get_provider(self.context)
@@ -90,7 +93,7 @@ class TestProviderCreator(unittest.TestCase):
 
         my_parent_binding = SelfBinding(MyParentClass)
         context = InjectionContext(Target(MyParentClass), self.state)
-        self.binding_registry.register(RegisteredBinding(my_parent_binding))
+        self.binding_registry.register(RegisteredBinding(my_parent_binding, self.module))
 
         with self.assertRaises(NonInjectableTypeError):
             self.provider_creator.get_provider(context)
@@ -105,11 +108,12 @@ class TestProviderCreator(unittest.TestCase):
                         ItemBinding(bound_class=MyType),
                     ],
                 ),
+                self.module,
                 item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
-                    RegisteredBinding(SelfBinding(MyType)),
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance), self.module),
+                    RegisteredBinding(SelfBinding(MyType), self.module),
                 ],
-            )
+            ),
         )
         context = InjectionContext(Target(List[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
@@ -127,7 +131,10 @@ class TestProviderCreator(unittest.TestCase):
                     ],
                     named="my_name",
                 ),
-                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"))],
+                self.module,
+                item_bindings=[
+                    RegisteredBinding(InstanceBinding(MyType, self.named_instance, named="my_name"), self.module)
+                ],
             )
         )
         self.binding_registry.register(
@@ -138,11 +145,12 @@ class TestProviderCreator(unittest.TestCase):
                         ItemBinding(bound_instance=self.my_instance),
                     ],
                 ),
-                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.my_instance))],
+                self.module,
+                item_bindings=[RegisteredBinding(InstanceBinding(MyType, self.my_instance), self.module)],
             )
         )
-        self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding))
-        self.binding_registry.register(RegisteredBinding(SelfBinding(MyType)))
+        self.binding_registry.register(RegisteredBinding(self.my_named_instance_binding, self.module))
+        self.binding_registry.register(RegisteredBinding(SelfBinding(MyType), self.module))
 
         context = InjectionContext(Target(List[MyType], "my_name"), self.state)
         provider = self.provider_creator.get_provider(context)
@@ -159,9 +167,10 @@ class TestProviderCreator(unittest.TestCase):
                         ItemBinding(bound_class=MyType),
                     ],
                 ),
+                self.module,
                 item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
-                    RegisteredBinding(SelfBinding(MyType)),
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance), self.module),
+                    RegisteredBinding(SelfBinding(MyType), self.module),
                 ],
             )
         )
@@ -182,9 +191,10 @@ class TestProviderCreator(unittest.TestCase):
                         ItemBinding(bound_class=MyType),
                     ],
                 ),
+                self.module,
                 item_bindings=[
-                    RegisteredBinding(InstanceBinding(MyType, self.my_instance)),
-                    RegisteredBinding(SelfBinding(MyType)),
+                    RegisteredBinding(InstanceBinding(MyType, self.my_instance), self.module),
+                    RegisteredBinding(SelfBinding(MyType), self.module),
                 ],
             )
         )
@@ -196,7 +206,7 @@ class TestProviderCreator(unittest.TestCase):
         self.assertIsInstance(tuple_instance[1], MyType)
 
     def test_optional_binding(self):
-        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding, self.module))
 
         context = InjectionContext(Target(Optional[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
@@ -208,8 +218,8 @@ class TestProviderCreator(unittest.TestCase):
         class SubType(MyType):
             pass
 
-        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
-        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType, SubType)))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding, self.module))
+        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType, SubType), self.module))
 
         context = InjectionContext(Target(Type[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
@@ -221,8 +231,8 @@ class TestProviderCreator(unittest.TestCase):
         class SubType(MyType):
             pass
 
-        self.binding_registry.register(RegisteredBinding(InstanceBinding(Type[MyType], MyType)))
-        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType, SubType)))
+        self.binding_registry.register(RegisteredBinding(InstanceBinding(Type[MyType], MyType), self.module))
+        self.binding_registry.register(RegisteredBinding(ClassBinding(MyType, SubType), self.module))
 
         context = InjectionContext(Target(Type[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
@@ -236,8 +246,8 @@ class TestProviderCreator(unittest.TestCase):
                 self.my_param = my_param
 
         parent_binding = SelfBinding(MyParentClass)
-        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
-        self.binding_registry.register(RegisteredBinding(parent_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding, self.module))
+        self.binding_registry.register(RegisteredBinding(parent_binding, self.module))
         context = InjectionContext(Target(Type[MyType]), self.state)
 
         with self.assertRaises(NonInjectableTypeError):
@@ -255,15 +265,15 @@ class TestProviderCreator(unittest.TestCase):
                 return MyInjectee()
 
         provider_binding = ProviderBinding(MyInjectee, MyProvider)
-        self.binding_registry.register(RegisteredBinding(self.my_instance_binding))
-        self.binding_registry.register(RegisteredBinding(provider_binding))
+        self.binding_registry.register(RegisteredBinding(self.my_instance_binding, self.module))
+        self.binding_registry.register(RegisteredBinding(provider_binding, self.module))
         context = InjectionContext(Target(MyInjectee), self.state)
 
         self.provider_creator.get_provider(context)
 
     def test_list_implicit_binding(self):
         instance = MyType()
-        self.binding_registry.register(RegisteredBinding(InstanceBinding(MyType, instance)))
+        self.binding_registry.register(RegisteredBinding(InstanceBinding(MyType, instance), self.module))
         context = InjectionContext(Target(List[MyType]), self.state)
         provider = self.provider_creator.get_provider(context)
         self.assertIsInstance(provider, ListProvider)

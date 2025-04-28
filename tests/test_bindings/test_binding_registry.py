@@ -2,7 +2,7 @@ import unittest
 from typing import cast, List
 from unittest.mock import create_autospec
 
-from opyoid import ClassBinding, PerLookupScope, Provider, SelfBinding
+from opyoid import AbstractModule, ClassBinding, PerLookupScope, Provider, SelfBinding
 from opyoid.bindings import Binding, BindingRegistry, InstanceBinding, ItemBinding, MultiBinding, ProviderBinding
 from opyoid.bindings.registered_binding import RegisteredBinding
 from opyoid.bindings.registered_multi_binding import RegisteredMultiBinding
@@ -22,16 +22,17 @@ class OtherType:
 class TestBindingRegistry(unittest.TestCase):
     def setUp(self) -> None:
         self.binding_registry = BindingRegistry()
+        self.module = create_autospec(AbstractModule, spec_set=True)
         mock_binding = create_autospec(Binding, spec_set=True)
         mock_binding.target = FrozenTarget(MyType)
-        self.my_type_binding = RegisteredBinding(mock_binding)
+        self.my_type_binding = RegisteredBinding(mock_binding, self.module)
         mock_named_binding = create_autospec(Binding, spec_set=True)
         mock_named_binding.target = FrozenTarget(MyType, "my_name")
-        self.my_type_named_binding = RegisteredBinding(mock_named_binding)
-        self.my_type_binding_2 = RegisteredBinding(InstanceBinding(MyType, MyType()))
+        self.my_type_named_binding = RegisteredBinding(mock_named_binding, self.module)
+        self.my_type_binding_2 = RegisteredBinding(InstanceBinding(MyType, MyType()), self.module)
         other_mock_binding = create_autospec(Binding, spec_set=True)
         other_mock_binding.target = FrozenTarget(OtherType)
-        self.other_type_binding = RegisteredBinding(other_mock_binding)
+        self.other_type_binding = RegisteredBinding(other_mock_binding, self.module)
 
     def test_register_saves_binding_to_new_type(self):
         self.binding_registry.register(self.my_type_binding)
@@ -48,17 +49,21 @@ class TestBindingRegistry(unittest.TestCase):
 
     def test_register_multi_binding_saves_binding_to_known_type_in_order(self):
         item_binding_1 = ItemBinding(bound_class=MyType)
-        registered_item_binding_1 = RegisteredBinding(SelfBinding(MyType))
+        registered_item_binding_1 = RegisteredBinding(SelfBinding(MyType), self.module)
         item_binding_2 = ItemBinding(bound_instance=MyType())
-        registered_item_binding_2 = RegisteredBinding(InstanceBinding(MyType, item_binding_2.bound_instance))
+        registered_item_binding_2 = RegisteredBinding(
+            InstanceBinding(MyType, item_binding_2.bound_instance), self.module
+        )
         binding_1 = RegisteredMultiBinding(
             MultiBinding(MyType, [item_binding_1]),
+            self.module,
             item_bindings=[
                 registered_item_binding_1,
             ],
         )
         binding_2 = RegisteredMultiBinding(
             MultiBinding(MyType, [item_binding_2], override_bindings=False),
+            self.module,
             item_bindings=[
                 registered_item_binding_2,
             ],
@@ -75,8 +80,8 @@ class TestBindingRegistry(unittest.TestCase):
     def test_register_multi_binding_with_override(self):
         item_binding_1 = ItemBinding(bound_class=MyType)
         item_binding_2 = ItemBinding(bound_instance=MyType())
-        binding_1 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_1]))
-        binding_2 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True))
+        binding_1 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_1]), self.module)
+        binding_2 = RegisteredMultiBinding(MultiBinding(MyType, [item_binding_2], override_bindings=True), self.module)
         self.binding_registry.register(binding_1)
         self.binding_registry.register(binding_2)
         binding = self.binding_registry.get_binding(Target(List[MyType]))
@@ -136,8 +141,8 @@ class TestBindingRegistry(unittest.TestCase):
         binding_2 = create_autospec(Binding, spec_set=True)
         binding_2.target = FrozenTarget(MyNewType)
 
-        self.binding_registry.register(RegisteredBinding(binding_1))
-        self.binding_registry.register(RegisteredBinding(binding_2))
+        self.binding_registry.register(RegisteredBinding(binding_1, self.module))
+        self.binding_registry.register(RegisteredBinding(binding_2, self.module))
 
         with self.assertRaises(NonInjectableTypeError):
             self.binding_registry.get_binding(Target("MyNewType"))
@@ -148,14 +153,15 @@ class TestBindingRegistry(unittest.TestCase):
                 return "hello"
 
         provider_instance = MyProvider()
-        provider_binding = RegisteredBinding(ProviderBinding(str, provider_instance, named="my_name"))
+        provider_binding = RegisteredBinding(ProviderBinding(str, provider_instance, named="my_name"), self.module)
         self.binding_registry.register(provider_binding)
 
         self.assertEqual(
             {
                 FrozenTarget(str, "my_name"): provider_binding,
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
-                    InstanceBinding(MyProvider, provider_instance, named="my_name")
+                    InstanceBinding(MyProvider, provider_instance, named="my_name"),
+                    self.module,
                 ),
             },
             self.binding_registry.get_bindings_by_target(),
@@ -166,7 +172,9 @@ class TestBindingRegistry(unittest.TestCase):
             def get(self) -> str:
                 return "hello"
 
-        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider, scope=PerLookupScope, named="my_name"))
+        provider_binding = RegisteredBinding(
+            ProviderBinding(str, MyProvider, scope=PerLookupScope, named="my_name"), self.module
+        )
         self.binding_registry.register(provider_binding)
 
         self.assertEqual(provider_binding, self.binding_registry.get_binding(Target(str, "my_name")))
@@ -183,9 +191,9 @@ class TestBindingRegistry(unittest.TestCase):
             def get(self) -> str:
                 return "hello"
 
-        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider))
+        provider_binding = RegisteredBinding(ProviderBinding(str, MyProvider), self.module)
         multi_binding = RegisteredMultiBinding(
-            MultiBinding(str, [ItemBinding(bound_provider=MyProvider)]), item_bindings=[provider_binding]
+            MultiBinding(str, [ItemBinding(bound_provider=MyProvider)]), self.module, item_bindings=[provider_binding]
         )
         self.binding_registry.register(multi_binding)
 
@@ -197,7 +205,7 @@ class TestBindingRegistry(unittest.TestCase):
         class MySubType(MyType):
             pass
 
-        class_binding = RegisteredBinding(ClassBinding(MyType, MySubType))
+        class_binding = RegisteredBinding(ClassBinding(MyType, MySubType), self.module)
         self.binding_registry.register(class_binding)
         self.assertIs(class_binding, self.binding_registry.get_binding(Target(MyType)))
         self_binding = cast(RegisteredBinding[MySubType], self.binding_registry.get_binding(Target(MySubType)))
@@ -209,8 +217,8 @@ class TestBindingRegistry(unittest.TestCase):
             pass
 
         my_instance = MySubType()
-        class_binding = RegisteredBinding(ClassBinding(MyType, MySubType))
-        instance_binding = RegisteredBinding(InstanceBinding(MySubType, my_instance))
+        class_binding = RegisteredBinding(ClassBinding(MyType, MySubType), self.module)
+        instance_binding = RegisteredBinding(InstanceBinding(MySubType, my_instance), self.module)
         self.binding_registry.register(instance_binding)
         self.binding_registry.register(class_binding)
         self.assertIs(class_binding, self.binding_registry.get_binding(Target(MyType)))

@@ -50,8 +50,8 @@ class TestAbstractModule(unittest.TestCase):
         self.module.install(module)
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
-                FrozenTarget(OtherType, "my_name"): RegisteredBinding(SelfBinding(OtherType, named="my_name")),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), module),
+                FrozenTarget(OtherType, "my_name"): RegisteredBinding(SelfBinding(OtherType, named="my_name"), module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -65,7 +65,7 @@ class TestAbstractModule(unittest.TestCase):
         self.module.install(OtherModule)
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), source_path=(ANY,)),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), ANY, source_path=(ANY,)),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -75,7 +75,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -85,8 +85,8 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
-                FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType)),
+                FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType), self.module),
+                FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -97,7 +97,7 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
+                FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -108,8 +108,8 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType)),
-                FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType)),
+                FrozenTarget(MyType): RegisteredBinding(ClassBinding(MyType, OtherType), self.module),
+                FrozenTarget(OtherType): RegisteredBinding(SelfBinding(OtherType), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -118,7 +118,7 @@ class TestAbstractModule(unittest.TestCase):
         self.module.bind(MyType, scope=PerLookupScope)
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType, scope=PerLookupScope)),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType, scope=PerLookupScope), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -132,10 +132,11 @@ class TestAbstractModule(unittest.TestCase):
 
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance)),
-                FrozenTarget(MyType, "my_name"): RegisteredBinding(SelfBinding(MyType, named="my_name")),
+                FrozenTarget(MyType): RegisteredBinding(InstanceBinding(MyType, my_instance), self.module),
+                FrozenTarget(MyType, "my_name"): RegisteredBinding(SelfBinding(MyType, named="my_name"), self.module),
                 FrozenTarget(OtherType, "my_other_name"): RegisteredBinding(
-                    InstanceBinding(OtherType, my_other_instance, named="my_other_name")
+                    InstanceBinding(OtherType, my_other_instance, named="my_other_name"),
+                    self.module,
                 ),
             },
             self.module.binding_registry.get_bindings_by_target(),
@@ -146,10 +147,12 @@ class TestAbstractModule(unittest.TestCase):
         self.assertEqual(
             {
                 FrozenTarget(MyType, "my_name"): RegisteredBinding(
-                    ProviderBinding(MyType, MyProvider, scope=PerLookupScope, named="my_name")
+                    ProviderBinding(MyType, MyProvider, scope=PerLookupScope, named="my_name"),
+                    self.module,
                 ),
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
-                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")
+                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name"),
+                    self.module,
                 ),
             },
             self.module.binding_registry.get_bindings_by_target(),
@@ -159,8 +162,8 @@ class TestAbstractModule(unittest.TestCase):
         self.module.bind(MyType, to_provider=self.my_provider)
         self.assertEqual(
             {
-                FrozenTarget(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider)),
-                FrozenTarget(MyProvider): RegisteredBinding(InstanceBinding(MyProvider, self.my_provider)),
+                FrozenTarget(MyType): RegisteredBinding(ProviderBinding(MyType, self.my_provider), self.module),
+                FrozenTarget(MyProvider): RegisteredBinding(InstanceBinding(MyProvider, self.my_provider), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
@@ -202,23 +205,27 @@ class TestAbstractModule(unittest.TestCase):
                         named="my_name",
                         override_bindings=False,
                     ),
+                    self.module,
                     item_bindings=[
                         RegisteredBinding(
-                            SelfBinding(MyType, scope=PerLookupScope, named="my_name"),
+                            SelfBinding(MyType, scope=PerLookupScope, named="my_name"), binding_source=self.module
                         ),
                         RegisteredBinding(
-                            InstanceBinding(MyType, instance, named="my_name"),
+                            InstanceBinding(MyType, instance, named="my_name"), binding_source=self.module
                         ),
                         RegisteredBinding(
                             ProviderBinding(MyType, provider, scope=PerLookupScope, named="my_name"),
+                            binding_source=self.module,
                         ),
                     ],
                 ),
                 FrozenTarget(MyProvider, "my_name"): RegisteredBinding(
-                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name")
+                    SelfBinding(MyProvider, scope=PerLookupScope, named="my_name"),
+                    self.module,
                 ),
                 FrozenTarget(MyType, "my_name"): RegisteredBinding(
-                    SelfBinding(MyType, scope=PerLookupScope, named="my_name")
+                    SelfBinding(MyType, scope=PerLookupScope, named="my_name"),
+                    self.module,
                 ),
             },
             self.module.binding_registry.get_bindings_by_target(),
@@ -244,13 +251,10 @@ class TestAbstractModule(unittest.TestCase):
                         named=None,
                         override_bindings=False,
                     ),
-                    item_bindings=[
-                        RegisteredBinding(
-                            SelfBinding(MyType),
-                        )
-                    ],
+                    self.module,
+                    item_bindings=[RegisteredBinding(SelfBinding(MyType), binding_source=self.module)],
                 ),
-                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType)),
+                FrozenTarget(MyType): RegisteredBinding(SelfBinding(MyType), self.module),
             },
             self.module.binding_registry.get_bindings_by_target(),
         )
