@@ -3,6 +3,11 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 3.0.3
+### Fixes
+- Fixed a crash when using Instance Bindings with objects without an equality operator, such as pandas DataFrames or
+numpy arrays
+
 ## 3.0.2
 ### Fixes
 - Fixed an issue with multi binding unexpectedly injecting multiple instances of the same class

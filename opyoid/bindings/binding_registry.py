@@ -74,7 +74,7 @@ class BindingRegistry:
         self, registered_binding: RegisteredBinding[InjectedT], previous_binding: Optional[RegisteredBinding[InjectedT]]
     ) -> None:
         if self._log_bindings:
-            if previous_binding and previous_binding.raw_binding != registered_binding.raw_binding:
+            if previous_binding and previous_binding.raw_binding is not registered_binding.raw_binding:
                 self.logger.info(f"Overriding {previous_binding.raw_binding!r} with {registered_binding.raw_binding!r}")
             elif not previous_binding:
                 self.logger.debug(f"Registering {registered_binding.raw_binding!r}")
