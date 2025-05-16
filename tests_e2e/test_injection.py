@@ -1527,3 +1527,23 @@ class TestInjector(unittest.TestCase):
         injector = Injector([])
         with self.assertRaises(NoBindingFound):
             injector.inject(list[MyClass])
+
+    def test_instance_binding_without_equality(self):
+        class MyUnequalClass:
+            def __init__(self, arg: int):
+                self.arg = arg
+
+            def __eq__(self, other):
+                raise NotImplementedError
+
+        instance_1 = MyUnequalClass(1)
+        instance_2 = MyUnequalClass(2)
+
+        injector = Injector(
+            bindings=[
+                InstanceBinding(MyUnequalClass, instance_1),
+                InstanceBinding(MyUnequalClass, instance_2),
+            ]
+        )
+        result = injector.inject(MyUnequalClass)
+        self.assertEqual(2, result.arg)
