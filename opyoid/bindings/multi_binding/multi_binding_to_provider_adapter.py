@@ -28,7 +28,7 @@ class MultiBindingToProviderAdapter(BindingToProviderAdapter):
         if not isinstance(binding, RegisteredMultiBinding):
             raise IncompatibleAdapter
 
-        multi_registered_binding = cast(RegisteredMultiBinding[Any], binding)
+        multi_registered_binding = binding
 
         item_providers = []
         for sub_binding in multi_registered_binding.item_bindings:

@@ -19,4 +19,4 @@ class ThreadScopedProvider(Provider[InjectedT]):
                 return cast(InjectedT, self._local.cached_instance)
             except AttributeError:
                 self._local.cached_instance = self._inner_provider.get()
-        return self._local.cached_instance
+        return cast(InjectedT, self._local.cached_instance)
