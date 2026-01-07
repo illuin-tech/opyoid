@@ -133,9 +133,12 @@ class CallableToProviderAdapter:
         targets: List[Target[InjectedT]], parent_context: InjectionContext[Any]
     ) -> Optional[Provider[InjectedT]]:
         for target_index, target in enumerate(targets):
-            context = parent_context.get_child_context(target, allow_jit_provider=target_index == len(targets) - 1)
-            context.current_class = parent_context.current_class
-            context.current_parameter = parent_context.current_parameter
+            context = parent_context.get_child_context(
+                target,
+                allow_jit_provider=target_index == len(targets) - 1,
+                current_class=parent_context.current_class,
+                current_parameter=parent_context.current_parameter,
+            )
             try:
                 return context.get_provider()
             except NoBindingFound:

@@ -6,15 +6,14 @@ on:
     types:
       - created
 
-permissions:
-  contents: read
-
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
-        python-version: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
+        python-version: [ '3.10', '3.11', '3.12', '3.13', '3.14' ]
 
     steps:
       - uses: actions/checkout@v6
@@ -38,9 +37,11 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
-        python-version: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14' ]
+        python-version: [ '3.10', '3.11', '3.12', '3.13', '3.14' ]
 
     steps:
       - uses: actions/checkout@v6
@@ -66,6 +67,8 @@ jobs:
     needs: [ test, lint ]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'release' }}
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v6

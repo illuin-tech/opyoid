@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 3.0.4
+### Fixes
+- Fix dependency loops not always raising a `CyclicDependencyError` and crashing with a `maximum recursion depth exceeded`
+
 ## 3.0.3
 ### Fixes
 - Fixed a crash when using Instance Bindings with objects without an equality operator, such as pandas DataFrames or
