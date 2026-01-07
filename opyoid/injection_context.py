@@ -10,7 +10,7 @@ from .target import Target
 from .utils import InjectedT
 
 if TYPE_CHECKING:
-    from .bindings import Binding, RegisteredBinding
+    from .bindings import RegisteredBinding
     from .injection_state import InjectionState
 
 
@@ -47,9 +47,16 @@ class InjectionContext(Generic[InjectedT]):
         return chain
 
     def get_child_context(
-        self, new_target: Target[InjectedSubT], allow_jit_provider: bool = True
+        self,
+        new_target: Target[InjectedSubT],
+        *,
+        allow_jit_provider: bool = True,
+        current_class: Optional[Type[InjectedSubT]] = None,
+        current_parameter: Optional[Parameter] = None,
     ) -> "InjectionContext[InjectedSubT]":
-        return InjectionContext(new_target, self.injection_state, self, allow_jit_provider)
+        return InjectionContext(
+            new_target, self.injection_state, self, allow_jit_provider, current_class, current_parameter
+        )
 
     def get_new_state_context(self, new_state: "InjectionState") -> "InjectionContext[InjectedT]":
         return InjectionContext(self.target, new_state, self.parent_context, self.allow_jit_provider)

@@ -18,9 +18,9 @@ class UnionProviderFactory(ProviderFactory):
         for subtype in cast(Union[InjectedT], context.target.type).__args__:
             try:
                 new_target: Target[InjectedT] = Target(subtype, context.target.named)
-                new_context = context.get_child_context(new_target)
-                new_context.current_class = context.current_class
-                new_context.current_parameter = context.current_parameter
+                new_context = context.get_child_context(
+                    new_target, current_class=context.current_class, current_parameter=context.current_parameter
+                )
                 return new_context.get_provider()
             except NoBindingFound:
                 pass

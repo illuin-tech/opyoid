@@ -1189,6 +1189,29 @@ class TestInjector(unittest.TestCase):
         with self.assertRaises(CyclicDependencyError):
             Injector(bindings=[ClassBinding(MyClass, MyImpl), SelfBinding(MyOtherClass)])
 
+    def test_list_circular_injection_raises_error(self):
+        class ParentClass:
+            def __init__(self, children: List[MyClass]):
+                self.children = children
+
+        class SubClass2(MyClass):
+            def __init__(self, parent: ParentClass):
+                self.parent = parent
+
+        class SubClass1(MyClass):
+            pass
+
+        class MyModule(Module):
+            def configure(self):
+                self.bind(ParentClass)
+                self.multi_bind(
+                    MyClass,
+                    [self.bind_item(to_class=SubClass1), self.bind_item(to_class=SubClass2)],
+                )
+
+        with self.assertRaises(CyclicDependencyError):
+            Injector([MyModule])
+
     def test_cyclic_dependencies_with_private_module_are_handled(self):
         class MyOtherClass:
             def __init__(self, arg: MyClass):
