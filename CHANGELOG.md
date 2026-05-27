@@ -3,6 +3,10 @@
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
 ## Unreleased
+## 3.0.5
+### Fixes
+- Bump dependencies versions
+
 ## 3.0.4
 ### Fixes
 - Fix dependency loops not always raising a `CyclicDependencyError` and crashing with a `maximum recursion depth exceeded`
