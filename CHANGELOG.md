@@ -2,7 +2,10 @@
 
 Opyoid follows [semver guidelines](https://semver.org) for versioning.
 
-## Unreleased
+## 4.0.0
+### Breaking changes
+- Remove support for Python 3.9
+
 ## 3.0.4
 ### Fixes
 - Fix dependency loops not always raising a `CyclicDependencyError` and crashing with a `maximum recursion depth exceeded`
