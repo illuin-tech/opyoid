@@ -29,7 +29,7 @@ dev = [
     "mypy==2.1.0",
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
-    "pylint==4.0.5",
+    "pylint==4.0.6",
     "setuptools==82.0.1",
     "twine==6.2.0",
     "wheel==0.47.0",
