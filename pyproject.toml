@@ -30,7 +30,7 @@ dev = [
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
     "pylint==4.1.2",
-    "setuptools==84.0.0",
+    "setuptools==84.2.1",
     "twine==7.0.0",
     "wheel==0.48.0",
 ]
